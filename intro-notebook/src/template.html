@@ -1,0 +1,1111 @@
+<title>GZ2H Lesson Notebook</title>
+<style>
+/* Layout: the film sits on the page like a photo taped into a notebook; transport and four index-card scenes below */
+:root {
+  --paper: #f3ede0;
+  --card: #fffcf4;
+  --ink: #26201b;
+  --muted: #6a6056;
+  --pencil: #8a8279;
+  --rule: #d6cab4;
+  --grid: rgba(70, 125, 160, 0.13);
+  --blue: rgba(70, 125, 160, 0.32);
+  --red: #b80016;
+  --crimson: #4b0011;
+  --gold: #c8901c;
+  --tape: rgba(232, 214, 160, 0.66);
+  --display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+html, body { background: var(--paper); color: var(--ink); }
+body { margin: 0; font-family: var(--display); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 26px 26px; background-position: -1px -1px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 30px 56px; display: grid; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
+h1 { position: relative; margin: 0; font-size: clamp(22px, 2.6vw, 30px); font-weight: 700; letter-spacing: -0.015em; }
+h1 .w { position: relative; display: inline-block; }
+h1 .w::after { content: ""; position: absolute; left: -2%; right: -2%; bottom: -9px; height: 12px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8 C 60 3, 120 10, 180 6 S 270 3, 297 5' fill='none' stroke='%23b80016' stroke-width='3.2' stroke-linecap='round' opacity='.85'/%3E%3C/svg%3E") no-repeat center / 100% 100%; }
+h1 .cut { font-family: var(--mono); font-weight: 400; font-size: 0.5em; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-left: 12px; vertical-align: 0.25em; white-space: nowrap; }
+h1 .cut svg { width: 1.3em; height: 1.3em; vertical-align: -0.28em; margin-right: 4px; }
+.meta { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.frame { position: relative; padding: 9px; background: #fffdf8; border-radius: 2px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.12), 0 22px 44px -22px rgba(60, 40, 20, 0.45); transform: rotate(-0.25deg); }
+.frame::before, .frame::after { content: ""; position: absolute; top: -12px; width: clamp(64px, 12vw, 120px); height: 26px; background: var(--tape); box-shadow: 0 1px 2px rgba(60, 40, 20, 0.12); z-index: 2; pointer-events: none; }
+.frame::before { left: 22px; transform: rotate(-5deg); }
+.frame::after { right: 22px; transform: rotate(4deg); }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #efe7d6; overflow: hidden; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; border: 0; padding: 0; cursor: pointer; color: var(--ink); background: radial-gradient(ellipse at center, rgba(255, 250, 238, 0.25) 30%, rgba(70, 50, 30, 0.22)); }
+.overlay[hidden] { display: none !important; }
+.pill { display: inline-flex; align-items: center; gap: 14px; padding: 10px 22px 10px 10px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 14px 10px 16px 9px / 10px 16px 9px 14px; box-shadow: 3px 3px 0 rgba(38, 32, 27, 0.85); font: 700 14px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; transition: transform 0.2s ease; }
+.overlay:hover .pill, .overlay:focus-visible .pill { transform: rotate(-1.5deg) scale(1.04); }
+.overlay:focus-visible { outline: none; }
+.overlay:focus-visible .pill { outline: 2px solid var(--red); outline-offset: 4px; }
+.disc { position: relative; width: 48px; height: 48px; display: grid; place-items: center; }
+.disc .ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.disc .tri { width: 17px; height: 17px; margin-left: 3px; fill: var(--red); }
+.transport { display: flex; align-items: center; gap: 12px 14px; flex-wrap: wrap; }
+.tbtn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 10px 14px 9px 13px / 13px 9px 14px 10px; background: var(--card); color: var(--ink); font: 700 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; box-shadow: 2px 2px 0 rgba(38, 32, 27, 0.85); transition: transform 0.12s ease, box-shadow 0.12s ease; }
+.tbtn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(38, 32, 27, 0.85); }
+.tbtn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(38, 32, 27, 0.85); }
+.tbtn:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+.tbtn svg { width: 14px; height: 14px; fill: currentColor; }
+.tbtn[aria-pressed="false"] { color: var(--muted); }
+.track { position: relative; flex: 1 1 240px; min-width: 0; height: 38px; display: flex; align-items: center; }
+.ticks { position: absolute; inset: 0; pointer-events: none; }
+.ticks i { position: absolute; top: 7px; width: 2px; height: 8px; border-radius: 1px; background: var(--pencil); opacity: 0.8; transform: rotate(8deg); }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 38px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: linear-gradient(to right, var(--red) var(--p, 0%), var(--pencil) var(--p, 0%)); }
+input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--pencil); }
+input[type="range"]::-moz-range-progress { height: 3px; background: var(--red); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%; background: var(--red); border: 2px solid var(--card); box-shadow: 0 0 0 1.5px var(--ink); }
+input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--red); border: 2px solid var(--card); box-shadow: 0 0 0 1.5px var(--ink); }
+input[type="range"]:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.tc { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tc b { color: var(--ink); font-weight: 700; }
+.scenes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .scenes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .scenes { gap: 10px; } }
+.scene { position: relative; display: grid; gap: 6px; align-content: start; text-align: left; padding: 12px 14px 18px; border: 1px solid var(--rule); border-radius: 3px; color: var(--ink); font: inherit; cursor: pointer; overflow: hidden; min-width: 0;
+  background: linear-gradient(to bottom, transparent 33px, rgba(184, 0, 22, 0.35) 33px, rgba(184, 0, 22, 0.35) 34.5px, transparent 34.5px), repeating-linear-gradient(to bottom, transparent 0 21px, var(--blue) 21px 22px) 0 34px / 100% calc(100% - 34px) no-repeat, var(--card);
+  box-shadow: 0 1px 1px rgba(60, 40, 20, 0.08), 0 6px 14px -10px rgba(60, 40, 20, 0.4); transition: transform 0.15s ease; }
+.scene:hover { transform: rotate(-0.6deg) translateY(-1px); }
+.scene:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+.scene .st { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--muted); height: 22px; display: flex; align-items: center; gap: 6px; }
+.scene .st b { position: relative; display: inline-grid; place-items: center; width: 22px; height: 22px; font-weight: 700; color: var(--ink); }
+.scene .st b::before { content: ""; position: absolute; inset: -3px -5px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 32'%3E%3Cpath d='M30 5 C 18 0, 3 6, 4 17 C 5 28, 30 31, 36 19 C 40 10, 30 3, 19 4' fill='none' stroke='%23b80016' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%; opacity: 0; transition: opacity 0.15s ease; }
+.scene .sn { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; line-height: 22px; }
+.scene .sd { font-size: 13.5px; line-height: 22px; color: var(--muted); }
+.scene .fill { position: absolute; left: 0; bottom: 4px; height: 3px; width: 0; background: var(--red); border-radius: 2px; opacity: 0.85; }
+.scene.on { border-color: rgba(184, 0, 22, 0.5); }
+.scene.on .st b::before { opacity: 1; }
+.scene.on .st { color: var(--red); }
+body.render { margin: 0; overflow: hidden; background: #000; background-image: none; }
+body.render .wrap > *:not(.frame) { display: none !important; }
+body.render .wrap { padding: 0; max-width: none; display: block; }
+body.render .frame { padding: 0; box-shadow: none; transform: none; border-radius: 0; }
+body.render .frame::before, body.render .frame::after { display: none; }
+body.render .stage { width: 1920px; height: 1080px; }
+body.render .overlay { display: none !important; }
+@media (max-width: 560px) { .pill { gap: 10px; padding: 6px 14px 6px 6px; font-size: 12px; } .disc { width: 36px; height: 36px; } .disc .tri { width: 13px; height: 13px; } }
+@media (prefers-reduced-motion: reduce) { .pill, .overlay:hover .pill, .tbtn, .tbtn:hover, .scene, .scene:hover, .scene .st b::before { transition: none; transform: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span class="w">GuitarZero2Hero</span><span class="cut"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.7 6 6.5.6-4.9 4.3 1.5 6.4L12 16.6l-5.8 3.3 1.5-6.4-4.9-4.3 6.5-.6z" fill="#e2ad3a" stroke="#8a5a12" stroke-width="1.1" stroke-linejoin="round"/></svg>Notebook cut</span></h1>
+    <div class="meta">8.2 s · 1920×1080 · 60 fps · stereo sound</div>
+  </header>
+
+  <div class="frame">
+    <div class="stage" id="stage">
+      <canvas id="c" width="1920" height="1080" aria-label="GuitarZero2Hero notebook intro: guitar tab drawn on grid paper turns into the logo"></canvas>
+      <button class="overlay" id="big" type="button" aria-label="Play intro with sound">
+        <span class="pill"><span class="disc"><svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><path d="M33 7 C 20 1, 4 9, 5 25 C 6 41, 33 46, 42 31 C 48 20, 40 7, 24 6" fill="none" stroke="#b80016" stroke-width="3" stroke-linecap="round"/></svg><svg class="tri" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg></span><span id="bigLabel">Play with sound</span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="transport">
+    <button class="tbtn" id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" id="playIcon"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg><span id="playLabel">Play</span></button>
+    <button class="tbtn" id="sound" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.5h2.6L8.3 2.4c.4-.3 1-.1 1 .5v10.2c0 .6-.6.8-1 .5L4.6 10.5H2c-.4 0-.7-.3-.7-.7V6.2c0-.4.3-.7.7-.7zm9.4-.9a.7.7 0 0 1 1 0 4.9 4.9 0 0 1 0 6.8.7.7 0 1 1-1-1 3.5 3.5 0 0 0 0-4.8.7.7 0 0 1 0-1z"/></svg><span id="soundLabel">Sound on</span></button>
+    <div class="track">
+      <div class="ticks" id="ticks"></div>
+      <input type="range" id="scrub" min="0" max="8.2" step="0.001" value="7.7" aria-label="Timeline position in seconds">
+    </div>
+    <div class="tc"><b id="tcNow">7.70</b> / 8.20 s</div>
+  </div>
+
+  <nav class="scenes" id="scenes" aria-label="Scenes"></nav>
+</div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+(() => {
+'use strict';
+
+// ───────────────────────── math ─────────────────────────
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const inv = (a, b, x) => clamp((x - a) / (b - a));
+const sstep = (a, b, x) => { const t = inv(a, b, x); return t * t * (3 - 2 * t); };
+const eOut3 = t => 1 - (1 - t) ** 3;
+const eIO3 = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const mj = u => u * u * u * (10 - 15 * u + 6 * u * u);           // minimum-jerk pen profile
+const mulberry = a => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const vnoise = x => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return lerp(hash(i), hash(i + 1), u) * 2 - 1; };
+const spring = (tau, f = 2.6, z = 0.4) => {
+  if (tau <= 0) return 0;
+  const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * tau) * (Math.cos(wd * tau) + (z * w / wd) * Math.sin(wd * tau));
+};
+const TAU = Math.PI * 2;
+
+// ───────────────────────── timeline (seconds) ─────────────────────────
+const DUR = 8.2;
+const T = {
+  lines: 0.08, lineStag: 0.065, lineDur: 0.24,
+  zeros: 0.86, strum: 1.20,
+  riff: [1.50, 1.74, 1.98, 2.22, 2.46, 2.72],
+  doodle: 2.84, sketch: 2.88,
+  clear: 3.36,
+  morph: 3.44, morphStag: 0.065, morphDur: 0.5,
+  attach: [4.40, 4.50, 4.60, 4.70],
+  wm0: 4.86, wmStag: 0.062, wmDur: 0.26,
+  chord: 6.10,
+  url0: 6.07, url1: 6.60,
+  swoosh: 6.62,
+  slap: 6.92, glint: 7.08,
+};
+const SCENES = [
+  { t: 0.00, end: 0.86, name: 'The staff', desc: 'A pencil rules six lines on grid paper, writes TAB and names the strings.' },
+  { t: 0.86, end: 2.84, name: 'Zero to twelve', desc: 'Open strings are strummed, then a riff climbs the staff from fret 0 to the octave at 12.' },
+  { t: 2.84, end: 4.86, name: 'Tab to logo', desc: 'Doodles fill the margins, and the six lines peel up into the GZ2H logo in red marker.' },
+  { t: 4.86, end: 8.20, name: 'Lesson complete', desc: 'The wordmark is lettered and filled, the URL is penciled in, and a gold star lands.' },
+];
+
+// ───────────────────────── page geometry (world px; the final framing is about 1:1) ─────────────────────────
+const W = 1920, H = 1080;
+const LS = 0.30, LX = 1611.5, LY0 = 138;                        // logo units → world
+const lw = (x, y) => [960 + (x - LX) * LS, LY0 + y * LS];
+const LINE_Y = [215, 255, 295, 335, 375, 415], SX0 = 378, SX1 = 1546;   // tab staff (top = high e)
+const OPEN = [329.63, 246.94, 196.0, 146.83, 110.0, 82.41];
+const NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
+const COL_X = 540;
+const RIFF = [
+  { x: 668, line: 5, fret: '0', f: 82.41 }, { x: 788, line: 4, fret: '3', f: 130.81 }, { x: 908, line: 3, fret: '5', f: 196.0 },
+  { x: 1028, line: 2, fret: '7', f: 293.66 }, { x: 1158, line: 1, fret: '10', f: 440.0 }, { x: 1300, line: 0, fret: '12', f: 659.26 },
+];
+RIFF.forEach((r, i) => { r.t = T.riff[i]; r.y = LINE_Y[r.line]; });
+const WM_SC = 1180 / SH.wm.inkW, WM_BASE = 682;
+const STAR = { x: 1604, y: 232, R: 80, r: 38, rot: -0.2 };
+
+// ───────────────────────── canvases ─────────────────────────
+const out = document.getElementById('c');
+const ctx = out.getContext('2d');
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+let Q = 1, CW = 1920, CH = 1080;
+function setQuality(q) { Q = q; CW = Math.round(W * q); CH = Math.round(H * q); out.width = CW; out.height = CH; SHB = null; }
+// shadows of ink lifted off the page go into a quarter-resolution buffer, blurred there (cheap), then multiplied on
+let SHB = null;
+function shadowLayer() {
+  if (!SHB) { const w = Math.ceil(CW / 4), h = Math.ceil(CH / 4), a = mk(w, h), b = mk(w, h); SHB = { a, ax: a.getContext('2d'), b, bx: b.getContext('2d'), used: false, w, h }; }
+  if (!SHB.used) { SHB.used = true; SHB.ax.setTransform(1, 0, 0, 1, 0, 0); SHB.ax.clearRect(0, 0, SHB.w, SHB.h); setCam(SHB.ax, camK, Q / 4); }
+  return SHB.ax;
+}
+function shadowFlush(c) {
+  if (!SHB || !SHB.used) return;
+  const { a, b, bx, w, h } = SHB;
+  bx.setTransform(1, 0, 0, 1, 0, 0); bx.clearRect(0, 0, w, h); bx.filter = `blur(${1.7 * Q}px)`; bx.drawImage(a, 0, 0); bx.filter = 'none';
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 1; c.imageSmoothingEnabled = true;
+  c.drawImage(b, 0, 0, w * 4, h * 4); c.restore();
+  SHB.used = false;
+}
+// the paper texture is built at the resolution the current quality needs (on first use, and again if the stage grows)
+function ensurePaper() { if (fontsOK && paperRes < 1.36 * Q - 0.05) buildPaper(1.36 * Q); }
+
+// graphite: a grainy alpha texture anchored to the paper
+const GRAPHITE = (() => {
+  const c = mk(256, 256), x = c.getContext('2d'), id = x.createImageData(256, 256), r = mulberry(77);
+  const cell = (i, j) => hash((i & 31) * 37.1 + (j & 31) * 91.7 + 0.3);
+  for (let i = 0; i < 256 * 256; i++) {
+    const px = (i % 256) / 8, py = Math.floor(i / 256) / 8, ix = Math.floor(px), iy = Math.floor(py), fx = px - ix, fy = py - iy;
+    const coarse = lerp(lerp(cell(ix, iy), cell(ix + 1, iy), fx), lerp(cell(ix, iy + 1), cell(ix + 1, iy + 1), fx), fy);
+    const n = r(), a = (n < 0.2 ? 0.12 + 0.25 * r() : 0.5 + 0.5 * r()) * (0.62 + 0.38 * coarse);
+    id.data[i * 4] = 50; id.data[i * 4 + 1] = 51; id.data[i * 4 + 2] = 62; id.data[i * 4 + 3] = a * 255;
+  }
+  x.putImageData(id, 0, 0);
+  return ctx.createPattern(c, 'repeat');
+})();
+const GRAIN = [0, 1, 2, 3].map(s => {
+  const c = mk(256, 256), x = c.getContext('2d'), id = x.createImageData(256, 256), r = mulberry(99 + s * 7);
+  for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (r() + r() + r() - 1.5) * 90; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  x.putImageData(id, 0, 0); return c;
+});
+const FOIL = (() => {
+  const c = mk(128, 128), x = c.getContext('2d'), id = x.createImageData(128, 128), r = mulberry(5);
+  for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (r() - 0.5) * 150; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  x.putImageData(id, 0, 0); return ctx.createPattern(c, 'repeat');
+})();
+
+// ───────────────────────── paper ─────────────────────────
+const PX0 = -320, PY0 = -380, PWW = 2560, PHH = 1840;
+let paperC = null, paperRes = 0, fontsOK = false;
+function buildPaper(res) {
+  paperRes = res;
+  const cw = Math.ceil(PWW * res), ch = Math.ceil(PHH * res);
+  paperC = mk(cw, ch);
+  const p = paperC.getContext('2d'), r = mulberry(2024);
+  p.setTransform(res, 0, 0, res, -PX0 * res, -PY0 * res);
+  p.fillStyle = '#f9f6ee'; p.fillRect(PX0, PY0, PWW, PHH);
+  // soft mottling, two octaves
+  for (const [gw, gh, a] of [[36, 26, 0.22], [110, 80, 0.12]]) {
+    const s = mk(gw, gh), sx = s.getContext('2d'), id = sx.createImageData(gw, gh);
+    for (let i = 0; i < gw * gh; i++) { const v = r(); id.data[i * 4] = 255 - v * 16; id.data[i * 4 + 1] = 253 - v * 21; id.data[i * 4 + 2] = 248 - v * 30; id.data[i * 4 + 3] = 255; }
+    sx.putImageData(id, 0, 0);
+    p.save(); p.globalCompositeOperation = 'multiply'; p.globalAlpha = a; p.imageSmoothingEnabled = true; p.imageSmoothingQuality = 'high';
+    p.drawImage(s, PX0, PY0, PWW, PHH); p.restore();
+  }
+  // fibres
+  for (const [col, wdt, count] of [['rgba(140,112,78,0.07)', 0.7, 2600], ['rgba(255,255,252,0.35)', 0.9, 1800], ['rgba(120,96,70,0.10)', 0.5, 900]]) {
+    p.beginPath();
+    for (let i = 0; i < count; i++) {
+      const x = PX0 + r() * PWW, y = PY0 + r() * PHH, a = r() * TAU, l = 3 + r() * 11, bend = (r() - 0.5) * 5;
+      const ex = x + Math.cos(a) * l, ey = y + Math.sin(a) * l;
+      p.moveTo(x, y); p.quadraticCurveTo((x + ex) / 2 - Math.sin(a) * bend, (y + ey) / 2 + Math.cos(a) * bend, ex, ey);
+    }
+    p.strokeStyle = col; p.lineWidth = wdt; p.stroke();
+  }
+  // printed 5 mm grid: lines every 40 px, aligned with the tab staff
+  p.lineWidth = 1.15;
+  for (let x = 20 - 40 * 9; x < PX0 + PWW; x += 40) { p.strokeStyle = `rgba(74,128,162,${0.27 + 0.05 * (r() - 0.5)})`; p.beginPath(); p.moveTo(x, PY0); p.lineTo(x, PY0 + PHH); p.stroke(); }
+  for (let y = 15 - 40 * 10; y < PY0 + PHH; y += 40) { p.strokeStyle = `rgba(74,128,162,${0.27 + 0.05 * (r() - 0.5)})`; p.beginPath(); p.moveTo(PX0, y); p.lineTo(PX0 + PWW, y); p.stroke(); }
+  // the page curves gently into the binding on the left
+  const gut = p.createLinearGradient(PX0, 0, 150, 0);
+  gut.addColorStop(0, 'rgba(120,98,70,0.55)'); gut.addColorStop(0.35, 'rgba(150,126,96,0.22)'); gut.addColorStop(1, 'rgba(160,140,110,0)');
+  p.save(); p.globalCompositeOperation = 'multiply'; p.fillStyle = gut; p.fillRect(PX0, PY0, 150 - PX0, PHH); p.restore();
+  // printed header
+  p.fillStyle = 'rgba(64,112,146,0.78)'; p.strokeStyle = 'rgba(64,112,146,0.7)'; p.lineWidth = 1.4;
+  p.font = '400 17px "Space Mono"'; p.textBaseline = 'alphabetic';
+  p.fillText('NO.', 1430, 38); p.beginPath(); p.moveTo(1472, 41); p.lineTo(1560, 41); p.stroke();
+  p.fillText('DATE', 1592, 38); p.beginPath(); p.moveTo(1648, 41); p.lineTo(1830, 41); p.stroke();
+  p.fillText('/', 1700, 38); p.fillText('/', 1762, 38);
+  // paper tooth + flecks
+  p.setTransform(1, 0, 0, 1, 0, 0);
+  const id = p.getImageData(0, 0, cw, ch), d = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (r() - 0.5) * 9 + (r() < 0.0006 ? -26 : 0);
+    d[i] += n; d[i + 1] += n; d[i + 2] += n * 1.1;
+  }
+  p.putImageData(id, 0, 0);
+}
+
+// ───────────────────────── fonts ─────────────────────────
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)).buffer;
+const ready = (async () => {
+  const faces = [
+    new FontFace('Space Grotesk', b64(FONTS.sg), { weight: '300 700' }),
+    new FontFace('Space Mono', b64(FONTS.sm4), { weight: '400' }),
+    new FontFace('Space Mono', b64(FONTS.sm7), { weight: '700' }),
+  ];
+  for (const f of faces) { await f.load(); document.fonts.add(f); }
+  fontsOK = true;
+})();
+
+// ───────────────────────── handwriting glyphs (units: cap 10, x-height 6.5, y up) ─────────────────────────
+const GL = {
+  '0': [6.4, ['O 3.2 5 3.0 5.05 100 470']],
+  '1': [4.2, ['M 0.5 7.8 L 2.6 10 L 2.6 0']],
+  '2': [6.4, ['M 0.6 7.6 C 1.0 10.5 5.7 10.6 5.6 7.5 C 5.5 5.1 1.6 2.8 0.4 0 L 6.1 0.1']],
+  '3': [6.2, ['M 0.6 9.0 C 1.8 10.5 5.4 10.4 5.3 7.7 C 5.2 5.9 3.6 5.3 2.3 5.3 C 4.2 5.3 5.8 4.3 5.7 2.5 C 5.6 -0.3 1.6 -0.6 0.3 1.3']],
+  '5': [6.2, ['M 5.4 10 L 1.3 10 L 0.9 5.7 C 2.6 6.9 5.8 6.6 5.8 3.2 C 5.8 -0.4 1.6 -0.7 0.3 1.3']],
+  '7': [6.0, ['M 0.3 10 L 5.8 10 L 2.2 0']],
+  'T': [6.6, ['M 0.2 10 L 6.4 10', 'M 3.3 10 L 3.3 0']],
+  'A': [7.0, ['M 0.2 0 L 3.5 10 L 6.8 0', 'M 1.5 3.7 L 5.5 3.7']],
+  'B': [6.6, ['M 0.6 0 L 0.6 10', 'M 0.6 10 L 3.0 10 C 6.0 10 6.0 5.3 3.0 5.3 L 1.2 5.3 L 3.4 5.3 C 6.8 5.3 6.8 0 3.4 0 L 0.6 0']],
+  'E': [6.0, ['M 5.6 10 L 0.6 10 L 0.6 0 L 5.8 0', 'M 0.6 5.2 L 4.6 5.2']],
+  'D': [7.0, ['M 0.6 0 L 0.6 10', 'M 0.6 10 L 2.8 10 C 7.4 10 7.4 0 2.8 0 L 0.6 0']],
+  'G': [7.2, ['M 6.2 8.4 C 5.2 10.4 0.4 10.9 0.4 5.0 C 0.4 -0.8 6.0 -0.8 6.4 2.8 L 6.4 4.4 L 3.8 4.4']],
+  'e': [5.8, ['M 0.7 3.3 L 5.3 3.3 C 5.5 5.6 4.4 6.6 3.0 6.6 C 1.2 6.6 0.3 5.0 0.3 3.2 C 0.3 1.0 1.6 -0.1 3.1 -0.1 C 4.1 -0.1 4.9 0.4 5.4 1.2']],
+  'z': [5.6, ['M 0.5 6.5 L 5.1 6.5 L 0.4 0 L 5.3 0']],
+  'r': [4.6, ['M 0.6 6.5 L 0.6 0', 'M 0.6 3.6 C 1.2 5.8 2.8 6.8 4.4 6.2']],
+  'o': [6.0, ['O 3.0 3.25 2.75 3.3 100 468']],
+  'h': [6.0, ['M 0.6 10.4 L 0.6 0', 'M 0.6 3.8 C 1.2 5.8 2.3 6.6 3.4 6.6 C 4.8 6.6 5.3 5.6 5.3 4.2 L 5.3 0']],
+  'g': [6.0, ['M 5.2 5.4 C 4.6 6.7 0.3 7.0 0.3 3.4 C 0.3 0.1 4.4 -0.1 5.2 2.0', 'M 5.3 6.5 L 5.3 -1.2 C 5.3 -4.0 1.4 -4.1 0.5 -2.4']],
+  'u': [6.0, ['M 0.6 6.5 L 0.6 2.4 C 0.6 0.4 1.7 -0.1 2.8 -0.1 C 4.2 -0.1 5.3 1.1 5.3 3.0', 'M 5.3 6.5 L 5.3 0']],
+  'i': [2.4, ['M 0.8 6.5 L 0.8 0', 'O 0.85 8.9 0.42 0.42 90 470']],
+  't': [4.2, ['M 1.7 9.2 L 1.7 1.3 C 1.7 -0.1 2.8 -0.3 3.9 0.2', 'M 0.1 6.3 L 3.8 6.5']],
+  'a': [6.0, ['M 5.2 5.4 C 4.6 6.7 0.3 7.0 0.3 3.3 C 0.3 -0.2 4.4 -0.3 5.2 2.1', 'M 5.3 6.5 L 5.3 0']],
+  'c': [5.6, ['M 5.2 5.4 C 4.6 6.4 3.9 6.7 3.0 6.7 C 1.2 6.7 0.3 5.0 0.3 3.2 C 0.3 1.0 1.6 -0.1 3.1 -0.1 C 4.1 -0.1 4.8 0.4 5.3 1.2']],
+  'm': [8.6, ['M 0.6 6.5 L 0.6 0', 'M 0.6 4.2 C 1.0 6.0 1.8 6.6 2.7 6.6 C 3.8 6.6 4.2 5.8 4.2 4.4 L 4.2 0', 'M 4.2 4.4 C 4.6 6.0 5.4 6.6 6.3 6.6 C 7.4 6.6 7.8 5.8 7.8 4.4 L 7.8 0']],
+  '.': [2.2, ['O 0.9 0.55 0.5 0.5 90 470']],
+};
+function parseGlyph(spec, step) {
+  const tk = spec.trim().split(/[\s,]+/), outP = [];
+  let i = 0, cx = 0, cy = 0;
+  const num = () => +tk[i++];
+  while (i < tk.length) {
+    const cmd = tk[i++];
+    if (cmd === 'M') { cx = num(); cy = num(); outP.push([cx, cy]); }
+    else if (cmd === 'L') { const x = num(), y = num(), n = Math.max(1, Math.ceil(Math.hypot(x - cx, y - cy) / step)); for (let k = 1; k <= n; k++) outP.push([cx + (x - cx) * k / n, cy + (y - cy) * k / n]); cx = x; cy = y; }
+    else if (cmd === 'C') {
+      const x1 = num(), y1 = num(), x2 = num(), y2 = num(), x = num(), y = num();
+      const n = Math.max(2, Math.ceil((Math.hypot(x1 - cx, y1 - cy) + Math.hypot(x2 - x1, y2 - y1) + Math.hypot(x - x2, y - y2)) / step));
+      for (let k = 1; k <= n; k++) { const t = k / n, u = 1 - t; outP.push([u * u * u * cx + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x, u * u * u * cy + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y]); }
+      cx = x; cy = y;
+    } else if (cmd === 'O') {
+      const ox = num(), oy = num(), rx = num(), ry = num(), a0 = num() * Math.PI / 180, a1 = num() * Math.PI / 180;
+      const n = Math.max(10, Math.ceil(Math.abs(a1 - a0) * Math.max(rx, ry) / step));
+      for (let k = 0; k <= n; k++) { const a = a0 + (a1 - a0) * k / n, gr = 1 + 0.05 * k / n; outP.push([ox + rx * gr * Math.cos(a), oy + ry * Math.sin(a)]); }
+      cx = outP[outP.length - 1][0]; cy = outP[outP.length - 1][1];
+    }
+  }
+  return outP;
+}
+const TRACK = 1.3;
+// a string of handwriting → polylines in world px. x is the left edge, or the centre with align: 'center'
+function writeText(str, x, base, sc, o = {}) {
+  const r = mulberry(o.seed || 7);
+  let w = 0; for (const ch of str) w += (GL[ch] ? GL[ch][0] : 4) + TRACK; w -= TRACK;
+  let px = o.align === 'center' ? x - w * sc / 2 : x;
+  const polys = [], slant = o.slant ?? 0.1;
+  for (const ch of str) {
+    const g = GL[ch]; if (!g) { px += 4 * sc; continue; }
+    const rot = (r() - 0.5) * 0.08, s2 = sc * (1 + (r() - 0.5) * 0.07), dy = (r() - 0.5) * 0.45 * sc, gw = g[0];
+    const cr = Math.cos(rot), sr = Math.sin(rot);
+    for (const spec of g[1]) {
+      polys.push(parseGlyph(spec, 0.3).map(([u, v]) => {
+        const X = u - gw / 2 + (v - 3) * slant, Y = v - 5;
+        return [px + gw / 2 * sc + (X * cr - Y * sr) * s2, base + dy - (5 + X * sr + Y * cr) * s2];
+      }));
+    }
+    px += (gw + TRACK) * sc;
+  }
+  return polys;
+}
+
+// ───────────────────────── strokes: pen dynamics ─────────────────────────
+const STROKES = [];       // every pen stroke, also drives the scratch sounds
+let SEEDC = 1;
+const WOB = { pencil: 1.1, liner: 0.45, crimson: 0.4, marker: 0.9 };
+const THIN = { pencil: 0.12, liner: 0.16, crimson: 0.18, marker: 0.22 };
+const plen = pts => { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; };
+function cumLen(X, Y) { const n = X.length, c = new Float32Array(n); for (let i = 1; i < n; i++) c[i] = c[i - 1] + Math.hypot(X[i] - X[i - 1], Y[i] - Y[i - 1]); return c; }
+function normals(X, Y, NX, NY, n) {
+  let px = 0, py = 1;
+  for (let i = 0; i < n; i++) {
+    const a = Math.max(0, i - 1), b = Math.min(n - 1, i + 1);
+    const dx = X[b] - X[a], dy = Y[b] - Y[a], l = Math.hypot(dx, dy);
+    if (l > 1e-6) { px = -dy / l; py = dx / l; }
+    NX[i] = px; NY[i] = py;
+  }
+}
+function densify(pts, step = 3) {
+  const o = [pts[0]];
+  for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step)); for (let k = 1; k <= n; k++) o.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); }
+  return o;
+}
+function chaikin(pts, it = 1, closed = false) {
+  for (let k = 0; k < it; k++) {
+    const o = closed ? [] : [pts[0]], n = pts.length;
+    for (let i = 0; i < n - 1; i++) { const a = pts[i], b = pts[i + 1]; o.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]); }
+    if (closed) o.push(o[0]); else o.push(pts[n - 1]);
+    pts = o;
+  }
+  return pts;
+}
+function resamplePts(pts, n) {
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = cum[cum.length - 1], o = []; let seg = 0;
+  for (let j = 0; j < n; j++) {
+    const s = L * j / (n - 1);
+    while (seg < pts.length - 2 && cum[seg + 1] < s) seg++;
+    const a = pts[seg], b = pts[seg + 1], f = clamp((s - cum[seg]) / ((cum[seg + 1] - cum[seg]) || 1));
+    o.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+  }
+  return o;
+}
+function mkStroke(pts, o) {
+  if (pts.length < 2) pts = [pts[0], [pts[0][0] + 0.3, pts[0][1] + 0.3]];
+  const n = pts.length, X = new Float32Array(n), Y = new Float32Array(n), NX = new Float32Array(n), NY = new Float32Array(n);
+  for (let i = 0; i < n; i++) { X[i] = pts[i][0]; Y[i] = pts[i][1]; }
+  const seed = o.seed ?? (SEEDC++ * 13.37 + 0.5), wob = o.wob ?? WOB[o.tool];
+  if (wob > 0) {
+    const c0 = cumLen(X, Y); normals(X, Y, NX, NY, n);
+    const wl = o.wl || 90;
+    for (let i = 0; i < n; i++) { const d = wob * (0.75 * vnoise(c0[i] / wl + seed) + 0.25 * vnoise(c0[i] / 19 + seed * 1.9 + 3)); X[i] += NX[i] * d; Y[i] += NY[i] * d; }
+  }
+  const cum = cumLen(X, Y), L = cum[n - 1]; normals(X, Y, NX, NY, n);
+  const w0 = o.w * (1 + (hash(seed) - 0.5) * 0.12), thin = o.thin ?? THIN[o.tool];
+  const WD = new Float32Array(n), LXa = new Float32Array(n), LYa = new Float32Array(n), RXa = new Float32Array(n), RYa = new Float32Array(n);
+  let sx = 0;
+  for (let i = 0; i < n; i++) {
+    const u = L > 0 ? cum[i] / L : 0;
+    let f = 1 - thin * Math.pow(Math.sin(Math.PI * u), 0.8);
+    if (o.tool === 'pencil' || o.taper) f *= lerp(0.35, 1, sstep(0, 8, cum[i])) * lerp(0.4, 1, sstep(0, 10, L - cum[i]));
+    WD[i] = w0 * f;
+    LXa[i] = X[i] + NX[i] * WD[i] / 2; LYa[i] = Y[i] + NY[i] * WD[i] / 2; RXa[i] = X[i] - NX[i] * WD[i] / 2; RYa[i] = Y[i] - NY[i] * WD[i] / 2;
+    sx += X[i];
+  }
+  const s = { X, Y, NX, NY, WD, LXa, LYa, RXa, RYa, cum, L, n, seed, tool: o.tool, t0: o.t0, t1: o.t1, alpha: o.alpha ?? 1, pool: o.pool ?? o.tool === 'marker', prog: o.prog || null, cx: sx / n, sfx: o.sfx ?? 1 };
+  if (o.audio !== false) STROKES.push(s);
+  return s;
+}
+function inkStyle(c, tool, a) {
+  c.globalCompositeOperation = 'multiply';
+  if (tool === 'pencil') { c.fillStyle = GRAPHITE; c.globalAlpha = clamp(0.92 * a); }
+  else if (tool === 'liner') { c.fillStyle = '#1d1a22'; c.globalAlpha = clamp(0.92 * a); }
+  else if (tool === 'crimson') { c.fillStyle = '#3d0613'; c.globalAlpha = clamp(0.94 * a); }
+  else { c.fillStyle = '#c8000c'; c.globalAlpha = clamp(0.9 * a); }
+}
+function progOf(s, t) { if (s.prog) return s.prog(t); return t <= s.t0 ? 0 : t >= s.t1 ? 1 : mj((t - s.t0) / (s.t1 - s.t0)); }
+function drawStroke(c, s, t, a = 1) {
+  const p = progOf(s, t);
+  if (p <= 0 || a <= 0.003) return;
+  const Lv = p * s.L, cum = s.cum;
+  let k;
+  if (p >= 1) k = s.n - 1;
+  else { let lo = 0, hi = s.n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (cum[m] <= Lv) lo = m; else hi = m; } k = lo; }
+  let hx, hy, hw, hnx = s.NX[k], hny = s.NY[k];
+  if (k >= s.n - 1) { hx = s.X[k]; hy = s.Y[k]; hw = s.WD[k]; }
+  else { const f = (Lv - cum[k]) / ((cum[k + 1] - cum[k]) || 1); hx = lerp(s.X[k], s.X[k + 1], f); hy = lerp(s.Y[k], s.Y[k + 1], f); hw = lerp(s.WD[k], s.WD[k + 1], f) * (1 + 0.12 * (s.tool === 'marker')); }
+  inkStyle(c, s.tool, a * s.alpha);
+  c.beginPath();
+  for (let i = 0; i <= k; i++) c.lineTo(s.LXa[i], s.LYa[i]);
+  const ha = Math.atan2(hny, hnx);
+  c.lineTo(hx + hnx * hw / 2, hy + hny * hw / 2);
+  c.arc(hx, hy, hw / 2, ha, ha - Math.PI, true);
+  for (let i = k; i >= 0; i--) c.lineTo(s.RXa[i], s.RYa[i]);
+  const sa = Math.atan2(-s.NY[0], -s.NX[0]);
+  c.arc(s.X[0], s.Y[0], s.WD[0] / 2, sa, sa - Math.PI, true);
+  c.closePath(); c.fill();
+  if (s.pool) {
+    c.globalAlpha = clamp(0.32 * a * s.alpha);
+    c.beginPath(); c.arc(s.X[0], s.Y[0], s.WD[0] * 0.52, 0, TAU); c.fill();
+    if (p >= 1) { c.beginPath(); c.arc(s.X[s.n - 1], s.Y[s.n - 1], s.WD[s.n - 1] * 0.5, 0, TAU); c.fill(); }
+  }
+}
+// ribbon through moving points (the morphing tab lines)
+const TNX = new Float32Array(2048), TNY = new Float32Array(2048);
+function dynRibbon(c, X, Y, WD, n, wmul = 1) {
+  normals(X, Y, TNX, TNY, n);
+  c.beginPath();
+  for (let i = 0; i < n; i++) c.lineTo(X[i] + TNX[i] * WD[i] * wmul / 2, Y[i] + TNY[i] * WD[i] * wmul / 2);
+  const e = n - 1, ea = Math.atan2(TNY[e], TNX[e]);
+  c.arc(X[e], Y[e], WD[e] * wmul / 2, ea, ea - Math.PI, true);
+  for (let i = n - 1; i >= 0; i--) c.lineTo(X[i] - TNX[i] * WD[i] * wmul / 2, Y[i] - TNY[i] * WD[i] * wmul / 2);
+  const sa = Math.atan2(-TNY[0], -TNX[0]);
+  c.arc(X[0], Y[0], WD[0] * wmul / 2, sa, sa - Math.PI, true);
+  c.closePath(); c.fill();
+}
+// lay polylines down one after another in [t0, t1], time proportional to length plus a pen lift
+function seq(polys, t0, t1, o) {
+  const gap = o.gap ?? 14, Ls = polys.map(plen), tot = Ls.reduce((a, b) => a + b + gap, 0) - gap;
+  let acc = 0;
+  return polys.map((p, i) => {
+    const a = t0 + (t1 - t0) * acc / tot; acc += Ls[i];
+    const b = Math.max(a + 0.025, t0 + (t1 - t0) * acc / tot); acc += gap;
+    return mkStroke(p, { ...o, t0: a, t1: b });
+  });
+}
+function loopPts(cx, cy, rx, ry, a0, turns, o = {}) {
+  const n = Math.ceil(turns * 70), pts = [], tilt = o.tilt || 0, grow = o.grow ?? 1.06;
+  for (let k = 0; k <= n; k++) {
+    const u = k / n, a = a0 + TAU * turns * u * (o.dir || 1), g = lerp(1, grow, u);
+    const x = rx * g * Math.cos(a), y = ry * g * Math.sin(a);
+    pts.push([cx + x * Math.cos(tilt) - y * Math.sin(tilt), cy + x * Math.sin(tilt) + y * Math.cos(tilt)]);
+  }
+  return pts;
+}
+// hatch a closed shape with back-and-forth marker strokes (overlaps darken, as real marker does)
+function hatchSegs(polys, ang, sp, ext, seed) {
+  const ca = Math.cos(ang), sa = Math.sin(ang), r = mulberry(seed);
+  let v0 = 1e9, v1 = -1e9;
+  const R = polys.map(P => P.map(([x, y]) => { const u = x * ca + y * sa, v = -x * sa + y * ca; v0 = Math.min(v0, v); v1 = Math.max(v1, v); return [u, v]; }));
+  const segs = [];
+  let j = 0;
+  for (let v = v0 + sp * 0.45; v < v1; v += sp * (0.88 + 0.2 * r()), j++) {
+    const xs = [];
+    for (const P of R) for (let i = 0; i < P.length - 1; i++) {
+      const a = P[i], b = P[i + 1];
+      if ((a[1] <= v && b[1] > v) || (b[1] <= v && a[1] > v)) xs.push(a[0] + (v - a[1]) / (b[1] - a[1]) * (b[0] - a[0]));
+    }
+    xs.sort((p, q) => p - q);
+    const row = [];
+    for (let k = 0; k + 1 < xs.length; k += 2) {
+      if (xs[k + 1] - xs[k] < 1.5) continue;
+      const vv = v + (r() - 0.5) * sp * 0.1, ua = xs[k] - ext * (0.5 + r()), ub = xs[k + 1] + ext * (0.5 + r());
+      row.push([ua, vv, ub, vv + (r() - 0.5) * sp * 0.12]);
+    }
+    if (j % 2) row.reverse();
+    for (const [ua, va, ub, vb] of row) {
+      const A = [ua * ca - va * sa, ua * sa + va * ca], B = [ub * ca - vb * sa, ub * sa + vb * ca];
+      segs.push(j % 2 ? [B, A] : [A, B]);
+    }
+  }
+  return segs;
+}
+function mkHatch(polys, clip, o) {
+  const segs = hatchSegs(polys, o.ang ?? -1.05, o.sp, o.ext ?? 4, o.seed || 3);
+  const Ls = segs.map(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1]) + (o.turn ?? 10)), tot = Ls.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  const strokes = segs.map(([a, b], i) => {
+    const t0 = o.t0 + (o.t1 - o.t0) * acc / tot; acc += Ls[i];
+    const t1 = o.t0 + (o.t1 - o.t0) * acc / tot;
+    const mid = [(a[0] + b[0]) / 2 + (hash(i + o.seed) - 0.5) * 1.2, (a[1] + b[1]) / 2 + (hash(i * 3 + o.seed) - 0.5) * 1.2];
+    return mkStroke(densify([a, mid, b], 6), { tool: o.tool || 'marker', w: o.w, t0, t1: Math.max(t1, t0 + 0.012), wob: 0.35, thin: 0.06, alpha: o.alpha, pool: false, sfx: o.sfx ?? 0.8 });
+  });
+  return { clip, strokes, t0: o.t0 };
+}
+function drawHatch(c, h, t, a = 1) {
+  if (t < h.t0) return;
+  c.save(); c.clip(h.clip, 'evenodd');
+  for (const s of h.strokes) { if (t < s.t0) break; drawStroke(c, s, t, a); }
+  c.restore();
+}
+const pathOf = polys => { const p = new Path2D(); for (const P of polys) { p.moveTo(P[0][0], P[0][1]); for (let i = 1; i < P.length; i++) p.lineTo(P[i][0], P[i][1]); p.closePath(); } return p; };
+const ptsOf = flat => { const o = []; for (let i = 0; i < flat.length; i += 2) o.push([flat[i], flat[i + 1]]); return o; };
+
+// ───────────────────────── the page's contents ─────────────────────────
+const LOGO_M = new DOMMatrix([LS, 0, 0, LS, 960 - LX * LS, LY0]);
+const LOGO_P = {}; for (const k in LOGO) { const p = new Path2D(); p.addPath(new Path2D(LOGO[k]), LOGO_M); LOGO_P[k] = p; }
+const LOGO_C = {}; for (const k in SH.logo) LOGO_C[k] = SH.logo[k].map(f => ptsOf(f).map(([x, y]) => lw(x, y)));
+
+const INK = { staff: [], marks: [], fade: [], doodles: [], hatchD: [], url: [], swoosh: null };
+
+// 1 · the staff: six ruled pencil lines
+const NL = 420;
+const LINES = LINE_Y.map((y, i) => {
+  const t0 = T.lines + T.lineStag * i;
+  const pts = [];
+  for (let k = 0; k < NL; k++) { const u = k / (NL - 1); pts.push([lerp(SX0, SX1, u) + (hash(i + 4) - 0.5) * 6 * (1 - u), y + 1.2 * Math.sin(u * 2.1 + i) * (hash(i) - 0.3)]); }
+  const base = mkStroke(pts, { tool: 'pencil', w: 2.7, t0, t1: t0 + T.lineDur, wob: 1.0, wl: 160, alpha: 0.82, sfx: 0.9 });
+  return { y, i, base, note: OPEN[i] };
+});
+INK.staff.push(...seq([[[SX0, 211], [SX0 + 1, 419]]], 0.50, 0.57, { tool: 'pencil', w: 2.6, alpha: 0.8 }));
+INK.staff.push(...seq([[[1535, 211], [1535, 419]], [[1546, 419], [1545, 211]]], 0.58, 0.68, { tool: 'pencil', w: 3.4, alpha: 0.85 }));
+// marks that ride on a line when it peels away
+const ride = (line, x, strokes) => INK.marks.push({ line, j: Math.round(clamp((x - SX0) / (SX1 - SX0)) * (NL - 1)), strokes });
+// TAB, stacked between the lines
+[['T', 235, 0], ['A', 315, 2], ['B', 395, 4]].forEach(([ch, cy, line], i) => {
+  const polys = writeText(ch, 423, cy + 15, 3.0, { align: 'center', seed: 30 + i, slant: 0.04 });
+  const again = polys.map(P => P.map(([x, y]) => [x + 1.6, y - 0.8]));
+  ride(line, 423, [...seq(polys, 0.54 + i * 0.09, 0.62 + i * 0.09, { tool: 'pencil', w: 3.6, alpha: 0.95 }), ...seq(again, 0.6 + i * 0.09, 0.68 + i * 0.09, { tool: 'pencil', w: 3.0, alpha: 0.7, sfx: 0.5 })]);
+});
+// string names
+NAMES.forEach((nm, i) => {
+  const polys = writeText(nm, 351, LINE_Y[i] + 7.5, 1.55, { align: 'center', seed: 50 + i });
+  ride(i, SX0, seq(polys, 0.60 + i * 0.045, 0.66 + i * 0.045, { tool: 'pencil', w: 2.1, alpha: 0.9 }));
+});
+// 2 · open strings: a column of zeros
+LINE_Y.forEach((y, i) => {
+  const polys = writeText('0', COL_X, y + 12.5, 2.5, { align: 'center', seed: 70 + i, slant: 0.06 });
+  ride(i, COL_X, seq(polys, T.zeros + i * 0.035, T.zeros + i * 0.035 + 0.1, { tool: 'liner', w: 3.8 }));
+});
+INK.fade.push(mkStroke(loopPts(COL_X + 1, 315, 27, 126, -1.9, 1.1, { tilt: 0.03, grow: 1.05 }), { tool: 'marker', w: 4.6, t0: T.strum - 0.04, t1: T.strum + 0.12 }));
+INK.fade.push(...seq(writeText('zero', COL_X, 494, 2.5, { align: 'center', seed: 91 }), T.strum + 0.06, T.strum + 0.3, { tool: 'pencil', w: 2.3, alpha: 0.95 }));
+// the riff: numbers written just before each note, circled in red as it sounds
+RIFF.forEach((n, i) => {
+  const polys = writeText(n.fret, n.x, n.y + 12.5, 2.5, { align: 'center', seed: 100 + i, slant: 0.06 });
+  ride(n.line, n.x, seq(polys, n.t - 0.17, n.t - 0.04, { tool: 'liner', w: 3.8, gap: 6 }));
+  const big = i === 5, rx = n.fret.length > 1 ? (big ? 36 : 30) : 22;
+  INK.fade.push(mkStroke(loopPts(n.x + 1, n.y, rx, big ? 27 : 21, -2.2 + hash(i) * 0.6, big ? 1.85 : 1.12, { tilt: -0.08, grow: big ? 1.18 : 1.07 }), { tool: 'marker', w: big ? 5.2 : 4.4, t0: n.t, t1: n.t + (big ? 0.2 : 0.1) }));
+});
+INK.fade.push(...seq(writeText('hero', 1300, 168, 2.8, { align: 'center', seed: 120 }), T.riff[5] + 0.1, T.riff[5] + 0.34, { tool: 'marker', w: 3.6, gap: 8 }));
+// the playhead: a red underline that runs on to each note as it sounds
+const UL = { x0: 512, x1: 1338, y: 452 };
+const ulStops = [[T.strum, COL_X + 26], ...RIFF.map(n => [n.t, n.x + 30])];
+const ulX = t => { let x = UL.x0; for (const [tt, xx] of ulStops) x = lerp(x, xx, eOut3(inv(tt - 0.02, tt + 0.09, t))); return x; };
+const ulPts = []; for (let k = 0; k < 300; k++) { const u = k / 299, x = lerp(UL.x0, UL.x1, u); ulPts.push([x, UL.y + 3 * Math.sin(u * 3.2) - 2 * u]); }
+INK.fade.push(mkStroke(ulPts, { tool: 'marker', w: 4.2, audio: false, prog: t => (t < T.strum - 0.02 ? 0 : (ulX(t) - UL.x0) / (UL.x1 - UL.x0)) }));
+ulStops.forEach(([tt, xx], i) => STROKES.push({ tool: 'marker', t0: tt - 0.02, t1: tt + 0.09, L: i ? 120 : 26, cx: xx, seed: 300 + i, sfx: 0.8 }));
+
+// 3 · margin doodles (fine-liner, pencil and a red marker star)
+const pentagram = (cx, cy, R, rot = 0) => { const p = []; for (let k = 0; k <= 5; k++) { const a = -Math.PI / 2 + rot + k * 4 * Math.PI / 5; p.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); } return chaikin(densify(p, 4), 1); };
+const D0 = T.doodle;
+const bolt = [[244, 236], [200, 316], [230, 314], [206, 392], [268, 292], [236, 294], [262, 236], [244, 236]].map(([x, y]) => [x + 40, y + 2]);
+INK.doodles.push(mkStroke(chaikin(densify(bolt, 4), 1), { tool: 'liner', w: 2.6, t0: D0, t1: D0 + 0.24 }));
+INK.hatchD.push(mkHatch([bolt], pathOf([bolt]), { tool: 'pencil', w: 2.2, sp: 6.5, ang: 0.75, ext: 2, alpha: 0.7, t0: D0 + 0.26, t1: D0 + 0.46, seed: 17, turn: 4, sfx: 0.5 }));
+INK.doodles.push(mkStroke(pentagram(316, 548, 30, 0.1), { tool: 'pencil', w: 2.7, t0: D0 + 0.06, t1: D0 + 0.3 }));
+INK.doodles.push(mkStroke(loopPts(276, 698, 6, 6, 0, 2.6, { grow: 4.2 }), { tool: 'pencil', w: 2.5, t0: D0 + 0.34, t1: D0 + 0.56 }));
+// eighth notes
+const nx0 = 1636, ny0 = 436;
+INK.doodles.push(mkStroke(loopPts(nx0, ny0, 10, 7, 0, 2.4, { tilt: -0.4, grow: 0.25 }), { tool: 'liner', w: 3.4, t0: D0 + 0.02, t1: D0 + 0.12 }));
+INK.doodles.push(mkStroke(loopPts(nx0 + 52, ny0 - 9, 10, 7, 0, 2.4, { tilt: -0.4, grow: 0.25 }), { tool: 'liner', w: 3.4, t0: D0 + 0.12, t1: D0 + 0.22 }));
+INK.doodles.push(...seq([[[nx0 + 9, ny0 - 3], [nx0 + 9, ny0 - 62]], [[nx0 + 9, ny0 - 62], [nx0 + 61, ny0 - 72]], [[nx0 + 61, ny0 - 72], [nx0 + 61, ny0 - 12]], [[nx0 + 9, ny0 - 50], [nx0 + 61, ny0 - 60]]], D0 + 0.22, D0 + 0.42, { tool: 'liner', w: 3.0, gap: 4 }));
+INK.doodles.push(mkStroke(pentagram(1684, 560, 34, -0.12), { tool: 'marker', w: 4.4, t0: D0 + 0.14, t1: D0 + 0.38 }));
+INK.doodles.push(mkStroke(pentagram(1622, 684, 19, 0.2), { tool: 'pencil', w: 2.4, t0: D0 + 0.36, t1: D0 + 0.52 }));
+
+// 4 · the logo: six lines → letter outlines (in staggered order left to right, low string first)
+const H1 = LOGO_C.H[1], cut = 2705 * LS + 960 - LX * LS;
+let k0 = H1.findIndex(p => p[0] >= cut), k1 = k0; while (k1 < H1.length - 1 && H1[k1 + 1][0] >= cut) k1++;
+const neck = H1.slice(k0 - 1, k1 + 2), letterH = H1.slice(k1 + 1).concat(H1.slice(1, k0));
+const TARGETS = [LOGO_C.G[0], LOGO_C.Z[0], LOGO_C.two[0], letterH, neck, LOGO_C.H[0]];
+const ORDER = [5, 4, 3, 2, 1, 0];   // line index (low E … high e) for each target
+TARGETS.forEach((tp, k) => {
+  const L = LINES[ORDER[k]];
+  L.t0 = T.morph + T.morphStag * k; L.k = k;
+  L.target = mkStroke(resamplePts(tp, NL), { tool: 'marker', w: 6.6, wob: 0.7, thin: 0.15, audio: false, t0: 0, t1: 0.001 });
+  L.DX = new Float32Array(NL); L.DY = new Float32Array(NL); L.DW = new Float32Array(NL);
+});
+const LETTER_FILL = [['G', 0], ['Z', 1], ['two', 2], ['H', 4]].map(([k, idx], i) => {
+  const t0 = T.morph + T.morphStag * idx + T.morphDur - 0.04, dur = k === 'H' ? 0.3 : 0.22;
+  return mkHatch(LOGO_C[k], LOGO_P[k], { w: 22, sp: 16, ang: -1.05 + [-0.06, 0.08, -0.1, 0.05][i], ext: 5, alpha: 1, t0, t1: t0 + dur, seed: 40 + i, turn: 14, sfx: 0.6 });
+});
+// hands: pencil sketches hovering above, then they drop into place and get inked
+const HANDS = [
+  { k: 'horns', wrist: [392, 262], off: [-14, -34, -0.22] },
+  { k: 'thumb', wrist: [985, 336], off: [-4, -40, 0.2] },
+  { k: 'wave', wrist: [1700, 270], off: [12, -40, -0.16] },
+  { k: 'ok', wrist: [2650, 600], off: [176, -112, 0.22] },
+].map((h, i) => {
+  const t0 = T.sketch + 0.1 * i, A = T.attach[i];
+  h.pivot = lw(...h.wrist); h.A = A;
+  h.sketch = [];
+  LOGO_C[h.k].forEach((c, j) => {
+    h.sketch.push(mkStroke(c, { tool: 'pencil', w: 2.7, t0: t0 + j * 0.05, t1: t0 + 0.3, alpha: 1, sfx: 0.8 }));
+    const loose = c.slice(Math.floor(c.length * 0.1), Math.floor(c.length * 0.62)).map(([x, y]) => [x + 1.6, y - 1.2]);
+    if (loose.length > 4) h.sketch.push(mkStroke(loose, { tool: 'pencil', w: 1.8, t0: t0 + 0.2, t1: t0 + 0.36, alpha: 0.6, wob: 1.6, sfx: 0.5 }));
+  });
+  h.ink = LOGO_C[h.k].map(c => mkStroke(c, { tool: 'marker', w: 4.6, t0: A + 0.15, t1: A + 0.27, thin: 0.12 }));
+  h.fill = mkHatch(LOGO_C[h.k], LOGO_P[h.k], { w: 12, sp: 8.8, ang: -1.05, ext: 3, alpha: 1, t0: A + 0.2, t1: A + 0.34, seed: 60 + i, turn: 8, sfx: 0.5 });
+  return h;
+});
+// 5 · wordmark: crimson fine-liner outlines, then red marker fill, letter by letter
+const WM = SH.wm.letters.map((L, i) => {
+  const polys = L.contours.map(f => ptsOf(f).map(([x, y]) => [960 + x * WM_SC, WM_BASE + y * WM_SC]));
+  const t0 = T.wm0 + T.wmStag * i;
+  const strokes = seq(polys, t0, t0 + T.wmDur, { tool: 'crimson', w: 2.9, gap: 30, pool: true });
+  const fill = mkHatch(polys, pathOf(polys), { w: 12.5, sp: 9.2, ang: -1.05 + (hash(i * 7.7) - 0.5) * 0.22, ext: 3, alpha: 1, t0: t0 + T.wmDur - 0.05, t1: t0 + T.wmDur + 0.12, seed: 200 + i, turn: 9, sfx: 0.55 });
+  return { strokes, fill };
+});
+// 6 · the URL in pencil, underlined with a red swoosh
+INK.url = seq(writeText('guitarzero2hero.com', 960, 778, 3.5, { align: 'center', seed: 300, slant: 0.12 }), T.url0, T.url1, { tool: 'pencil', w: 3.0, gap: 9 });
+(() => {
+  const pts = []; for (let k = 0; k <= 90; k++) { const u = k / 90; pts.push([lerp(712, 1206, u), 812 + 9 * Math.sin(u * Math.PI) - 10 * u * u * u]); }
+  for (let k = 1; k <= 12; k++) { const u = k / 12; pts.push([1206 + 26 * u, 802 - 10 * u - 16 * u * u]); }
+  INK.swoosh = mkStroke(pts, { tool: 'marker', w: 6.2, t0: T.swoosh, t1: T.swoosh + 0.17, thin: 0.35, taper: true, wob: 0.6 });
+})();
+
+// ───────────────────────── camera ─────────────────────────
+function camAt(t) {
+  const a = eOut3(inv(0, 0.85, t)), b = inv(0.85, 2.7, t), c = sstep(2.55, 6.4, t), d = inv(6.4, DUR, t);
+  let z = 1.36 - 0.085 * a - 0.04 * b - 0.215 * c + 0.022 * d;
+  const cx = 951 + 7 * a + 8 * b - 4 * c + 3 * Math.sin(t * 0.7);
+  const cy = 298 + 18 * a + 14 * b + 148 * c + 2 * Math.sin(t * 0.9 + 1);
+  const rot = (-1.5 + 0.6 * a + 0.35 * b + 0.7 * c + 0.1 * d) * Math.PI / 180;
+  let sx = 0, sy = 0;
+  const ts = t - T.slap;
+  if (ts > 0 && ts < 0.6) { const e = Math.exp(-ts / 0.07); z *= 1 + 0.006 * e; sx = 2.2 * e * Math.sin(ts * 70); sy = 3.0 * e * Math.sin(ts * 83 + 1); }
+  return { z, cx, cy, rot, sx, sy };
+}
+function setCam(c, k, q = Q) { c.setTransform(q, 0, 0, q, 0, 0); c.translate(960 + k.sx, 540 + k.sy); c.rotate(k.rot); c.scale(k.z, k.z); c.translate(-k.cx, -k.cy); }
+
+// ───────────────────────── drawing ─────────────────────────
+// the six lines: ruled in pencil, then peeled up and swept into the letters, turning to red marker
+function morphLine(L, t) {
+  const m = inv(L.t0, L.t0 + T.morphDur, t), B = L.base, G = L.target;
+  for (let j = 0; j < NL; j++) {
+    const u = j / (NL - 1), mm = eIO3(clamp(m * 1.55 - 0.55 * u)), h = Math.sin(Math.PI * mm);
+    L.DX[j] = lerp(B.X[j], G.X[j], mm) + 9 * h * Math.sin(TAU * (1.6 * u - 1.2 * m));
+    L.DY[j] = lerp(B.Y[j], G.Y[j], mm) - 34 * h * Math.pow(Math.sin(Math.PI * u), 0.6);
+    L.DW[j] = lerp(B.WD[j], G.WD[j], sstep(0.45, 0.95, mm));
+  }
+  return m;
+}
+function drawLines(c, t) {
+  for (const L of LINES) {
+    if (t < L.t0) { drawStroke(c, L.base, t); continue; }
+    if (t >= L.t0 + T.morphDur) { drawStroke(c, L.target, t); continue; }
+    const m = morphLine(L, t), lift = Math.sin(Math.PI * m), col = sstep(0.42, 0.85, m);
+    // soft shadow while the line is off the paper
+    const sx = shadowLayer();
+    sx.save(); sx.fillStyle = '#5a4630'; sx.globalAlpha = 0.3 * lift;
+    sx.translate(10 * lift, 18 * lift); dynRibbon(sx, L.DX, L.DY, L.DW, NL, 1.6 + 1.4 * lift);
+    sx.restore();
+    if (col < 1) { inkStyle(c, 'pencil', 0.85 * (1 - col)); dynRibbon(c, L.DX, L.DY, L.DW, NL); }
+    if (col > 0) { inkStyle(c, 'marker', col); dynRibbon(c, L.DX, L.DY, L.DW, NL); }
+  }
+}
+function drawMarks(c, t) {
+  for (const mk_ of INK.marks) {
+    const L = LINES[mk_.line];
+    if (t < L.t0) { for (const s of mk_.strokes) drawStroke(c, s, t); continue; }
+    const m = inv(L.t0, L.t0 + T.morphDur, t), u = mk_.j / (NL - 1), mm = eIO3(clamp(m * 1.55 - 0.55 * u));
+    const a = 1 - sstep(0.05, 0.4, mm);
+    if (a <= 0.003) continue;
+    const bx = L.base.X[mk_.j], by = L.base.Y[mk_.j];
+    morphLine(L, t);
+    const sc = 1 - 0.55 * mm;
+    c.save(); c.translate(L.DX[mk_.j], L.DY[mk_.j]); c.scale(sc, sc); c.translate(-bx, -by);
+    for (const s of mk_.strokes) drawStroke(c, s, t, a);
+    c.restore();
+  }
+}
+function drawFading(c, t, list, t0, dur = 0.24) {
+  const a = 1 - sstep(t0, t0 + dur, t);
+  if (a <= 0.003) return;
+  const lift = 1 - a;
+  c.save(); c.translate(0, -16 * lift * lift);
+  for (const s of list) drawStroke(c, s, t, a);
+  c.restore();
+}
+function handXf(h, t) {
+  const tau = t - h.A, s = tau > 0 ? spring(tau, 2.9, 0.42) : 0;
+  const [dx, dy, r] = h.off, k = 1 - s;
+  return { dx: dx * k, dy: dy * k, r: r * k, sc: lerp(0.93, 1, s), lift: tau > 0 ? Math.sin(Math.PI * clamp(tau / 0.24)) : 0 };
+}
+function drawHands(c, t) {
+  for (const h of HANDS) {
+    if (t < h.sketch[0].t0) continue;
+    const x = handXf(h, t), [px, py] = h.pivot;
+    c.save();
+    c.translate(px + x.dx, py + x.dy); c.rotate(x.r); c.scale(x.sc, x.sc); c.translate(-px, -py);
+    if (x.lift > 0.01) {
+      const sx = shadowLayer();
+      sx.save(); sx.translate(px + x.dx + 6 * x.lift, py + x.dy + 11 * x.lift); sx.rotate(x.r); sx.scale(x.sc, x.sc); sx.translate(-px, -py);
+      sx.globalAlpha = 0.14 * x.lift; sx.fillStyle = '#5a4630'; sx.fill(LOGO_P[h.k], 'evenodd'); sx.restore();
+    }
+    for (const s of h.sketch) drawStroke(c, s, t);
+    drawHatch(c, h.fill, t);
+    for (const s of h.ink) drawStroke(c, s, t);
+    c.restore();
+  }
+}
+function starPts(R, r) { const p = []; for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r : R; p.push([Math.cos(a) * q, Math.sin(a) * q]); } return p; }
+const STAR_PTS = starPts(STAR.R, STAR.r);
+const STAR_P = (() => {
+  const p = new Path2D(), P = STAR_PTS;
+  for (let k = 0; k < 10; k++) {
+    const V = P[k], A = P[(k + 9) % 10], B = P[(k + 1) % 10], f = k % 2 ? 0.1 : 0.16;
+    const p1 = [lerp(V[0], A[0], f), lerp(V[1], A[1], f)], p2 = [lerp(V[0], B[0], f), lerp(V[1], B[1], f)];
+    if (k === 0) p.moveTo(p1[0], p1[1]); else p.lineTo(p1[0], p1[1]);
+    p.quadraticCurveTo(V[0], V[1], p2[0], p2[1]);
+  }
+  p.closePath(); return p;
+})();
+const goldMix = v => { v = clamp(v); const a = [150, 98, 18], b = [222, 166, 52], c2 = [255, 240, 170]; const q = v < 0.5 ? a.map((x, i) => lerp(x, b[i], v * 2)) : b.map((x, i) => lerp(x, c2[i], v * 2 - 1)); return `rgb(${q.map(Math.round).join(',')})`; };
+function drawSticker(c, t) {
+  const u = inv(T.slap - 0.2, T.slap, t);
+  if (u <= 0) return;
+  const h = 1 - u * u, tau = t - T.slap;
+  const sq = tau > 0 ? 0.06 * Math.exp(-tau / 0.05) * Math.cos(tau * 60) : 0;
+  const sc = (1 + 0.8 * h) * (1 + sq), rot = STAR.rot + 0.85 * h;
+  const x = STAR.x + 300 * h, y = STAR.y - 230 * h;
+  const k = Q * camK.z;
+  c.save();
+  c.translate(x, y); c.rotate(rot); c.scale(sc, sc);
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = sstep(0, 0.3, u);
+  c.shadowColor = `rgba(70,45,18,${0.42 - 0.22 * h})`; c.shadowBlur = (4 + 46 * h) * k; c.shadowOffsetX = (3 + 40 * h) * k; c.shadowOffsetY = (5 + 56 * h) * k;
+  c.fillStyle = goldMix(0.5); c.fill(STAR_P);
+  c.shadowColor = 'transparent'; c.shadowBlur = 0; c.shadowOffsetX = 0; c.shadowOffsetY = 0;
+  c.save(); c.clip(STAR_P);
+  // embossed facets, lit from the top left
+  const P = STAR_PTS, Lx = -0.62, Ly = -0.78, lrot = rot;
+  for (let i = 0; i < 10; i++) {
+    const A = P[i], B = P[(i + 1) % 10];
+    const ex = B[0] - A[0], ey = B[1] - A[1], el = Math.hypot(ex, ey);
+    let nx = ey / el, ny = -ex / el;
+    const wx = nx * Math.cos(lrot) - ny * Math.sin(lrot), wy = nx * Math.sin(lrot) + ny * Math.cos(lrot);
+    const v = 0.5 + 0.42 * (wx * Lx + wy * Ly);
+    c.fillStyle = goldMix(v);
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(A[0] * 1.2, A[1] * 1.2); c.lineTo(B[0] * 1.2, B[1] * 1.2); c.closePath(); c.fill();
+  }
+  c.globalCompositeOperation = 'overlay'; c.globalAlpha = 0.22; c.fillStyle = FOIL; c.fillRect(-STAR.R, -STAR.R, STAR.R * 2, STAR.R * 2);
+  c.globalAlpha = 1; c.globalCompositeOperation = 'screen';
+  const g = c.createRadialGradient(-30, -40, 4, -20, -30, 90); g.addColorStop(0, 'rgba(255,250,220,0.55)'); g.addColorStop(1, 'rgba(255,250,220,0)');
+  c.fillStyle = g; c.fillRect(-STAR.R, -STAR.R, STAR.R * 2, STAR.R * 2);
+  // sheen sweep after it lands
+  const sw = inv(T.glint - 0.08, T.glint + 0.5, t);
+  if (sw > 0 && sw < 1) {
+    const bx = lerp(-150, 150, eIO3(sw));
+    const sg = c.createLinearGradient(bx - 40, -60, bx + 40, 60);
+    sg.addColorStop(0, 'rgba(255,255,240,0)'); sg.addColorStop(0.5, 'rgba(255,255,240,0.8)'); sg.addColorStop(1, 'rgba(255,255,240,0)');
+    c.fillStyle = sg; c.fillRect(-STAR.R, -STAR.R, STAR.R * 2, STAR.R * 2);
+  }
+  c.restore();
+  // die-cut rim and embossed inner star
+  c.globalCompositeOperation = 'source-over';
+  c.strokeStyle = 'rgba(120,76,10,0.85)'; c.lineWidth = 1.6; c.stroke(STAR_P);
+  c.save(); c.scale(0.74, 0.74); c.strokeStyle = 'rgba(255,246,206,0.55)'; c.lineWidth = 2; c.stroke(STAR_P); c.restore();
+  c.restore();
+  // glints
+  for (const [gt, gx, gy, gs] of [[T.glint + 0.06, -STAR.R * 0.55, -STAR.R * 0.62, 26], [T.glint + 0.32, STAR.R * 0.62, -STAR.R * 0.05, 18]]) {
+    const q = inv(gt, gt + 0.34, t); if (q <= 0 || q >= 1) continue;
+    const a = Math.sin(Math.PI * q), cr = Math.cos(STAR.rot), sr = Math.sin(STAR.rot);
+    c.save(); c.translate(STAR.x + gx * cr - gy * sr, STAR.y + gx * sr + gy * cr); c.rotate(q * 0.6); c.scale(a, a);
+    c.globalCompositeOperation = 'screen'; c.fillStyle = 'rgba(255,252,236,0.95)';
+    c.beginPath(); for (let i = 0; i < 8; i++) { const ang = i * Math.PI / 4, rr = i % 2 ? gs * 0.14 : gs; c.lineTo(Math.cos(ang) * rr, Math.sin(ang) * rr); } c.closePath(); c.fill();
+    c.restore();
+  }
+}
+let camK = { z: 1 };
+let LIGHT = null, WARM = null;
+function render(t, fi = Math.round(t * 60)) {
+  t = clamp(t, 0, DUR);
+  ensurePaper();
+  const c = ctx, k = camAt(t); camK = k;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.filter = 'none';
+  c.fillStyle = '#efe8d8'; c.fillRect(0, 0, CW, CH);
+  setCam(c, k);
+  if (paperC) c.drawImage(paperC, PX0, PY0, PWW, PHH);
+  // ink, all multiplied onto the paper
+  for (const s of INK.staff) drawStroke(c, s, t, 1 - sstep(T.morph - 0.04, T.morph + 0.16, t));
+  drawLines(c, t);
+  drawMarks(c, t);
+  drawFading(c, t, INK.fade, T.clear);
+  for (const s of INK.doodles) drawStroke(c, s, t);
+  for (const h of INK.hatchD) drawHatch(c, h, t);
+  for (const h of LETTER_FILL) drawHatch(c, h, t);
+  drawHands(c, t);
+  for (const L of WM) { for (const s of L.strokes) drawStroke(c, s, t); drawHatch(c, L.fill, t); }
+  for (const s of INK.url) drawStroke(c, s, t);
+  drawStroke(c, INK.swoosh, t);
+  shadowFlush(c);
+  setCam(c, k);
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+  drawSticker(c, t);
+  // overhead light: a soft warm pool, falling off to a vignette
+  c.setTransform(Q, 0, 0, Q, 0, 0); c.globalAlpha = 1; c.filter = 'none';
+  if (!LIGHT) {
+    LIGHT = c.createRadialGradient(900, 430, 140, 960, 520, 1240);
+    LIGHT.addColorStop(0, '#ffffff'); LIGHT.addColorStop(0.55, '#fbf8f2'); LIGHT.addColorStop(0.82, '#ebe2d3'); LIGHT.addColorStop(1, '#cdbfa8');
+    WARM = c.createLinearGradient(0, 0, 1400, 1080); WARM.addColorStop(0, 'rgba(255,236,200,0.12)'); WARM.addColorStop(0.6, 'rgba(255,236,200,0)'); WARM.addColorStop(1, 'rgba(60,70,90,0.06)');
+  }
+  c.globalCompositeOperation = 'multiply'; c.fillStyle = LIGHT; c.fillRect(0, 0, W, H);
+  // the previous page has just been turned: its shadow sweeps off the sheet
+  const pt = t / 0.46;
+  if (pt < 1) {
+    const bx = lerp(1750, -900, eOut3(pt)), a = 0.34 * Math.pow(1 - pt, 1.4);
+    const sg = c.createLinearGradient(bx - 520, 0, bx + 520, 140);
+    sg.addColorStop(0, 'rgba(150,120,90,0)'); sg.addColorStop(0.56, `rgba(140,108,76,${a})`); sg.addColorStop(0.63, `rgba(118,90,62,${a * 1.1})`); sg.addColorStop(1, 'rgba(150,120,90,0)');
+    c.fillStyle = sg; c.fillRect(0, 0, W, H);
+  }
+  c.globalCompositeOperation = 'soft-light'; c.fillStyle = WARM; c.fillRect(0, 0, W, H);
+  // a touch of sensor grain
+  c.globalCompositeOperation = 'overlay'; c.globalAlpha = 0.05;
+  const g = GRAIN[fi % 4], ox = Math.floor(hash(fi) * 256), oy = Math.floor(hash(fi + 0.5) * 256);
+  for (let y = -oy; y < H; y += 256) for (let x = -ox; x < W; x += 256) c.drawImage(g, x, y);
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+}
+// fast motion → worth sub-frame motion blur
+const fastAt = t => t < 0.7 || (t > T.morph - 0.05 && t < T.morph + 6 * T.morphStag + T.morphDur) || (t > T.attach[0] - 0.02 && t < T.attach[3] + 0.5) || (t > T.slap - 0.24 && t < T.slap + 0.25);
+
+// ───────────────────────── audio ─────────────────────────
+// pen-on-paper sounds, computed from the same strokes the picture draws
+function inkTracks(sr, from) {
+  const n = Math.ceil(sr * DUR), two = () => [new Float32Array(n), new Float32Array(n)];
+  const tr = { pencil: two(), marker: two(), liner: two() };
+  const r = mulberry(4242);
+  for (const s of STROKES) {
+    if (s.t1 < from - 0.01 || s.L < 1.5) continue;
+    const tool = s.tool === 'crimson' ? 'liner' : s.tool, dst = tr[tool], D = Math.max(0.012, s.t1 - s.t0);
+    const vref = tool === 'pencil' ? 1500 : tool === 'marker' ? 1100 : 900;
+    const pan = clamp((s.cx - 960) / 1000, -1, 1) * 0.6, gl = Math.sqrt(0.5 * (1 - pan)), gr = Math.sqrt(0.5 * (1 + pan));
+    const i0 = Math.max(0, Math.floor(s.t0 * sr)), i1 = Math.min(n, Math.ceil(s.t1 * sr));
+    const sqf = 0.8 + 0.4 * hash(s.seed), g0 = s.sfx ?? 1;
+    let crack = 0, lp = 0, ph = r();
+    for (let i = i0; i < i1; i++) {
+      const u = (i / sr - s.t0) / D, v = 30 * u * u * (1 - u) * (1 - u) * s.L / D;
+      const a = Math.min(1.5, Math.pow(v / vref, 0.6)) * g0 * Math.min(1, u * 30, (1 - u) * 30);
+      const wn = r() * 2 - 1;
+      let y;
+      if (tool === 'pencil') { if (r() < 0.01) crack = 1; crack *= 0.965; y = wn * a * (0.5 + 0.9 * crack); }
+      else if (tool === 'marker') {
+        lp += 0.3 * (wn - lp);
+        const vv = v / vref; ph += (1350 + 950 * Math.min(1.4, vv)) * sqf / sr;
+        y = a * (lp * 0.9 + 0.2 * Math.sin(TAU * ph) * sstep(0.4, 1.0, vv) * (0.55 + 0.45 * Math.sin(TAU * (8 + 7 * sqf) * i / sr)));
+      } else y = wn * a * 0.6;
+      dst[0][i] += y * gl; dst[1][i] += y * gr;
+    }
+  }
+  return tr;
+}
+function buildAudio(ac, t0, from = 0) {
+  const M = gzMix(ac, t0, from, { dur: DUR, fadeAt: DUR - 0.6, cleanGain: 0.3, seed: 21 });
+  const { at, live, bq, G, chain, master, send, src, panTo, clean } = M;
+  const sr = ac.sampleRate;
+  const bufOf = pair => { const b = ac.createBuffer(2, pair[0].length, sr); b.copyToChannel(pair[0], 0); b.copyToChannel(pair[1], 1); return b; };
+  const track = (pair, nodes, gain, rv) => {
+    const s = ac.createBufferSource(); s.buffer = bufOf(pair);
+    const g = G(gain); s.connect(nodes[0]); chain(...nodes, g); g.connect(master); send(g, rv);
+    s.start(at(from), from);
+  };
+  // pen sounds
+  const tr = inkTracks(sr, from);
+  track(tr.pencil, [bq('highpass', 1100), bq('peaking', 3800, 0.9, 6), bq('lowpass', 9000)], 0.065, 0.12);
+  track(tr.marker, [bq('highpass', 650), bq('peaking', 2300, 1.2, 4), bq('lowpass', 6500)], 0.12, 0.1);
+  track(tr.liner, [bq('highpass', 2600), bq('peaking', 6000, 1, 3), bq('lowpass', 11000)], 0.05, 0.08);
+  // a warmer front end for the clean guitar: a little more body under the kit's bright clean bus
+  const warm = G(1);
+  chain(warm, bq('lowshelf', 320, 0.7, 5), bq('peaking', 170, 1.1, 2.5), clean);
+  let sd = 900;
+  const pluck = (time, f, gain, pan, t60 = 3.2, bright = 0.6) => src(gzKS(ac, f, t60 * 1.1, { t60, bright, pick: 0.14, seed: sd++ }), time, panTo(pan, warm), gain);
+  // a quiet room under everything, so the gaps between pen strokes sound like a room, not digital silence
+  {
+    const n = Math.ceil(sr * DUR), b = ac.createBuffer(2, n, sr), r = mulberry(808);
+    for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); let lp = 0; for (let i = 0; i < n; i++) { lp += 0.02 * ((r() * 2 - 1) - lp); d[i] = lp * 6 + (r() * 2 - 1) * 0.08; } }
+    const s = ac.createBufferSource(); s.buffer = b; const g = G(0.0);
+    chain(s, bq('highpass', 60), bq('lowpass', 2400), g); g.connect(master);
+    g.gain.setValueAtTime(0.0001, at(Math.max(0, from))); g.gain.linearRampToValueAtTime(0.012, at(Math.max(from, 0) + 0.3));
+    s.start(at(from), from);
+  }
+  // page rustle at the start: a crinkly swish and the notebook settling
+  if (live(0)) {
+    const n = Math.ceil(sr * 0.75), b = ac.createBuffer(2, n, sr), r = mulberry(31);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = b.getChannelData(ch); let crack = 0;
+      for (let i = 0; i < n; i++) {
+        const tt = i / sr, env = Math.min(1, tt / 0.04) * Math.exp(-tt / 0.2) + 0.25 * Math.exp(-Math.pow((tt - 0.32) / 0.08, 2));
+        if (r() < 0.006) crack = 0.6 + r(); crack *= 0.97;
+        d[i] = (r() * 2 - 1) * env * (0.35 + crack);
+      }
+    }
+    const s = ac.createBufferSource(); s.buffer = b; const g = G(0.13);
+    chain(s, bq('highpass', 700), bq('peaking', 3200, 0.8, 4), bq('lowpass', 8000), g); g.connect(master); send(g, 0.2); s.start(at(0));
+  }
+  M.whoosh(0.0, 0.42, 0.08, 3800, 700);
+  M.osc('sine', 110, 55, 0.03, 0.22, 0.12);
+  // open strings, strummed
+  OPEN.slice().reverse().forEach((f, i) => pluck(T.strum - 0.03 + i * 0.016, f, 0.62, -0.3 + i * 0.12, 3.4, 0.66));
+  // the riff climbs the staff to the octave
+  RIFF.forEach((n, i) => pluck(n.t, n.f, i === 5 ? 0.95 : 0.74 + i * 0.03, -0.35 + i * 0.14, i === 5 ? 4.2 : 3.0, 0.7));
+  pluck(T.riff[5] + 0.004, RIFF[5].f * 2, 0.16, 0.4, 2.2, 0.8);
+  // the lines peel off: each string zips up an octave as it leaves the page
+  LINES.slice().sort((a, b) => a.t0 - b.t0).forEach((L, i) => {
+    const r = src(gzKS(ac, L.note, 1.6, { t60: 1.4, bright: 0.5, pick: 0.2, seed: 500 + i }), L.t0 + 0.02, panTo(-0.5 + i * 0.2, warm), 0.5);
+    if (r) { r.s.playbackRate.setValueAtTime(1, at(L.t0 + 0.02)); r.s.playbackRate.exponentialRampToValueAtTime(2, at(L.t0 + 0.42)); }
+  });
+  M.swell(T.morph - 0.1, T.morph + 0.62, 0.05, 1800, 6500, 0.8, 'bandpass');
+  // the hands drop into place: E major tones, rising
+  [415.3, 493.88, 659.26, 830.61].forEach((f, i) => pluck(T.attach[i] + 0.12, f, 0.42, -0.45 + i * 0.3, 2.4, 0.72));
+  // the wordmark is complete: a full open E major, strummed down then a light up-stroke
+  [82.41, 123.47, 164.81, 207.65, 246.94, 329.63].forEach((f, i) => {
+    pluck(T.chord + i * 0.017, f, 0.85, -0.55 + i * 0.12, 4.6, 0.7);
+    pluck(T.chord + 0.009 + i * 0.016, f * 1.0018, 0.6, 0.55 - i * 0.12, 4.2, 0.62);
+  });
+  [329.63, 246.94, 207.65].forEach((f, i) => pluck(T.chord + 0.34 + i * 0.014, f, 0.3, 0.3 - i * 0.2, 3.0, 0.75));
+  pluck(T.chord + 0.62, 659.26, 0.3, 0.45, 3.0, 0.8);
+  // gold star: peel, slap, glint
+  M.noise(T.slap - 0.32, 0.12, 0.05, [bq('bandpass', 2600, 1.2)], master, 0.08);
+  M.noise(T.slap, 0.05, 0.55, [bq('highpass', 160), bq('lowpass', 3200)], master, 0.0008);
+  M.noise(T.slap, 0.012, 0.3, [bq('highpass', 3500)], master, 0.0005);
+  M.osc('sine', 160, 62, T.slap, 0.16, 0.3, master, 0.002);
+  const fl = M.noise(T.slap + 0.015, 0.14, 0.07, [bq('bandpass', 1500, 0.9)]); if (fl) send(fl, 0.3);
+  const ch1 = M.osc('sine', 2637, 2637, T.glint + 0.06, 1.0, 0.03, master, 0.004); if (ch1) send(ch1, 0.6);
+  const ch2 = M.osc('sine', 3951, 3951, T.glint + 0.36, 0.8, 0.02, master, 0.004); if (ch2) send(ch2, 0.6);
+}
+
+// ───────────────────────── boot ─────────────────────────
+const RENDER = new URLSearchParams(location.search).has('render');
+if (RENDER) document.body.classList.add('render');
+setQuality(1);
+
+window.GZ = {
+  DUR, ready,
+  frame: t => render(t),
+  // motion blur: n sub-frames across a 180° shutter, averaged, where the motion is fast; returns a PNG as base64
+  capture(t, n = 1) {
+    if (!this.acc) { this.acc = mk(CW, CH); this.ax = this.acc.getContext('2d'); }
+    if (!fastAt(t)) n = 1;
+    const fi = Math.round(t * 60);
+    for (let i = 0; i < n; i++) { render(t + (n > 1 ? ((i + 0.5) / n - 0.5) / 120 : 0), fi); this.ax.globalAlpha = 1 / (i + 1); this.ax.drawImage(out, 0, 0); }
+    return this.acc.toDataURL('image/png').split(',')[1];
+  },
+  async audio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * DUR), sr); buildAudio(oc, 0, 0); const b = await oc.startRendering(); return gzWavB64(b); },
+};
+if (RENDER) return;
+
+// ───────────────────────── player UI ─────────────────────────
+const stage = document.getElementById('stage');
+const big = document.getElementById('big'), bigLabel = document.getElementById('bigLabel');
+const playBtn = document.getElementById('play'), playLabel = document.getElementById('playLabel'), playIcon = document.getElementById('playIcon');
+const soundBtn = document.getElementById('sound'), soundLabel = document.getElementById('soundLabel');
+const scrub = document.getElementById('scrub'), tcNow = document.getElementById('tcNow');
+const scenesEl = document.getElementById('scenes'), ticks = document.getElementById('ticks');
+const SOUND_FILE = 'gz2h-notebook.mp3';
+const POSTER = 7.7;
+const ICON_PLAY = 'M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z';
+const ICON_PAUSE = 'M3 2h3.4v12H3zM9.6 2H13v12H9.6z';
+
+SCENES.forEach((sc, i) => {
+  const b = document.createElement('button');
+  b.className = 'scene'; b.type = 'button'; b.id = 'scene-' + i;
+  b.innerHTML = `<span class="st"><b>${i + 1}</b>${sc.t.toFixed(2)} s</span><span class="sn">${sc.name}</span><span class="sd">${sc.desc}</span><span class="fill"></span>`;
+  b.addEventListener('click', () => play(sc.t));
+  scenesEl.appendChild(b);
+  if (i) { const tk = document.createElement('i'); tk.style.left = `calc(${(sc.t / DUR) * 100}% + ${7 - 14 * sc.t / DUR}px)`; ticks.appendChild(tk); }
+});
+
+let now = POSTER, playing = false, soundOn = true, ac = null, t0 = 0, perf0 = 0, raf = 0, slow = 0;
+function fitQuality() {
+  const want = clamp(stage.clientWidth * Math.min(2, window.devicePixelRatio || 1) / W, 0.4, 1);
+  const q = Math.round(want * 20) / 20;
+  if (Math.abs(q - Q) > 0.049) { setQuality(q); LIGHT = null; }
+}
+function show(t) {
+  now = t; render(t);
+  scrub.value = t.toFixed(3); scrub.style.setProperty('--p', (t / DUR * 100) + '%');
+  tcNow.textContent = t.toFixed(2);
+  SCENES.forEach((sc, i) => {
+    const el = scenesEl.children[i], on = t >= sc.t && t < sc.end;
+    el.classList.toggle('on', on);
+    el.querySelector('.fill').style.width = (clamp((t - sc.t) / (sc.end - sc.t)) * 100) + '%';
+  });
+}
+// Sound comes from a pre-rendered soundtrack file played through an <audio> element, which the
+// iPhone silent switch does not mute (Web Audio is muted by it). Live synthesis is the fallback.
+const snd = new Audio(); snd.preload = 'auto'; snd.src = SOUND_FILE;
+let fileOK = true, mode = 'none', synthFrom = 0;
+snd.addEventListener('error', () => { fileOK = false; });
+snd.addEventListener('playing', () => { if (mode === 'file' && ac) { ac.close().catch(() => {}); ac = null; } });
+function stopAudio() { mode = 'none'; try { snd.pause(); } catch (err) {} if (ac) { ac.close().catch(() => {}); ac = null; } }
+function noSound() { mode = 'none'; soundLabel.textContent = 'No sound'; }
+function startSynth() {
+  if (!ac) return noSound();
+  try {
+    synthFrom = clamp((performance.now() - perf0) / 1000, 0, DUR);
+    if (ac.resume) ac.resume();
+    t0 = ac.currentTime + 0.15; buildAudio(ac, t0, synthFrom); mode = 'synth';
+  } catch (err) { noSound(); }
+}
+function setPlayingUI(p) {
+  playing = p;
+  playLabel.textContent = p ? 'Pause' : (now >= DUR - 0.01 ? 'Replay' : 'Play');
+  playIcon.firstElementChild.setAttribute('d', p ? ICON_PAUSE : ICON_PLAY);
+  big.hidden = p;
+}
+function play(from = 0) {
+  if (from >= DUR - 0.05) from = 0;
+  stopAudio(); cancelAnimationFrame(raf);
+  perf0 = performance.now() - from * 1000;
+  const startedAt = performance.now();
+  if (soundOn) {
+    soundLabel.textContent = 'Sound on';
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (err) {}
+    // unlock a context inside this tap, in case the file can't play and we fall back to synthesis
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.resume) ac.resume(); } catch (err) { ac = null; }
+    if (fileOK) {
+      mode = 'file';
+      try { snd.currentTime = from; } catch (err) {}
+      const p = snd.play();
+      if (p && p.catch) p.catch(() => { if (mode === 'file') startSynth(); });
+    } else startSynth();
+  }
+  slow = 0;
+  setPlayingUI(true);
+  const tick = () => {
+    let t;
+    if (mode === 'file') {
+      if (snd.ended) t = DUR;
+      else if (!snd.paused && snd.readyState >= 3) { t = snd.currentTime; perf0 = performance.now() - t * 1000; }
+      else if (performance.now() - startedAt < 1500) { t = from; perf0 = performance.now() - from * 1000; }
+      else { startSynth(); t = (performance.now() - perf0) / 1000; }
+    } else if (mode === 'synth' && ac) t = ac.currentTime - t0 + synthFrom - (ac.outputLatency || 0);
+    else t = (performance.now() - perf0) / 1000;
+    const f0 = performance.now();
+    show(clamp(t, 0, DUR));
+    if (performance.now() - f0 > 26 && ++slow > 20 && Q > 0.5) { setQuality(Math.max(0.5, Q - 0.2)); LIGHT = null; slow = 0; }
+    if (t >= DUR) { setPlayingUI(false); show(POSTER); now = DUR; playLabel.textContent = 'Replay'; bigLabel.textContent = 'Replay with sound'; big.hidden = false; stopAudio(); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+GZ.player = { snd, get mode() { return mode; } };
+function pause() { cancelAnimationFrame(raf); stopAudio(); setPlayingUI(false); }
+
+big.addEventListener('click', () => play(now >= DUR - 0.01 || now === POSTER ? 0 : now));
+playBtn.addEventListener('click', () => (playing ? pause() : play(now >= DUR - 0.01 ? 0 : now)));
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn)); soundLabel.textContent = soundOn ? 'Sound on' : 'Sound off';
+  bigLabel.textContent = soundOn ? 'Play with sound' : 'Play';
+  if (playing) play(now);
+});
+scrub.addEventListener('input', () => { if (playing) pause(); show(+scrub.value); });
+window.addEventListener('resize', () => { fitQuality(); if (!playing) show(now); });
+
+ready.then(() => { fitQuality(); show(now); });
+})();
+</script>
