@@ -1,0 +1,1099 @@
+<title>GZ2H Gig Poster</title>
+<style>
+/* Layout: the poster video is the page's one object, pinned up like a print; transport and the four scene tickets sit under it */
+:root {
+  --paper: #efe6d2;
+  --card: #f7f1e3;
+  --ink: #241b18;
+  --red: #c41f2b;
+  --red-deep: #9c0d1a;
+  --muted: #6b5d55;
+  --rule: rgba(36, 27, 24, 0.22);
+  --display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+html, body { background: var(--paper); color: var(--ink); }
+body { margin: 0; font-family: var(--display); background-image: radial-gradient(rgba(36, 27, 24, 0.06) 0.9px, transparent 1.3px); background-size: 7px 7px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 28px 56px; display: grid; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; }
+h1 { margin: 0; font-size: clamp(24px, 3vw, 34px); font-weight: 700; letter-spacing: -0.02em; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+h1 .stampl { font-family: var(--mono); font-size: 0.4em; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); border: 2px solid var(--red); padding: 5px 9px 4px; transform: rotate(-3deg); border-radius: 3px; }
+.meta { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #1d1512; overflow: hidden; border: 3px solid var(--ink); box-shadow: 8px 8px 0 var(--red); box-sizing: border-box; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: end start; border: 0; padding: 0 0 7.5% 4.5%; cursor: pointer; color: var(--paper); background: radial-gradient(ellipse at 20% 85%, rgba(20, 12, 10, 0.3), rgba(20, 12, 10, 0) 45%); }
+@media (max-width: 560px) { .overlay { place-items: center; padding: 0; background: radial-gradient(ellipse at center, rgba(20, 12, 10, 0) 30%, rgba(20, 12, 10, 0.4)); } .pill { font-size: 13px; gap: 10px; padding: 7px 16px 7px 7px; } .disc { width: 36px; height: 36px; } }
+.overlay[hidden] { display: none !important; }
+.pill { display: inline-flex; align-items: center; gap: 14px; padding: 10px 22px 10px 10px; background: var(--red); border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); font: 700 15px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; transform: rotate(-2deg); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.overlay:hover .pill, .overlay:focus-visible .pill { transform: rotate(-2deg) translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.overlay:active .pill { transform: rotate(-2deg) translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+.overlay:focus-visible { outline: none; }
+.overlay:focus-visible .pill { outline: 3px solid var(--paper); outline-offset: 4px; }
+.disc { width: 44px; height: 44px; border-radius: 50%; background: var(--paper); border: 2px solid var(--ink); display: grid; place-items: center; box-sizing: border-box; }
+.disc svg { width: 17px; height: 17px; margin-left: 3px; fill: var(--red); }
+.transport { display: flex; align-items: center; gap: 12px 14px; flex-wrap: wrap; }
+.tbtn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 2px solid var(--ink); background: var(--card); color: var(--ink); font: 700 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); }
+.tbtn:hover { background: #fffaf0; }
+.tbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.tbtn:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+.tbtn svg { width: 14px; height: 14px; fill: currentColor; }
+.tbtn[aria-pressed="false"] { color: var(--muted); border-style: dashed; }
+.track { position: relative; flex: 1 1 240px; min-width: 0; height: 40px; display: flex; align-items: center; }
+.ticks { position: absolute; inset: 0; pointer-events: none; }
+.ticks i { position: absolute; top: 5px; width: 2px; height: 8px; background: var(--ink); }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 40px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: linear-gradient(to right, var(--red) var(--p, 0%), var(--ink) var(--p, 0%)); }
+input[type="range"]::-moz-range-track { height: 4px; background: var(--ink); }
+input[type="range"]::-moz-range-progress { height: 4px; background: var(--red); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); box-sizing: border-box; }
+input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); }
+input[type="range"]:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+.tc { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tc b { color: var(--ink); font-weight: 700; }
+.scenes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .scenes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .scenes { grid-template-columns: minmax(0, 1fr); } .stage { box-shadow: 5px 5px 0 var(--red); } }
+.scene { position: relative; display: grid; gap: 6px; align-content: start; text-align: left; padding: 12px 16px 16px; border: 2px solid var(--ink); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; overflow: hidden; min-width: 0;
+  -webkit-mask: radial-gradient(circle at 0 50%, transparent 8px, #000 8.5px) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 8px, #000 8.5px) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle at 0 50%, transparent 8px, #000 8.5px) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 8px, #000 8.5px) right / 51% 100% no-repeat; }
+.scene:hover { background: #fffaf0; }
+.scene:focus-visible { outline: 3px solid var(--red); outline-offset: -6px; }
+.scene .st { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--red); padding-bottom: 7px; border-bottom: 2px dashed var(--rule); }
+.scene .sn { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.scene .sd { font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.scene .fill { position: absolute; left: 0; bottom: 0; height: 6px; width: 0; background-image: radial-gradient(var(--red) 1.6px, transparent 1.9px); background-size: 6px 6px; }
+.scene.on { background: var(--red); color: var(--paper); }
+.scene.on .st { color: var(--paper); border-bottom-color: rgba(247, 241, 227, 0.45); }
+.scene.on .sd { color: rgba(247, 241, 227, 0.85); }
+.scene.on .fill { background-image: radial-gradient(var(--paper) 1.6px, transparent 1.9px); }
+body.render { margin: 0; overflow: hidden; background: #000; background-image: none; }
+body.render .wrap > *:not(.stage) { display: none !important; }
+body.render .wrap { padding: 0; max-width: none; display: block; }
+body.render .stage { width: 1920px; height: 1080px; box-shadow: none; border: 0; }
+body.render .overlay { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .pill, .overlay:hover .pill, .overlay:focus-visible .pill { transition: none; transform: rotate(-2deg); } .tbtn:active { transform: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>GuitarZero2Hero <span class="stampl">Gig poster</span></h1>
+    <div class="meta">8 s · 1920×1080 · 60 fps · stereo sound</div>
+  </header>
+
+  <div class="stage" id="stage">
+    <canvas id="c" width="1920" height="1080" aria-label="GuitarZero2Hero gig poster intro"></canvas>
+    <button class="overlay" id="big" type="button" aria-label="Play intro with sound">
+      <span class="pill"><span class="disc"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg></span><span id="bigLabel">Play with sound</span></span>
+    </button>
+  </div>
+
+  <div class="transport">
+    <button class="tbtn" id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" id="playIcon"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg><span id="playLabel">Play</span></button>
+    <button class="tbtn" id="sound" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.5h2.6L8.3 2.4c.4-.3 1-.1 1 .5v10.2c0 .6-.6.8-1 .5L4.6 10.5H2c-.4 0-.7-.3-.7-.7V6.2c0-.4.3-.7.7-.7zm9.4-.9a.7.7 0 0 1 1 0 4.9 4.9 0 0 1 0 6.8.7.7 0 1 1-1-1 3.5 3.5 0 0 0 0-4.8.7.7 0 0 1 0-1z"/></svg><span id="soundLabel">Sound on</span></button>
+    <div class="track">
+      <div class="ticks" id="ticks"></div>
+      <input type="range" id="scrub" min="0" max="8" step="0.001" value="6.6" aria-label="Timeline position in seconds">
+    </div>
+    <div class="tc"><b id="tcNow">6.60</b> / 8.00 s</div>
+  </div>
+
+  <nav class="scenes" id="scenes" aria-label="Scenes"></nav>
+</div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+/*__AUDIOKIT__*/
+</script>
+<script>
+(() => {
+'use strict';
+
+// ───────────────────────── math ─────────────────────────
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const inv = (a, b, x) => clamp((x - a) / (b - a));
+const sstep = (a, b, x) => { const t = inv(a, b, x); return t * t * (3 - 2 * t); };
+const eOut3 = t => 1 - (1 - t) ** 3;
+const eIO3 = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const mulberry = a => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const sgn = n => (hash(n) * 2 - 1);
+const ihash = (x, y) => { let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const TAU = Math.PI * 2, DEG = Math.PI / 180;
+
+// ───────────────────────── timeline ─────────────────────────
+// Everything on the poster is stop-motion at 12 drawings a second (each held 5 frames at 60 fps).
+// Only the camera moves continuously. Drawing boundaries sit halfway between 60 fps frames, so
+// motion-blur sub-frames never straddle two drawings.
+const DUR = 8.0, DFPS = 12;
+const drawingOf = t => Math.floor((clamp(t, 0, DUR) + 1 / 120) * DFPS);
+const D = {
+  drop: [1, 2, 3, 4], tape: [5, 6, 7],
+  sqR: [7, 8, 9, 10, 11], redDone: 12,          // red pass: squeegee left to right, done on the downbeat at 1.0 s
+  sqK: [13, 14, 15], blackDone: 16,            // black pass: right to left
+  slash: [20, 21, 22], hero: 24,
+  letters: { G: 32, Z: 36, two: 40, H: 44 },   // one per beat (180 bpm, a beat is 4 drawings)
+  hands: { horns: 48, thumb: 49, wave: 50, ok: 51 },
+  pick: 52, press: 56, ticket: 64, pin: 72,
+};
+const SQ_R_X = [-30, 400, 830, 1260, 1690];
+const SQ_K_X = [1420, 870, 320];
+const SCENES = [
+  { t: 0.00, end: 1.00, name: 'Paper & red ink', desc: 'The sheet drops, tape rips across a corner and the squeegee pulls a giant halftone 0.' },
+  { t: 1.00, end: 2.50, name: 'Zero to hero', desc: 'The black pass prints ZERO. A red marker slashes it and a rubber stamp thumps HERO.' },
+  { t: 2.50, end: 4.55, name: 'Cut & paste', desc: 'G, Z, 2 and H slap down one per beat, the hands flick on and a pick stamp hits the corner.' },
+  { t: 4.55, end: 8.00, name: 'Lockup', desc: 'Letterpress wordmark, a ticket stub with the URL, a pin through it and a slow push in.' },
+];
+// boil clock: normal until the tape stop, then the drawings slow down and freeze with the music
+function boilOf(d) { if (d < 84) return d; let k = 84; for (const e of [86, 89, 93]) if (d >= e) k = e; return k; }
+// misregistration of each ink plate (0 red, 1 black): a fixed offset plus a per-drawing wobble, 2 to 6 px
+function misreg(ink, d) {
+  const b = boilOf(d), base = ink ? [-2.2, 2.6] : [3.3, -1.9];
+  return [base[0] + 1.25 * sgn(b * 3.17 + ink * 17.3), base[1] + 1.25 * sgn(b * 5.71 + ink * 29.1 + 3)];
+}
+// per-drawing nudge for things placed by hand
+const boil = (d, id, a = 1) => { const b = boilOf(d); return [a * 0.8 * sgn(b * 1.91 + id * 7.3), a * 0.8 * sgn(b * 2.37 + id * 3.1 + 9), a * 0.0022 * sgn(b * 1.13 + id * 5.9 + 4)]; };
+
+// ───────────────────────── poster layout (poster units: 1720 × 968) ─────────────────────────
+const W = 1920, H = 1080, PW = 1720, PH = 968, PS = 1.12;   // PS: raster px per poster unit (sharp at the final push-in)
+const PRW = Math.ceil(PW * PS), PRH = Math.ceil(PH * PS);
+const REST = { x: 960, y: 540, r: -0.6 * DEG, s: 1, lift: 0 };
+const RING = { cx: 860, cy: 520, rxo: 318, ryo: 384, rxi: 192, ryi: 252 };
+const WAVE = { gap: 70, fill: 0.4, v0: 0.44, fall: 0.76 };
+const HEAD = { x: 88, base: 104 };
+const ZERO = { x: 214, base: 322, cap: 150 };
+const HERO = { cx: 1140, cy: 244, w: 500, h: 188, rot: -6 * DEG };
+const LS = 0.338, LC = [1611, 662], LPOS = [862, 592];
+const WMP = { cx: 858, base: 900, cap: 64 };
+const TK = { cx: 1478, cy: 870, w: 460, h: 146, rot: 4.5 * DEG, perf: 352 };
+const PICK = { cx: 1566, cy: 134, rot: 13 * DEG, s: 1 };
+const REG = [[50, 500], [1670, 500]];
+const RED = [212, 36, 46], BLACK = [38, 30, 28], PAPER = [241, 233, 214];
+const CUT_RED = [186, 14, 30], CUT_BLACK = [33, 27, 25], CREAM = 'rgb(248,243,230)';
+const LOGO_BB = { G: [58, 251, 778, 922], horns: [313, 65, 536, 271], Z: [821, 207, 1442, 913], thumb: [868, 104, 1080, 347], two: [1465, 208, 1992, 922], wave: [1527, 51, 1761, 282], H: [2042, 207, 3165, 1274], ok: [2427, 317, 2704, 611] };
+const WRIST = { horns: [392, 262], thumb: [985, 336], wave: [1700, 270], ok: [2650, 600] };
+const HAND_OF = { G: 'horns', Z: 'thumb', two: 'wave', H: 'ok' };
+const LETTER_REST = { G: [-5, 4, -2.4], Z: [3, -3, 1.7], two: [-2, 5, -1.3], H: [3, -1, 1.2] };   // dx, dy, degrees: hand-placed, not quite straight
+const L2P = (x, y) => [LPOS[0] + (x - LC[0]) * LS, LPOS[1] + (y - LC[1]) * LS];
+
+// ───────────────────────── canvases ─────────────────────────
+const out = document.getElementById('c');
+const ctx = out.getContext('2d');
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
+const g2 = (c, rf) => c.getContext('2d', rf ? { willReadFrequently: true } : undefined);
+// canvases we read pixels from stay CPU-backed; finished bitmaps are copied to plain canvases for fast compositing
+const fin = c => { const o = mk(c.width, c.height); o.getContext('2d').drawImage(c, 0, 0); return o; };
+let Q = 1, CW = 1920, CH = 1080;
+function setQuality(q) { Q = q; CW = Math.round(W * q); CH = Math.round(H * q); out.width = CW; out.height = CH; }
+
+// ───────────────────────── fonts ─────────────────────────
+const b64 = x => Uint8Array.from(atob(x), c => c.charCodeAt(0)).buffer;
+const FONT = (w, px, fam = 'Space Grotesk') => `${w} ${px}px "${fam}"`;
+function spaced(g, str, x, y, ls) { for (const ch of str) { g.fillText(ch, x, y); x += g.measureText(ch).width + ls; } return x; }
+function spacedW(g, str, ls) { let w = 0; for (const ch of str) w += g.measureText(ch).width + ls; return w - ls; }
+
+// ───────────────────────── noise ─────────────────────────
+const NT = 512;
+function noiseTile(cells, seed) {
+  const r = mulberry(seed), L = new Float32Array(cells * cells).map(() => r()), o = new Float32Array(NT * NT), k = cells / NT;
+  for (let y = 0; y < NT; y++) {
+    const fy = y * k, iy = Math.floor(fy), ty = fy - iy, sy = ty * ty * (3 - 2 * ty), y0 = (iy % cells) * cells, y1 = ((iy + 1) % cells) * cells;
+    for (let x = 0; x < NT; x++) {
+      const fx = x * k, ix = Math.floor(fx), tx = fx - ix, sx = tx * tx * (3 - 2 * tx), x0 = ix % cells, x1 = (ix + 1) % cells;
+      const a = L[y0 + x0], b = L[y0 + x1], c = L[y1 + x0], d = L[y1 + x1];
+      o[y * NT + x] = a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+    }
+  }
+  return o;
+}
+let NLO, NMID, NHI;
+const nAt = (A, x, y) => A[((y | 0) & 511) * NT + ((x | 0) & 511)];
+
+// ───────────────────────── textures built once ─────────────────────────
+let paperC, backC, grainT = [], grainP = [], vignC, sheetSh = {}, pinSh = {}, PL = {}, SPR = {}, TAPE, SQ, BLOCK = {}, PLATEN;
+
+function buildPaper() {
+  const c = mk(PRW, PRH), g = g2(c, true), id = g.createImageData(c.width, c.height), P = id.data, w = c.width, h = c.height;
+  for (let y = 0, i = 0; y < h; y++) for (let x = 0; x < w; x++, i += 4) {
+    const lo = nAt(NLO, x * 0.22 + 40, y * 0.22 + 90), mid = nAt(NMID, x, y), hi = nAt(NHI, x, y), hi2 = nAt(NHI, x + 2, y + 2);
+    const v = 1 + 0.045 * (lo - 0.5) + 0.03 * (mid - 0.5) + 0.07 * (hi - hi2) + 0.03 * (ihash(x, y) - 0.5);
+    const warm = 0.012 * (nAt(NLO, x * 0.1 + 300, y * 0.1) - 0.5);
+    P[i] = PAPER[0] * (v + warm); P[i + 1] = PAPER[1] * v; P[i + 2] = PAPER[2] * (v - warm); P[i + 3] = 255;
+  }
+  g.putImageData(id, 0, 0);
+  // fibres: short curly hairs, a few darker, a few brighter, a handful of coloured flecks
+  const r = mulberry(77);
+  g.setTransform(PS, 0, 0, PS, 0, 0); g.lineCap = 'round';
+  for (let k = 0; k < 2600; k++) {
+    const x = r() * PW, y = r() * PH, a = r() * TAU, L = 4 + r() * 16, bend = (r() - 0.5) * 10, typ = r();
+    g.strokeStyle = typ < 0.55 ? `rgba(120,96,64,${0.06 + r() * 0.12})` : typ < 0.97 ? `rgba(255,252,244,${0.18 + r() * 0.3})` : (r() < 0.5 ? 'rgba(170,40,50,0.35)' : 'rgba(60,80,140,0.3)');
+    g.lineWidth = 0.4 + r() * 0.8;
+    g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * L / 2 - Math.sin(a) * bend, y + Math.sin(a) * L / 2 + Math.cos(a) * bend, x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke();
+  }
+  // trimmed edge
+  g.strokeStyle = 'rgba(90,70,50,0.35)'; g.lineWidth = 1.6; g.strokeRect(0.8, 0.8, PW - 1.6, PH - 1.6);
+  g.strokeStyle = 'rgba(255,252,244,0.5)'; g.lineWidth = 1; g.strokeRect(3, 3, PW - 6, PH - 6);
+  paperC = fin(c);
+}
+
+function buildBackdrop() {
+  // stained plywood bench seen from above: long grain, a few knots, old ink drips, staples and tape scraps
+  const M = 32, w = Math.ceil((W + 2 * M) * 0.75), h = Math.ceil((H + 2 * M) * 0.75), sc = 0.75;
+  const c = mk(w, h), g = g2(c, true), id = g.createImageData(w, h), P = id.data;
+  for (let y = 0, i = 0; y < h; y++) for (let x = 0; x < w; x++, i += 4) {
+    const X = x / sc - M, Y = y / sc - M;
+    const warp = 60 * (nAt(NLO, X * 0.08, Y * 0.08) - 0.5);
+    const grain = nAt(NMID, X * 0.035 + 7, (Y + warp) * 1.6) * 0.6 + nAt(NHI, X * 0.06, (Y + warp) * 2.2) * 0.4;
+    const ring = 0.5 + 0.5 * Math.sin((Y + warp * 2.2) * 0.11 + 6 * nAt(NLO, X * 0.03, Y * 0.2));
+    const light = 1.18 - 0.55 * Math.hypot((X - 640) / 1500, (Y - 300) / 1100);
+    const v = (0.78 + 0.32 * grain + 0.1 * ring + 0.05 * (ihash(x, y) - 0.5)) * light;
+    P[i] = 50 * v; P[i + 1] = 36 * v; P[i + 2] = 29 * v; P[i + 3] = 255;
+  }
+  g.putImageData(id, 0, 0);
+  g.setTransform(sc, 0, 0, sc, M * sc, M * sc);
+  const r = mulberry(4242);
+  // old ink splats from earlier print runs
+  for (let k = 0; k < 26; k++) {
+    const edge = k % 4, along = r();
+    const x = edge === 0 ? along * W : edge === 1 ? W - 20 - r() * 70 : edge === 2 ? along * W : 10 + r() * 80;
+    const y = edge === 0 ? 8 + r() * 40 : edge === 1 ? along * H : edge === 2 ? H - 10 - r() * 40 : along * H;
+    const red = r() < 0.55, R = 2 + r() * r() * 22;
+    g.fillStyle = red ? `rgba(150,20,28,${0.35 + r() * 0.3})` : `rgba(8,6,5,${0.4 + r() * 0.3})`;
+    g.beginPath(); for (let j = 0; j <= 14; j++) { const a = j / 14 * TAU, rr = R * (0.75 + 0.4 * r()); j ? g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.9) : g.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.9); } g.fill();
+    for (let j = 0; j < 6; j++) { const a = r() * TAU, d = R * (1.3 + r() * 2.5); g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 0.8 + r() * 2.2, 0, TAU); g.fill(); }
+  }
+  // tape scraps and old staples left from previous posters
+  for (const [x, y, a, L] of [[60, 120, 0.7, 70], [1850, 960, -0.5, 80], [1870, 70, 0.3, 50], [90, 1010, -0.2, 60]]) {
+    g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = 'rgba(205,188,140,0.42)'; g.fillRect(-L / 2, -14, L, 28); g.restore();
+  }
+  for (let k = 0; k < 22; k++) {
+    const side = k % 4, x = side < 2 ? 20 + r() * 70 + (side ? W - 110 : 0) : r() * W, y = side < 2 ? r() * H : 12 + r() * 30 + (side === 3 ? H - 52 : 0);
+    g.save(); g.translate(x, y); g.rotate((r() - 0.5) * 0.8);
+    g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(-7, -1, 15, 3.4);
+    g.fillStyle = r() < 0.5 ? 'rgba(170,165,160,0.75)' : 'rgba(110,80,60,0.6)'; g.fillRect(-7, -1.6, 14, 2.2);
+    g.restore();
+  }
+  backC = fin(c); backC.M = M; backC.sc = sc;
+}
+
+function buildGrain() {
+  grainT = [0, 1, 2, 3].map(s => {
+    const c = mk(256, 256), x = g2(c), id = x.createImageData(256, 256), r = mulberry(99 + s * 7);
+    for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (r() + r() + r() - 1.5) * 110; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+    x.putImageData(id, 0, 0); return c;
+  });
+  // lens light falloff, multiplied over the frame (warm key from the top left)
+  // five exposures of it, for the stop-motion flicker (each drawing is a separate photograph)
+  vignC = [0.976, 0.988, 1, 1.012, 1.024].map(k => {
+    const c = mk(480, 270), v = g2(c), gr = v.createRadialGradient(200, 105, 10, 220, 125, 330), q = (r, g, b) => `rgb(${Math.min(255, r * k) | 0},${Math.min(255, g * k) | 0},${Math.min(255, b * k) | 0})`;
+    gr.addColorStop(0, q(251, 248, 242)); gr.addColorStop(0.55, q(242, 233, 222)); gr.addColorStop(1, q(148, 126, 116));
+    v.fillStyle = gr; v.fillRect(0, 0, 480, 270); return c;
+  });
+  // push-pin shadow, tight and soft
+  for (const [k, bl] of [['tight', 2.6], ['soft', 10]]) { const c = mk(120, 120), x = g2(c); x.filter = `blur(${bl}px)`; x.fillStyle = '#000'; x.beginPath(); x.arc(60, 60, 20, 0, TAU); x.fill(); pinSh[k] = c; }
+  // the sheet's own shadow, soft (high in the air) and tight (lying flat)
+  for (const [k, bl] of [['soft', 34], ['tight', 9]]) {
+    const s = 0.25, pad = 90, c = mk((PW + pad * 2) * s, (PH + pad * 2) * s), x = g2(c);
+    x.filter = `blur(${bl * s}px)`; x.fillStyle = '#000'; x.fillRect(pad * s, pad * s, PW * s, PH * s);
+    sheetSh[k] = { c, pad };
+  }
+}
+
+// ───────────────────────── ink plates ─────────────────────────
+// A plate is the ink of one pass for one element, rasterised in poster space: vector shapes are drawn
+// soft, then thresholded against noise (rough, slightly wobbly edges), screened with halftone dots where
+// they carry a tone, and textured with dropouts and mottle. Composited with multiply, like real ink.
+function plate(box, ink, o, vec, field) {
+  const [x0, y0, x1, y1] = box, w = Math.ceil((x1 - x0) * PS), h = Math.ceil((y1 - y0) * PS);
+  const c = mk(w, h), g = g2(c, true);
+  if (vec) {
+    g.setTransform(PS, 0, 0, PS, -x0 * PS, -y0 * PS);
+    g.filter = `blur(${(o.soft ?? 1) * PS}px)`; g.fillStyle = '#fff'; g.strokeStyle = '#fff';
+    vec(g); g.filter = 'none'; g.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  const id = g.getImageData(0, 0, w, h), P = id.data;
+  const ox = (o.seed * 131) & 511, oy = (o.seed * 197) & 511;
+  const rough = o.rough ?? 0.5, salt = o.salt ?? 0.5, mott = o.mottle ?? 0.14, patch = o.patch || 0;
+  for (let j = 0, i = 0; j < h; j++) {
+    const py = y0 + j / PS, ry = ((j + oy) & 511) * NT;
+    for (let k = 0; k < w; k++, i += 4) {
+      const rx = (k + ox) & 511, nh = NHI[ry + rx], nm = NMID[ry + rx];
+      let a = P[i + 3] / 255;
+      if (a > 0.002) { const th = 0.5 + rough * (0.6 * (nm - 0.5) + 0.4 * (nh - 0.5)); a = clamp((a - th) / 0.16 + 0.5); }
+      if (field) { const f = field(x0 + k / PS, py, nh, nm); if (f > a) a = f; }
+      if (a < 0.004) { P[i + 3] = 0; continue; }
+      const sp = clamp((nh * 0.65 + nAt(NHI, k * 0.5 + 211, j * 0.5 + 97) * 0.35 - 0.66) / 0.1);
+      a *= (1 - salt * sp) * (1 - mott * nm);
+      if (patch) { const pl = nAt(NLO, k * 0.6 + ox, j * 0.6 + oy); a *= 1 - patch * clamp((0.62 - pl) / 0.3); }
+      P[i] = ink[0]; P[i + 1] = ink[1]; P[i + 2] = ink[2]; P[i + 3] = a * 255;
+    }
+  }
+  g.putImageData(id, 0, 0);
+  return { c: o.keep ? c : fin(c), box };
+}
+// Euclidean-dot halftone screen: coverage of tone v at poster point (x, y)
+function screen(ang, pitch) {
+  const cs = Math.cos(ang), sn = Math.sin(ang), e = 0.42 * 13 / pitch;
+  return (x, y, v, nh) => {
+    if (v <= 0.004) return 0;
+    const u = (x * cs + y * sn) / pitch, w = (-x * sn + y * cs) / pitch;
+    const fx = Math.abs((u - Math.floor(u)) * 2 - 1), fy = Math.abs((w - Math.floor(w)) * 2 - 1);
+    const s = fx + fy <= 1 ? 1 - (fx * fx + fy * fy) : (fx - 1) * (fx - 1) + (fy - 1) * (fy - 1) - 1;
+    return clamp((s - (1 - 2 * v) - 0.3 * (nh - 0.5)) / e + 0.5);
+  };
+}
+const ellD = (dx, dy, a, b) => { const r = Math.sqrt((dx / a) ** 2 + (dy / b) ** 2) || 1e-6, gr = Math.sqrt((dx / (a * a)) ** 2 + (dy / (b * b)) ** 2) / r || 1e-6; return (r - 1) / gr; };   // signed distance (approx), poster units
+
+function regMark(g, x, y) { g.lineWidth = 2.4; g.beginPath(); g.arc(x, y, 13, 0, TAU); g.stroke(); g.beginPath(); g.moveTo(x - 22, y); g.lineTo(x + 22, y); g.moveTo(x, y - 22); g.lineTo(x, y + 22); g.stroke(); }
+function pickPath(g, s = 1) {   // guitar pick, pointing down, centred on 0,0
+  g.beginPath(); g.moveTo(0, 96 * s);
+  g.bezierCurveTo(-30 * s, 60 * s, -78 * s, 2 * s, -78 * s, -40 * s);
+  g.bezierCurveTo(-78 * s, -82 * s, -40 * s, -92 * s, 0, -92 * s);
+  g.bezierCurveTo(40 * s, -92 * s, 78 * s, -82 * s, 78 * s, -40 * s);
+  g.bezierCurveTo(78 * s, 2 * s, 30 * s, 60 * s, 0, 96 * s); g.closePath();
+}
+const SLASH = { x0: 186, y0: 300, x1: 790, y1: 186 };
+
+function buildPlates() {
+  const scR = screen(15 * DEG, 13), scK = screen(45 * DEG, 9);
+  // RED 1: the giant halftone 0 and a sunburst behind it, plus red rule and register marks
+  PL.rbg = plate([0, 0, PW, PH], RED, { seed: 3, soft: 0.7, rough: 0.45, salt: 0.35, mottle: 0.16 }, g => {
+    g.lineWidth = 1.8; g.strokeRect(40, 40, PW - 80, PH - 80);
+    g.strokeStyle = '#fff'; for (const [x, y] of REG) regMark(g, x, y);
+  }, (x, y, nh, nm) => {
+    const dx = x - RING.cx, dy = y - RING.cy;
+    const dO = ellD(dx, dy, RING.rxo, RING.ryo), dI = ellD(dx, dy, RING.rxi, RING.ryi);
+    let c = 0;
+    const inRing = clamp(0.5 - dO * PS) * clamp(0.5 + dI * PS);
+    if (inRing > 0) { const v = lerp(1.0, 0.2, sstep(-0.8, 0.85, (dx / RING.rxo) * 0.62 + (dy / RING.ryo) * 0.78)); c = inRing * scR(x, y, v, nh); }
+    const inArea = clamp(0.5 + (Math.min(x - 52, y - 52, PW - 52 - x, PH - 52 - y)) * PS);
+    if (inArea > 0 && dO > 20) {
+      // sound waves: concentric bands ringing out from the 0, each one fainter
+      const ph = (dO - 44) / WAVE.gap, k = Math.floor(ph), f = ph - k;
+      const band = clamp(Math.min(f, WAVE.fill - f) * WAVE.gap * PS + 0.5);
+      if (band > 0 && k >= 0) { const v = WAVE.v0 * Math.pow(WAVE.fall, k) * (1 - 0.35 * sstep(-0.5, 1, (dx / RING.rxo) * 0.6 + (dy / RING.ryo) * 0.8)); c = Math.max(c, inArea * band * scR(x, y, v, nh)); }
+    }
+    return c;
+  });
+  // RED 2: hand-drawn slash through ZERO (brush stroke with dry-brush streaks toward the tail)
+  {
+    const { x0, y0, x1, y1 } = SLASH, ang = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0), cs = Math.cos(ang), sn = Math.sin(ang);
+    const width = u => 44 * (0.8 + 0.4 * Math.sin(Math.PI * clamp(u * 1.15))) * (1 - 0.5 * u * u) + 6;
+    const bow = u => -26 * Math.sin(Math.PI * u);
+    PL.slash = plate([120, 100, 860, 380], RED, { seed: 9, soft: 1.1, rough: 0.55, salt: 0.3, mottle: 0.12 }, g => {
+      g.beginPath();
+      const N = 40, top = [], bot = [];
+      for (let i = 0; i <= N; i++) { const u = i / N, px = x0 + cs * u * L - sn * bow(u), py = y0 + sn * u * L + cs * bow(u), wv = width(u) / 2; top.push([px + sn * wv, py - cs * wv]); bot.push([px - sn * wv, py + cs * wv]); }
+      g.moveTo(top[0][0], top[0][1]); for (const p of top) g.lineTo(p[0], p[1]); for (let i = N; i >= 0; i--) g.lineTo(bot[i][0], bot[i][1]); g.closePath(); g.fill();
+      g.beginPath(); g.arc(x0 - 2, y0 + 1, width(0) / 2 + 2, 0, TAU); g.fill();
+    });
+    // dry-brush streaks: comb the plate along the stroke direction
+    const p = PL.slash, pg = g2(p.c, true), id = pg.getImageData(0, 0, p.c.width, p.c.height), P = id.data;
+    for (let j = 0, i = 0; j < p.c.height; j++) for (let k = 0; k < p.c.width; k++, i += 4) {
+      if (!P[i + 3]) continue;
+      const X = p.box[0] + k / PS - x0, Y = p.box[1] + j / PS - y0, u = (X * cs + Y * sn) / L, v = -X * sn + Y * cs;
+      const st = nAt(NMID, u * 26 + 5, v * 3.2 + 300) * 0.7 + nAt(NHI, u * 60, v * 4.5) * 0.3;
+      const dry = clamp((u - 0.62) / 0.38);
+      P[i + 3] *= clamp((st - (0.06 + 0.5 * dry * dry)) / 0.1);
+    }
+    pg.putImageData(id, 0, 0);
+  }
+  // RED 3: guitar-pick rubber stamp with splatter (stamped in the top-right corner)
+  PL.pick = plate([PICK.cx - 260, PICK.cy - 190, PICK.cx + 160, PICK.cy + 270], RED, { seed: 21, soft: 1.0, rough: 0.7, salt: 0.5, mottle: 0.12, patch: 0.3 }, g => {
+    g.save(); g.translate(PICK.cx, PICK.cy); g.rotate(PICK.rot);
+    pickPath(g, 0.98); g.fill();
+    g.globalCompositeOperation = 'destination-out';
+    pickPath(g, 0.85); g.lineWidth = 5; g.stroke();
+    g.font = FONT(700, 52); g.textAlign = 'center'; g.fillText('GZ2H', 0, 4);
+    g.font = FONT(700, 16, 'Space Mono'); spaced(g, 'EADGBE', -spacedW(g, 'EADGBE', 6) / 2, 40, 6);
+    g.restore(); g.globalCompositeOperation = 'source-over';
+    const r = mulberry(5150);
+    for (let k = 0; k < 46; k++) {
+      const a = -2.2 + r() * 4.6, d = 108 + r() ** 1.5 * 150, R = 1.5 + r() ** 2.2 * 13, x = PICK.cx + Math.cos(a) * d, y = PICK.cy + 10 + Math.sin(a) * d * 1.05;
+      if (x > PW - 34 || y < 34) continue;
+      g.beginPath(); g.ellipse(x, y, R * (1 + r() * 0.8), R, a, 0, TAU); g.fill();
+      if (R > 6) { g.beginPath(); g.moveTo(x - Math.cos(a) * R * 2.5, y - Math.sin(a) * R * 2.5); g.lineTo(x + Math.sin(a) * R * 0.4, y - Math.cos(a) * R * 0.4); g.lineTo(x - Math.sin(a) * R * 0.4, y + Math.cos(a) * R * 0.4); g.fill(); }
+    }
+  });
+  // BLACK 1: header line, frame rule, register marks
+  PL.ktype = plate([0, 0, PW, 160], BLACK, { seed: 33, soft: 0.6, rough: 0.35, salt: 0.25, mottle: 0.1 }, g => {
+    g.font = FONT(700, 30, 'Space Mono'); g.textBaseline = 'alphabetic';
+    const end = spaced(g, 'GZ2H PRESENTS', HEAD.x, HEAD.base, 9);
+    g.fillRect(end + 26, HEAD.base - 13, 1430 - end - 26, 5);
+    g.fillRect(end + 26, HEAD.base - 1, 1430 - end - 26, 1.6);
+  });
+  PL.kframe = plate([0, 0, PW, PH], BLACK, { seed: 35, soft: 0.6, rough: 0.35, salt: 0.25, mottle: 0.1 }, g => {
+    g.lineWidth = 3.2; g.strokeRect(30, 30, PW - 60, PH - 60);
+    for (const [x, y] of REG) regMark(g, x, y);
+  });
+  // BLACK 2: the big ZERO, with a red-ish halftone offset shade printed in black at 45°
+  PL.zero = plate([120, 120, 900, 380], BLACK, { seed: 41, soft: 1.3, rough: 0.6, salt: 0.3, mottle: 0.12 }, g => {
+    g.font = FONT(700, ZERO.cap / 0.7); g.textBaseline = 'alphabetic';
+    spaced(g, 'ZERO', ZERO.x, ZERO.base, -4);
+  });
+  // BLACK 3: rubber-stamped HERO
+  PL.hero = plate([HERO.cx - 300, HERO.cy - 160, HERO.cx + 300, HERO.cy + 160], BLACK, { seed: 57, soft: 1.2, rough: 0.7, salt: 0.5, mottle: 0.12, patch: 0.32 }, g => {
+    g.translate(HERO.cx, HERO.cy); g.rotate(HERO.rot);
+    g.lineWidth = 9; g.strokeRect(-HERO.w / 2, -HERO.h / 2, HERO.w, HERO.h);
+    g.lineWidth = 3; g.strokeRect(-HERO.w / 2 + 14, -HERO.h / 2 + 14, HERO.w - 28, HERO.h - 28);
+    g.font = FONT(700, 112 / 0.7); g.textBaseline = 'alphabetic';
+    const tw = spacedW(g, 'HERO', 6); spaced(g, 'HERO', -tw / 2, 56, 6);
+  });
+  // BLACK 4: letterpress wordmark (salty ink, squash rim) and its deboss relief
+  const wmS = WMP.cap / WM.cap, wmW = WM.inkW * wmS, wmX = WMP.cx - wmW / 2;
+  const wmPaths = WM.glyphs.map(gl => new Path2D(gl.d));
+  const wmDraw = g => { g.translate(wmX, WMP.base); g.scale(wmS, wmS); for (const p of wmPaths) g.fill(p); };
+  const wmBox = [wmX - 30, WMP.base - WMP.cap * 1.1 - 30, wmX + wmW + 30, WMP.base + 34];
+  PL.wm = plate(wmBox, BLACK, { seed: 63, soft: 0.75, rough: 0.35, salt: 0.55, mottle: 0.2 }, wmDraw);
+  {   // ink squash: denser at the edges of each stroke
+    const p = PL.wm, pg = g2(p.c, true), id = pg.getImageData(0, 0, p.c.width, p.c.height), P = id.data, w = p.c.width;
+    const m = mk(p.c.width, p.c.height), mg = g2(m, true);
+    mg.setTransform(PS, 0, 0, PS, -wmBox[0] * PS, -wmBox[1] * PS); mg.filter = `blur(${2.2 * PS}px)`; mg.fillStyle = '#fff'; wmDraw(mg);
+    const B = mg.getImageData(0, 0, m.width, m.height).data;
+    for (let i = 3; i < P.length; i += 4) if (P[i]) { const b = B[i] / 255; P[i] = Math.min(255, P[i] * (0.82 + 0.5 * clamp((1 - b) / 0.5))); }
+    pg.putImageData(id, 0, 0);
+  }
+  const relief = (col, bl) => { const c = mk((wmBox[2] - wmBox[0]) * PS, (wmBox[3] - wmBox[1]) * PS), g = g2(c); g.setTransform(PS, 0, 0, PS, -wmBox[0] * PS, -wmBox[1] * PS); g.filter = `blur(${bl * PS}px)`; g.fillStyle = col; wmDraw(g); return { c, box: wmBox }; };
+  PL.wmHi = relief('rgb(255,252,242)', 0.9); PL.wmLo = relief('rgb(150,128,108)', 1.4);
+}
+
+// ───────────────────────── cut paper, ticket, tape, tools ─────────────────────────
+function texturise(c, amt = 1, seed = 1) {
+  const g = g2(c, true), id = g.getImageData(0, 0, c.width, c.height), P = id.data, w = c.width;
+  for (let i = 0, k = 0; i < P.length; i += 4, k++) {
+    if (!P[i + 3]) continue;
+    const x = k % w, y = (k / w) | 0, v = 1 + amt * (0.07 * (nAt(NMID, x + seed * 37, y + seed * 53) - 0.5) + 0.08 * (nAt(NHI, x + seed * 11, y) - nAt(NHI, x + seed * 11 + 2, y + 2)) + 0.03 * (ihash(x + seed, y) - 0.5));
+    P[i] *= v; P[i + 1] *= v; P[i + 2] *= v;
+  }
+  g.putImageData(id, 0, 0);
+}
+function shadows(spr) {
+  spr.c = fin(spr.c);
+  for (const [k, bl] of [['tight', 3.2], ['soft', 16]]) {
+    const pad = Math.ceil(bl * 3 * PS), c = mk(spr.c.width + 2 * pad, spr.c.height + 2 * pad), g = g2(c);
+    g.filter = `blur(${bl * PS}px) brightness(0)`; g.drawImage(spr.c, pad, pad);
+    spr[k] = { c, pad };
+  }
+  return spr;
+}
+function cutPiece(key, col, border) {
+  const bb = LOGO_BB[key], pad = border + 6, s = LS * PS;
+  const c = mk(((bb[2] - bb[0]) * LS + 2 * pad) * PS, ((bb[3] - bb[1]) * LS + 2 * pad) * PS), g = g2(c, true);
+  g.setTransform(s, 0, 0, s, pad * PS - bb[0] * s, pad * PS - bb[1] * s);
+  const P2 = new Path2D(LOGO[key]);
+  g.lineJoin = 'round'; g.lineCap = 'round';
+  g.lineWidth = (2 * border + 1.6) / LS; g.strokeStyle = 'rgba(70,50,40,0.5)'; g.stroke(P2);
+  g.lineWidth = 2 * border / LS; g.strokeStyle = CREAM; g.stroke(P2);
+  g.fillStyle = CREAM; g.fill(P2, 'evenodd');
+  g.fillStyle = `rgb(${col})`; g.fill(P2, 'evenodd');
+  texturise(c, 1, key.length * 7 + key.charCodeAt(0));
+  // pivot: letters turn about their middle, hands about the wrist
+  const pv = WRIST[key] || [(bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2];
+  return shadows({ c, pv: [(pv[0] - bb[0]) * LS + pad, (pv[1] - bb[1]) * LS + pad], at: L2P(pv[0], pv[1]) });
+}
+function ticketPath(g, w, h, r, pr, px) {
+  g.beginPath(); g.moveTo(r, 0); g.lineTo(px - pr, 0); g.arc(px, 0, pr, Math.PI, 0, true); g.lineTo(w - r, 0); g.arc(w, 0, r, Math.PI, Math.PI / 2, true);
+  g.lineTo(w, h - r); g.arc(w, h, r, -Math.PI / 2, Math.PI, true); g.lineTo(px + pr, h); g.arc(px, h, pr, 0, Math.PI, true); g.lineTo(r, h);
+  g.arc(0, h, r, 0, -Math.PI / 2, true); g.lineTo(0, r); g.arc(0, 0, r, Math.PI / 2, 0, true); g.closePath();
+}
+function buildSprites() {
+  for (const k of ['G', 'Z', 'two', 'H']) SPR[k] = cutPiece(k, CUT_RED, 5.5);
+  for (const k of ['horns', 'thumb', 'wave', 'ok']) SPR[k] = cutPiece(k, CUT_BLACK, 4.5);
+  // ticket stub: red card, cream print, perforated stub
+  {
+    const { w, h, perf } = TK, pad = 4, c = mk((w + 2 * pad) * PS, (h + 2 * pad) * PS), g = g2(c, true);
+    g.setTransform(PS, 0, 0, PS, pad * PS, pad * PS);
+    ticketPath(g, w, h, 14, 11, perf); g.fillStyle = `rgb(${CUT_RED})`; g.fill();
+    g.save(); ticketPath(g, w, h, 14, 11, perf); g.clip();
+    g.strokeStyle = 'rgba(248,243,230,0.9)'; g.lineWidth = 2; g.strokeRect(17, 17, perf - 30, h - 34); g.strokeRect(perf + 13, 17, w - perf - 30, h - 34);
+    g.fillStyle = CREAM; g.textBaseline = 'alphabetic';
+    g.font = FONT(700, 15, 'Space Mono'); spaced(g, 'ADMIT ONE', 34, 50, 6);
+    g.font = FONT(700, 24, 'Space Mono'); const uw = spacedW(g, 'guitarzero2hero.com', 0.5); spaced(g, 'guitarzero2hero.com', 34 + (perf - 64 - uw) / 2 - 2, 98, 0.5);
+    g.fillRect(34, 112, 50, 3);
+    g.save(); g.translate(perf + (w - perf) / 2 + 8, h / 2 + 22); g.rotate(-Math.PI / 2); g.font = FONT(700, 24); g.textAlign = 'center'; g.fillText('GZ2H', 0, 0); g.restore();
+    g.globalCompositeOperation = 'destination-out';
+    for (let y = 16; y < h - 12; y += 8.5) { g.beginPath(); g.arc(perf, y, 1.7, 0, TAU); g.fill(); }
+    g.restore();
+    texturise(c, 1.2, 5);
+    SPR.ticket = shadows({ c, pv: [w / 2 + pad, h / 2 + pad], at: [TK.cx, TK.cy] });
+  }
+  // masking tape strip (crinkled, translucent, torn ends)
+  {
+    const L = 300, Wd = 66, pad = 10, c = mk((L + 2 * pad) * PS, (Wd + 2 * pad) * PS), g = g2(c, true), r = mulberry(808);
+    g.setTransform(PS, 0, 0, PS, pad * PS, pad * PS);
+    g.beginPath(); g.moveTo(0, 0);
+    for (let x = 0; x <= L; x += 9) g.lineTo(x, (r() - 0.5) * 2.2);
+    for (let y = 0; y <= Wd; y += 5) g.lineTo(L + (r() - 0.3) * 7, y);
+    for (let x = L; x >= 0; x -= 9) g.lineTo(x, Wd + (r() - 0.5) * 2.2);
+    for (let y = Wd; y >= 0; y -= 5) g.lineTo((r() - 0.7) * 7, y);
+    g.closePath(); g.fillStyle = 'rgba(222,204,156,0.86)'; g.fill();
+    g.save(); g.clip();
+    for (let k = 0; k < 34; k++) { const x = r() * L; g.strokeStyle = r() < 0.5 ? 'rgba(255,248,225,0.35)' : 'rgba(120,96,50,0.18)'; g.lineWidth = 1 + r() * 3; g.beginPath(); g.moveTo(x, -2); g.quadraticCurveTo(x + (r() - 0.5) * 20, Wd / 2, x + (r() - 0.5) * 14, Wd + 2); g.stroke(); }
+    g.fillStyle = 'rgba(255,250,232,0.25)'; g.fillRect(0, 2, L, 5); g.fillStyle = 'rgba(100,80,40,0.15)'; g.fillRect(0, Wd - 6, L, 5);
+    g.restore();
+    texturise(c, 1.4, 9);
+    TAPE = shadows({ c, L, Wd, pad });
+  }
+  // squeegee: wooden handle over a rubber blade, seen from above
+  {
+    const Lh = 1200, Wd = 58, pad = 6, c = mk((Wd + 2 * pad + 14) * PS, (Lh + 2 * pad) * PS), g = g2(c, true), r = mulberry(31);
+    g.setTransform(PS, 0, 0, PS, pad * PS, pad * PS);
+    g.fillStyle = '#1f1b19'; g.fillRect(Wd - 2, 6, 14, Lh - 12);      // blade edge (leading side is +x)
+    const gr = g.createLinearGradient(0, 0, Wd, 0); gr.addColorStop(0, '#7c5634'); gr.addColorStop(0.35, '#c99a64'); gr.addColorStop(0.7, '#b88752'); gr.addColorStop(1, '#6e4a2a');
+    g.fillStyle = gr; g.beginPath(); g.roundRect(0, 0, Wd, Lh, 10); g.fill();
+    for (let k = 0; k < 22; k++) { g.strokeStyle = `rgba(80,48,22,${0.15 + r() * 0.25})`; g.lineWidth = 0.8 + r() * 1.6; const x = 4 + r() * (Wd - 8); g.beginPath(); g.moveTo(x, 4); g.bezierCurveTo(x + (r() - 0.5) * 8, Lh * 0.3, x + (r() - 0.5) * 8, Lh * 0.7, x + (r() - 0.5) * 6, Lh - 4); g.stroke(); }
+    g.fillStyle = 'rgba(255,240,210,0.25)'; g.fillRect(10, 8, 6, Lh - 16);
+    texturise(c, 1, 3);
+    SQ = shadows({ c, Lh, Wd, pad });
+  }
+  // stamp blocks: a varnished wooden mount with the design label on top
+  const block = (w, h, label, handle) => {
+    const pad = 6, c = mk((w + 2 * pad) * PS, (h + 2 * pad) * PS), g = g2(c, true);
+    g.setTransform(PS, 0, 0, PS, pad * PS, pad * PS);
+    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#a4703f'); gr.addColorStop(1, '#5e3a1e');
+    g.fillStyle = gr; g.beginPath(); g.roundRect(0, 0, w, h, 14); g.fill();
+    g.fillStyle = 'rgba(255,230,190,0.22)'; g.beginPath(); g.roundRect(4, 4, w - 8, h - 8, 11); g.fill();
+    g.fillStyle = '#8c5b30'; g.beginPath(); g.roundRect(10, 10, w - 20, h - 20, 8); g.fill();
+    g.fillStyle = '#efe6d2'; g.fillRect(20, 20, w - 40, h - 40);
+    label(g, w, h);
+    // turned-wood handle on top, casting its own shadow onto the mount
+    g.save(); g.translate(w / 2, h / 2); handle(g, w, h); g.restore();
+    texturise(c, 1, w);
+    return shadows({ c, w, h, pad });
+  };
+  const wood = (g, x0, y0, x1, y1) => { const gr = g.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, '#e2b27a'); gr.addColorStop(0.3, '#c48a50'); gr.addColorStop(0.75, '#8a5a2e'); gr.addColorStop(1, '#5a3618'); return gr; };
+  BLOCK.hero = block(HERO.w + 40, HERO.h + 40, (g, w, h) => {
+    g.fillStyle = '#241b18'; g.font = FONT(700, 40); g.fillText('HERO', 38, 62);
+    g.font = FONT(700, 15, 'Space Mono'); spaced(g, 'GZ2H', w - 106, h - 34, 4);
+  }, (g, w, h) => {
+    const L = w * 0.62, R = h * 0.2;
+    g.fillStyle = 'rgba(30,15,5,0.45)'; g.filter = `blur(${7 * PS}px)`; g.beginPath(); g.roundRect(-L / 2 + 14, -R + 18, L, 2 * R, R); g.fill(); g.filter = 'none';
+    g.fillStyle = wood(g, 0, -R, 0, R); g.beginPath(); g.roundRect(-L / 2, -R, L, 2 * R, R); g.fill();
+    g.fillStyle = 'rgba(255,240,215,0.35)'; g.beginPath(); g.roundRect(-L / 2 + R * 0.6, -R * 0.7, L - R * 1.2, R * 0.28, R * 0.14); g.fill();
+  });
+  BLOCK.pick = block(210, 230, (g, w, h) => { g.save(); g.translate(w / 2, h / 2); g.fillStyle = '#c41f2b'; pickPath(g, 0.95); g.fill(); g.restore(); }, (g) => {
+    const R = 58;
+    g.fillStyle = 'rgba(30,15,5,0.5)'; g.filter = `blur(${7 * PS}px)`; g.beginPath(); g.arc(12, 16, R, 0, TAU); g.fill(); g.filter = 'none';
+    const gr = g.createRadialGradient(-R * 0.35, -R * 0.4, R * 0.1, 0, 0, R); gr.addColorStop(0, '#e9bb84'); gr.addColorStop(0.5, '#b07a44'); gr.addColorStop(1, '#5e3a1c');
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, R, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(70,40,15,0.35)'; g.lineWidth = 1.4; for (const rr of [0.35, 0.62, 0.85]) { g.beginPath(); g.arc(0, 0, R * rr, 0, TAU); g.stroke(); }
+  });
+  // the platen of the press: a heavy steel plate with four bolts
+  {
+    const w = 940, h = 176, pad = 6, c = mk((w + 2 * pad) * PS, (h + 2 * pad) * PS), g = g2(c, true);
+    g.setTransform(PS, 0, 0, PS, pad * PS, pad * PS);
+    const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#77716c'); gr.addColorStop(0.12, '#4d4845'); gr.addColorStop(0.85, '#34302e'); gr.addColorStop(1, '#1f1c1b');
+    g.fillStyle = gr; g.beginPath(); g.roundRect(0, 0, w, h, 8); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 2; g.beginPath(); g.roundRect(8, 8, w - 16, h - 16, 5); g.stroke();
+    const r = mulberry(17); for (let k = 0; k < 60; k++) { g.strokeStyle = `rgba(255,255,255,${0.03 + r() * 0.05})`; g.lineWidth = 1; const y = r() * h; g.beginPath(); g.moveTo(10, y); g.lineTo(w - 10, y + (r() - 0.5) * 4); g.stroke(); }
+    for (const [x, y] of [[26, 26], [w - 26, 26], [26, h - 26], [w - 26, h - 26]]) { const bg = g.createRadialGradient(x - 3, y - 3, 1, x, y, 10); bg.addColorStop(0, '#c8c2bc'); bg.addColorStop(1, '#2a2624'); g.fillStyle = bg; g.beginPath(); g.arc(x, y, 9, 0, TAU); g.fill(); g.strokeStyle = 'rgba(0,0,0,0.5)'; g.beginPath(); g.moveTo(x - 6, y); g.lineTo(x + 6, y); g.stroke(); }
+    texturise(c, 0.8, 41);
+    PLATEN = shadows({ c, w, h, pad });
+  }
+}
+
+// ───────────────────────── poster state per drawing ─────────────────────────
+const DROP = { 1: { x: 1010, y: 300, r: -7 * DEG, s: 1.3, lift: 1 }, 2: { x: 975, y: 470, r: -2.8 * DEG, s: 1.09, lift: 0.6 }, 3: { x: 960, y: 543, r: -0.25 * DEG, s: 1.0, lift: 0.04 }, 4: { x: 961, y: 538, r: -0.85 * DEG, s: 1.008, lift: 0.14 } };
+const posePoster = d => (d < 1 ? null : DROP[d] || REST);
+// a cut-out slapped down at drawing d0: two drawings in the air, contact on the beat, a settle
+function slapPose(d, d0, id, rest) {
+  const k = d - d0;
+  if (k < -2) return null;
+  const side = id % 2 ? 1 : -1;
+  if (k === -2) return { dx: -46 + side * 30, dy: -90, rot: rest[2] * DEG - side * 10 * DEG, s: 1.24, lift: 1 };
+  if (k === -1) return { dx: -12 + side * 6, dy: -24, rot: rest[2] * DEG - side * 3.5 * DEG, s: 1.07, lift: 0.45 };
+  if (k === 0) return { dx: 0, dy: 0, rot: rest[2] * DEG + side * 1.1 * DEG, s: 0.995, lift: 0 };
+  const b = boil(d, id);
+  return { dx: b[0], dy: b[1], rot: rest[2] * DEG + b[2], s: 1, lift: 0 };
+}
+const FLICK = [-78, 16, -5, 0];
+
+// ───────────────────────── camera ─────────────────────────
+const KICKS = [[0.25, 3.2, 0.1], [1.0, 1.6, 0.08], [2.0, 4.5, 0.1], [2.667, 2.6, 0.08], [3.0, 2.6, 0.08], [3.333, 2.6, 0.08], [3.667, 3.2, 0.09], [4.333, 3.6, 0.09], [4.667, 6.5, 0.12], [5.333, 2.2, 0.08], [6.0, 3.2, 0.1]];
+function camera(t) {
+  let z = 1 + 0.014 * sstep(0.2, 5.8, t) + 0.062 * eIO3(inv(5.7, 8.0, t));
+  let fx = 960 + 6 * sstep(5.7, 8, t), fy = 540 + 18 * sstep(5.7, 8, t), sx = 0, sy = 0, r = 0;
+  fx += 4 * Math.sin(t * 0.7 + 1); fy += 3 * Math.sin(t * 0.55);   // handheld-free drift: a slow, smooth float
+  for (const [tk, a, dec] of KICKS) {
+    const tau = t - tk; if (tau < 0 || tau > 0.8) continue;
+    const e = a * Math.exp(-tau / dec);
+    sx += e * 0.6 * Math.sin(TAU * 7 * tau + tk * 5); sy += e * Math.sin(TAU * 9 * tau); r += e * 0.00035 * Math.sin(TAU * 6 * tau + tk);
+    z += e * 0.0016 * Math.sin(TAU * 4 * tau) * Math.exp(-tau / 0.05);
+  }
+  return { z, fx, fy, sx, sy, r };
+}
+
+// ───────────────────────── print layer (paper + inks), cached per drawing ─────────────────────────
+let pcC = null, pcG = null, pcKey = -1;
+function drawPlate(g, p, ox, oy, alpha = 1) {
+  g.globalAlpha = alpha;
+  g.drawImage(p.c, Math.round((p.box[0] + ox) * PS), Math.round((p.box[1] + oy) * PS));
+  g.globalAlpha = 1;
+}
+function clipRect(g, x0, y0, x1, y1) { g.beginPath(); g.rect(x0 * PS, y0 * PS, (x1 - x0) * PS, (y1 - y0) * PS); g.clip(); }
+function printLayer(d) {
+  if (pcKey === d) return pcC;
+  if (!pcC) { pcC = mk(PRW, PRH); pcG = g2(pcC); }
+  const g = pcG; pcKey = d;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+  g.drawImage(paperC, 0, 0);
+  g.globalCompositeOperation = 'multiply';
+  const [rx, ry] = misreg(0, d), [kx, ky] = misreg(1, d);
+  // red pass
+  if (d >= D.sqR[0]) {
+    g.save();
+    if (d < D.redDone) clipRect(g, -10, -10, SQ_R_X[d - D.sqR[0]], PH + 10);
+    drawPlate(g, PL.rbg, rx, ry);
+    g.restore();
+  }
+  if (d >= D.slash[0]) {
+    const u = d === D.slash[0] ? 0.42 : d === D.slash[1] ? 0.84 : 1.2, { x0, y0, x1, y1 } = SLASH, a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0);
+    g.save(); g.beginPath(); g.translate(x0 * PS, y0 * PS); g.rotate(a); g.rect(-80 * PS, -200 * PS, (80 + u * L) * PS, 400 * PS); g.setTransform(1, 0, 0, 1, 0, 0); g.clip();
+    drawPlate(g, PL.slash, rx, ry); g.restore();
+  }
+  if (d >= D.pick) drawPlate(g, PL.pick, rx * 0.8 - 1, ry * 0.8 + 1);
+  // black pass
+  if (d >= D.sqK[0]) {
+    g.save();
+    if (d < D.blackDone) clipRect(g, SQ_K_X[d - D.sqK[0]], -10, PW + 10, PH + 10);
+    drawPlate(g, PL.kframe, kx, ky); drawPlate(g, PL.ktype, kx, ky); drawPlate(g, PL.zero, kx, ky);
+    g.restore();
+  }
+  if (d >= D.hero) { const b = boil(d, 51, 0.6); drawPlate(g, PL.hero, kx * 0.4 + b[0], ky * 0.4 + b[1]); }
+  if (d >= D.press) {
+    const b = boil(d, 61, 0.4);
+    g.globalCompositeOperation = 'multiply'; drawPlate(g, PL.wmLo, -1.4 + b[0], -1.4 + b[1], 0.55);
+    g.globalCompositeOperation = 'screen'; drawPlate(g, PL.wmHi, 1.7 + b[0], 1.7 + b[1], 0.7);
+    g.globalCompositeOperation = 'multiply'; drawPlate(g, PL.wm, b[0] * 0.5, b[1] * 0.5);
+  }
+  g.globalCompositeOperation = 'source-over';
+  return pcC;
+}
+
+// ───────────────────────── frame ─────────────────────────
+function drawSprite(g, spr, x, y, rot, s, lift, alpha = 1, shadowScale = 1) {
+  // shadow falls down-right (key light top-left); lifted pieces cast a bigger, softer, fainter shadow
+  const sh = lift > 0.3 ? spr.soft : spr.tight;
+  const off = lerp(4.5, 46, lift) * shadowScale, ss = 1 + 0.04 * lift;
+  g.save(); g.translate(x + off * 0.75, y + off); g.rotate(rot); g.scale(s * ss, s * ss);
+  g.globalAlpha = alpha * lerp(0.5, 0.26, lift);
+  g.drawImage(sh.c, -(spr.pv[0] * PS + sh.pad) / PS, -(spr.pv[1] * PS + sh.pad) / PS, sh.c.width / PS, sh.c.height / PS);
+  g.restore();
+  g.save(); g.translate(x, y); g.rotate(rot); g.scale(s, s); g.globalAlpha = alpha;
+  g.drawImage(spr.c, -spr.pv[0], -spr.pv[1], spr.c.width / PS, spr.c.height / PS);
+  g.restore();
+}
+function drawLogo(g, d) {
+  for (const [L, id] of [['G', 1], ['Z', 2], ['two', 3], ['H', 4]]) {
+    const ps = slapPose(d, D.letters[L], id, LETTER_REST[L]); if (!ps) continue;
+    const spr = SPR[L], rest = LETTER_REST[L];
+    const lx = spr.at[0] + rest[0] + ps.dx, ly = spr.at[1] + rest[1] + ps.dy;
+    drawSprite(g, spr, lx, ly, ps.rot, ps.s, ps.lift);
+    // the hand on this letter: rides with the letter, flicks up about its wrist
+    const hk = HAND_OF[L], hd = d - D.hands[hk];
+    if (hd < 0) continue;
+    const hs = SPR[hk], vx = hs.at[0] - spr.at[0], vy = hs.at[1] - spr.at[1], c = Math.cos(ps.rot), s = Math.sin(ps.rot);
+    const fl = hd < FLICK.length ? FLICK[hd] * DEG : boil(d, id + 20, 0.6)[2];
+    drawSprite(g, hs, lx + (vx * c - vy * s) * ps.s, ly + (vx * s + vy * c) * ps.s, ps.rot + fl, ps.s * (hd === 0 ? 0.92 : 1), hd === 0 ? 0.35 : 0);
+  }
+}
+function drawTape(g, d) {
+  if (d < D.tape[0]) return;
+  const k = d - D.tape[0], u = k === 0 ? 0.55 : 1, lift = k === 0 ? 0.5 : k === 1 ? 0.3 : 0;
+  const b = k >= 2 ? boil(d, 71, 0.4) : [0, 0, 0];
+  g.save(); g.translate(18 + b[0], 18 + b[1]); g.rotate(-44 * DEG + b[2]);
+  const x0 = -TAPE.L / 2, y0 = -TAPE.Wd / 2;
+  g.beginPath(); g.rect(x0 - 20, y0 - 40, TAPE.L * u + 20, TAPE.Wd + 120); g.clip();
+  const sh = lift > 0.2 ? TAPE.soft : TAPE.tight, off = lerp(3, 20, lift);
+  g.globalAlpha = lerp(0.32, 0.2, lift);
+  g.save(); g.rotate(44 * DEG); g.translate(off * 0.7, off); g.rotate(-44 * DEG);
+  g.drawImage(sh.c, x0 - TAPE.pad - sh.pad / PS, y0 - TAPE.pad - sh.pad / PS, sh.c.width / PS, sh.c.height / PS); g.restore();
+  g.globalAlpha = 1; g.drawImage(TAPE.c, x0 - TAPE.pad, y0 - TAPE.pad, TAPE.c.width / PS, TAPE.c.height / PS);
+  if (k === 0) { g.fillStyle = 'rgba(80,60,30,0.35)'; g.fillRect(x0 + TAPE.L * u - 10, y0, 10, TAPE.Wd); }
+  g.restore();
+}
+function drawSqueegee(g, d) {
+  let X = null, dir = 1, ink = RED;
+  if (d >= D.sqR[0] && d < D.redDone) X = SQ_R_X[d - D.sqR[0]];
+  else if (d >= D.sqK[0] && d < D.blackDone) { X = SQ_K_X[d - D.sqK[0]]; dir = -1; ink = BLACK; }
+  if (X === null) return;
+  const b = boil(d, 81, 1.2), sh = SQ.tight;
+  g.save(); g.translate(X + b[0] + 16, PH / 2 + b[1] + 22); g.rotate(1.5 * DEG * dir); g.scale(dir, 1); g.globalAlpha = 0.4;
+  g.drawImage(sh.c, -SQ.Wd - SQ.pad - sh.pad / PS, -SQ.Lh / 2 - SQ.pad - sh.pad / PS, sh.c.width / PS, sh.c.height / PS); g.restore();
+  g.save(); g.translate(X + b[0], PH / 2 + b[1]); g.rotate(1.5 * DEG * dir); g.scale(dir, 1);
+  // a glossy bead of ink pushed ahead of the blade, with a few stray drops
+  const r = mulberry(d * 13 + 1), y0 = -PH / 2 + 30, y1 = PH / 2 - 30, pts = [];
+  for (let y = y0; y <= y1; y += 22) pts.push([30 + 10 * r() + 7 * Math.sin(y * 0.017 + d * 1.7), y]);
+  const bead = () => { g.beginPath(); g.moveTo(6, y0 - 6); for (const [x, y] of pts) g.lineTo(x, y); g.lineTo(6, y1 + 6); g.closePath(); };
+  bead(); g.fillStyle = `rgb(${ink})`; g.fill();
+  g.save(); bead(); g.clip();
+  const bg = g.createLinearGradient(6, 0, 44, 0); bg.addColorStop(0, 'rgba(0,0,0,0.35)'); bg.addColorStop(0.45, 'rgba(0,0,0,0)'); bg.addColorStop(0.7, 'rgba(255,255,255,0.22)'); bg.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = bg; g.fillRect(0, y0 - 10, 50, y1 - y0 + 20); g.restore();
+  g.strokeStyle = 'rgba(255,255,255,0.45)'; g.lineWidth = 1.6; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x - 5, y) : g.moveTo(x - 5, y))); g.stroke();
+  g.fillStyle = `rgb(${ink})`; for (let k = 0; k < 9; k++) { g.beginPath(); g.arc(46 + r() * 34, y0 + r() * (y1 - y0), 1.5 + r() * 3.5, 0, TAU); g.fill(); } g.drawImage(SQ.c, -SQ.Wd - SQ.pad, -SQ.Lh / 2 - SQ.pad, SQ.c.width / PS, SQ.c.height / PS);
+  g.restore();
+}
+function drawBlock(g, d, d0, B, cx, cy, rot, away) {
+  const k = d - d0;
+  if (k < -1 || k > 1) return;
+  const P = k === -1 ? { dx: away[0] * 0.5, dy: away[1] * 0.5, s: 1.16, lift: 0.8 } : k === 0 ? { dx: 0, dy: 0, s: 1, lift: 0.05 } : { dx: away[0], dy: away[1], s: 1.12, lift: 0.9 };
+  const spr = { c: B.c, pv: [(B.w / 2 + B.pad), (B.h / 2 + B.pad)], soft: B.soft, tight: B.tight };
+  drawSprite(g, spr, cx + P.dx, cy + P.dy, rot, P.s, P.lift, 1, 1.2);
+}
+function drawPlaten(g, d) {   // the press closes over the forme for two drawings, then lifts clear on the beat
+  const k = d - D.press; if (k < -2 || k >= 0) return;
+  const spr = { c: PLATEN.c, pv: [PLATEN.w / 2 + PLATEN.pad, PLATEN.h / 2 + PLATEN.pad], soft: PLATEN.soft, tight: PLATEN.tight };
+  if (k === -2) drawSprite(g, spr, WMP.cx - 30, WMP.base - 60, -1.2 * DEG, 1.14, 0.85, 1, 1.3);
+  else drawSprite(g, spr, WMP.cx, WMP.base - 34, -0.4 * DEG, 1.0, 0.04, 1, 1.2);
+}
+function drawPin(g, d) {
+  const k = d - D.pin; if (k < -2) return;
+  const c = Math.cos(TK.rot), s = Math.sin(TK.rot), lx = TK.perf + (TK.w - TK.perf) / 2 - TK.w / 2, ly = -TK.h / 2 + 34;
+  const bx = TK.cx + lx * c - ly * s, by = TK.cy + lx * s + ly * c, b = k > 0 ? boil(d, 91, 0.5) : [0, 0];
+  const P = k === -2 ? { dx: -60, dy: -110, s: 1.5, lift: 1 } : k === -1 ? { dx: -16, dy: -30, s: 1.15, lift: 0.45 } : { dx: b[0], dy: b[1], s: 1, lift: 0 };
+  const x = bx + P.dx, y = by + P.dy, R = 17 * P.s, off = lerp(6, 60, P.lift);
+  if (k >= 0) { g.fillStyle = 'rgba(40,20,10,0.35)'; g.beginPath(); g.arc(bx + 1, by + 1, 21, 0, TAU); g.fill(); }
+  const ps = P.lift > 0.3 ? pinSh.soft : pinSh.tight, k2 = R / 20;
+  g.globalAlpha = lerp(0.6, 0.28, P.lift); g.drawImage(ps, x + off * 0.75 - 60 * k2, y + off - 60 * k2, 120 * k2, 120 * k2); g.globalAlpha = 1;
+  if (P.lift < 0.5) { g.lineWidth = 3.5; g.lineCap = 'round'; g.strokeStyle = 'rgba(20,10,5,0.35)'; g.beginPath(); g.moveTo(x + 2, y + 2); g.lineTo(x + off * 0.75 + 8, y + off + 10); g.stroke(); }
+  const gr = g.createRadialGradient(x - R * 0.35, y - R * 0.4, R * 0.1, x, y, R * 1.05);
+  gr.addColorStop(0, '#8a7f78'); gr.addColorStop(0.25, '#3a302c'); gr.addColorStop(1, '#0f0b0a');
+  g.fillStyle = gr; g.beginPath(); g.arc(x, y, R, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(255,255,255,0.55)'; g.beginPath(); g.ellipse(x - R * 0.38, y - R * 0.42, R * 0.22, R * 0.13, -0.7, 0, TAU); g.fill();
+  g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, R, 0, TAU); g.stroke();
+}
+
+function render(t) {
+  t = clamp(t, 0, DUR);
+  const d = drawingOf(t), cam = camera(t);
+  const g = ctx;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.filter = 'none';
+  const camM = () => { g.setTransform(Q, 0, 0, Q, 0, 0); g.translate(960 + cam.sx, 540 + cam.sy); g.rotate(cam.r); g.scale(cam.z, cam.z); g.translate(-cam.fx, -cam.fy); };
+  camM();
+  g.imageSmoothingQuality = 'low';
+  g.drawImage(backC, -backC.M, -backC.M, W + 2 * backC.M, H + 2 * backC.M);
+  const pp = posePoster(d);
+  if (pp) {
+    // the sheet's shadow on the bench
+    const sh = pp.lift > 0.2 ? sheetSh.soft : sheetSh.tight, off = lerp(5, 70, pp.lift);
+    g.save(); g.translate(pp.x + off * 0.7, pp.y + off); g.rotate(pp.r); g.scale(pp.s * (1 + 0.03 * pp.lift), pp.s * (1 + 0.03 * pp.lift));
+    g.globalAlpha = lerp(0.62, 0.36, pp.lift); g.drawImage(sh.c, -PW / 2 - sh.pad, -PH / 2 - sh.pad, PW + 2 * sh.pad, PH + 2 * sh.pad); g.restore();
+    g.save(); g.translate(pp.x, pp.y); g.rotate(pp.r); g.scale(pp.s, pp.s); g.translate(-PW / 2, -PH / 2);
+    g.imageSmoothingQuality = 'high'; g.drawImage(printLayer(d), 0, 0, PW, PH); g.imageSmoothingQuality = 'medium';
+    drawLogo(g, d);
+    if (d >= D.ticket - 2) { const ps = slapPose(d, D.ticket, 9, [0, 0, TK.rot / DEG]); drawSprite(g, SPR.ticket, TK.cx + ps.dx, TK.cy + ps.dy, ps.rot, ps.s, ps.lift); }
+    drawPin(g, d);
+    drawTape(g, d);
+    drawSqueegee(g, d);
+    drawBlock(g, d, D.hero, BLOCK.hero, HERO.cx, HERO.cy, HERO.rot, [150, -170]);
+    drawBlock(g, d, D.pick, BLOCK.pick, PICK.cx, PICK.cy, PICK.rot, [120, -150]);
+    drawPlaten(g, d);
+    g.restore();
+  }
+  // light: warm key from the top left, falloff to the corners; stop-motion exposure flicker; grain
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  // as the turntable winds down at the end, the bench light sags a little with it
+  const sag = 0.085 * sstep(7.0, 7.8, t);
+  if (sag > 0.001) { g.globalAlpha = sag; g.fillStyle = '#120a06'; g.fillRect(0, 0, CW, CH); g.globalAlpha = 1; }
+  const bo = boilOf(d), fl = Math.min(4, Math.floor(hash(bo * 0.77 + 5) * 5));
+  g.globalCompositeOperation = 'multiply'; g.imageSmoothingQuality = 'low'; g.drawImage(vignC[d < 1 ? 2 : fl], 0, 0, CW, CH);
+  if (!grainP.length) grainP = grainT.map(c => g.createPattern(c, 'repeat'));
+  const pat = grainP[bo % 4]; pat.setTransform(new DOMMatrix([Q, 0, 0, Q, -Math.floor(hash(bo) * 256) * Q, -Math.floor(hash(bo + 0.5) * 256) * Q]));
+  g.globalCompositeOperation = 'overlay'; g.globalAlpha = 0.07; g.fillStyle = pat; g.fillRect(0, 0, CW, CH);
+  g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+}
+
+// ───────────────────────── boot: fonts, then the printed matter ─────────────────────────
+let built = false;
+const ready = (async () => {
+  const faces = [
+    new FontFace('Space Grotesk', b64(FONTS.sg), { weight: '300 700' }),
+    new FontFace('Space Mono', b64(FONTS.sm4), { weight: '400' }),
+    new FontFace('Space Mono', b64(FONTS.sm7), { weight: '700' }),
+  ];
+  for (const f of faces) { await f.load(); document.fonts.add(f); }
+  NLO = noiseTile(8, 11); NMID = noiseTile(40, 12); NHI = noiseTile(170, 13);
+  buildPaper(); buildBackdrop(); buildGrain(); buildPlates(); buildSprites();
+  built = true;
+})();
+
+// ───────────────────────── audio ─────────────────────────
+// The score: a garage-rock riff on gzMix's double-tracked rigs plus a bit-crushed, band-passed parallel bus,
+// over a vinyl crackle bed. Foley for every physical action. The last chord dies in a turntable/tape stop.
+function buildAudio(ac, t0, from = 0) {
+  const M = gzMix(ac, t0, from, { dur: DUR, fadeAt: 7.8, drive: 18, seed: 7 });
+  const { at, live, bq, G, chain, src, panTo, F, osc, send, NB } = M;
+  const after = x => Math.max(x, from);
+  // master → tape-stop low-pass → glue compressor → out
+  const tapeLP = bq('lowpass', 19000, 0.6), comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -12; comp.knee.value = 8; comp.ratio.value = 3; comp.attack.value = 0.003; comp.release.value = 0.18;
+  M.master.disconnect(); M.master.connect(tapeLP); tapeLP.connect(comp); comp.connect(ac.destination);
+  const STOP = 6.95, STOP_END = 7.75;
+  if (from < STOP_END) { const st = after(STOP), f0 = 19000 * Math.pow(700 / 19000, inv(STOP, STOP_END, st)); tapeLP.frequency.setValueAtTime(f0, at(st)); tapeLP.frequency.exponentialRampToValueAtTime(700, at(STOP_END)); }
+
+  // lo-fi bus: bit-crushed and band-passed like a transistor radio
+  const crush = bits => { const n = 2048, c = new Float32Array(n), q = 2 ** (bits - 1); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.round(x * q) / q; } const ws = ac.createWaveShaper(); ws.curve = c; ws.oversample = 'none'; return ws; };
+  const lofiBus = (lvl) => { const i = G(1), o = chain(i, bq('highpass', 420), gzShaper(ac, 6, 0.06), crush(4), bq('bandpass', 1500, 0.75), bq('peaking', 2800, 2, 5), bq('lowpass', 4200), G(lvl)); o.connect(M.master); send(o, 0.1); return i; };
+  const lofi = lofiBus(0.42), radio = lofiBus(0.2);
+  // the rigs also feed the lo-fi bus in parallel once the band comes in
+  const par = G(0); M.L.connect(par); M.R.connect(par); par.connect(lofi);
+  par.gain.setValueAtTime(from >= 1.0 ? 0.85 : 0, at(from)); if (from < 1.0) par.gain.setValueAtTime(0.85, at(1.0));
+
+  // vinyl crackle bed (hiss, ticks, pops), started at the playhead; it slows down with the turntable at the end
+  const sr = ac.sampleRate;
+  const crackle = ac.createBuffer(2, Math.floor(sr * 8.6), sr);
+  for (let c = 0; c < 2; c++) {
+    const d = crackle.getChannelData(c), r = mulberry(606 + c), n = d.length; let lp = 0;
+    for (let i = 0; i < n; i++) { lp += 0.08 * ((r() * 2 - 1) - lp); d[i] = lp * 0.18 + (r() < 0.0012 ? (r() * 2 - 1) * (0.15 + 0.6 * r() * r()) : 0); }
+    for (let k = 0; k < 34; k++) { const i0 = Math.floor(r() * (n - 600)), A = 0.25 + r() * 0.55, s = r() < 0.5 ? -1 : 1; for (let j = 0; j < 500; j++) d[i0 + j] += s * A * Math.exp(-j / 40) * Math.sin(j * 0.9) ; }
+  }
+  const crk = ac.createBufferSource(); crk.buffer = crackle;
+  const crkG = G(0.42); crk.connect(bq('highpass', 260)).connect(bq('lowpass', 7500)).connect(crkG); crkG.connect(M.master);
+  crk.start(at(from), from); crk.stop(at(DUR + 0.1));
+  const fin = [crk];
+
+  // helpers
+  let seed = 900;
+  const CH = { E5: ['E2', 'B2', 'E3'], e: ['E2', 'B2'], G5: ['G2', 'D3', 'G3'], A5: ['A2', 'E3', 'A3'], B5: ['B2', 185.0, 'B3'], D5: ['D3', 'A3', 'D4'] };
+  const chord = (time, name, o = {}) => CH[name].forEach((n, i) => {
+    const f = typeof n === 'number' ? n : F[n], mute = name === 'e' || o.mute;
+    const ko = { t60: mute ? 0.22 : (o.t60 ?? 1.4), bright: mute ? 0.32 : 0.74, pick: 0.12, damp: mute ? 0.62 : 0.5 };
+    const len = Math.min(ko.t60 * 1.1, 4.5), g = (o.gain ?? 0.55) * (mute ? 1.5 : 1), dt = (o.up ? -1 : 1) * i * 0.007;
+    const a = src(gzKS(ac, f, len, { ...ko, seed: seed++ }), time + dt, o.L || M.L, g, 1, o.stop);
+    const b = src(gzKS(ac, f, len, { ...ko, seed: seed++ }), time + dt + 0.011, o.R || M.R, g, 1.0023, o.stop);
+    if (o.keep) { if (a) fin.push(a.s); if (b) fin.push(b.s); }
+  });
+  const nz = (time, dur, gain, filters, o = {}) => {
+    if (!live(time)) return null;
+    const s = ac.createBufferSource(); s.buffer = NB; s.playbackRate.value = o.rate || 1;
+    const a = G(0); let node = s; for (const f of filters) { node.connect(f); node = f; } node.connect(a); a.connect(o.dest || M.master);
+    const att = o.att ?? 0.002;
+    a.gain.setValueAtTime(0.0001, at(time)); a.gain.exponentialRampToValueAtTime(gain, at(time + att));
+    if (o.hold) a.gain.setValueAtTime(gain, at(time + att + o.hold));
+    a.gain.exponentialRampToValueAtTime(0.0001, at(time + dur));
+    s.start(at(time), hash(time * 7.31 + gain) * 2); s.stop(at(time + dur + 0.05));
+    return a;
+  };
+  // filtered noise drawn across a surface: band sweeps f1 → f2, with stick-slip judder
+  const scrape = (t1, t2, f1, f2, g, q = 2, judder = 38, pan = 0) => {
+    if (!live(t2)) return;
+    const st = after(t1), s = ac.createBufferSource(); s.buffer = NB;
+    const bp = bq('bandpass', f1, q), env = G(0), am = G(0.6), lfo = ac.createOscillator(), lg = G(0.4);
+    lfo.type = 'triangle'; lfo.frequency.value = judder; lfo.connect(lg).connect(am.gain);
+    s.connect(bp).connect(bq('peaking', 3400, 2.5, 5)).connect(env).connect(am).connect(panTo(pan, M.master));
+    const u = inv(t1, t2, st);
+    bp.frequency.setValueAtTime(lerp(f1, f2, u), at(st)); bp.frequency.linearRampToValueAtTime(f2, at(t2));
+    env.gain.setValueAtTime(0.0001, at(st)); env.gain.linearRampToValueAtTime(g, at(Math.min(t2, st + 0.035)));
+    env.gain.setValueAtTime(g, at(Math.max(st + 0.035, t2 - 0.05))); env.gain.linearRampToValueAtTime(0.0001, at(t2 + 0.02));
+    s.start(at(st), hash(t1) * 2); lfo.start(at(st)); s.stop(at(t2 + 0.05)); lfo.stop(at(t2 + 0.05));
+  };
+  const slap = (time, g = 1, pan = 0) => {   // paper slapped flat: short low thud, papery crack, a breath of air before
+    osc('sine', 150, 62, time, 0.13, 0.3 * g, M.master, 0.002);
+    nz(time, 0.075, 0.55 * g, [bq('bandpass', 1500, 0.6)], { att: 0.001, dest: panTo(pan, M.master) });
+    nz(time, 0.03, 0.28 * g, [bq('highpass', 4200)], { att: 0.0005, dest: panTo(pan, M.master) });
+    nz(time - 0.08, 0.085, 0.07 * g, [bq('highpass', 2500)], { att: 0.06 });
+  };
+  const thump = (time, g = 1) => {   // rubber stamp: dead, woody, a little squelch of ink
+    osc('sine', 120, 52, time, 0.18, 0.24 * g, M.master, 0.002);
+    nz(time, 0.06, 0.34 * g, [bq('bandpass', 560, 1.5)], { att: 0.001 });
+    nz(time, 0.04, 0.22 * g, [bq('bandpass', 2400, 1)], { att: 0.0007 });
+    nz(time + 0.012, 0.09, 0.08 * g, [bq('bandpass', 900, 3)], { att: 0.02 });
+  };
+  const splat = (time, n = 7) => { for (let i = 0; i < n; i++) nz(time + 0.02 + hash(i + time) * 0.16, 0.012, 0.12 * (1 - i / n), [bq('highpass', 3500)], { att: 0.0005, dest: panTo(sgn(i * 3.3 + time) * 0.7, M.master) }); };
+  const press = time => {   // platen press: latch click, heavy impression, a ring of iron
+    nz(time - 0.085, 0.025, 0.22, [bq('bandpass', 2300, 2.5)], { att: 0.0006 });
+    osc('sine', 96, 44, time, 0.28, 0.3, M.master, 0.002);
+    nz(time, 0.1, 0.42, [bq('lowpass', 1400)], { att: 0.001 });
+    [612, 1388, 2243, 3171].forEach((f, i) => osc('sine', f, f * 0.996, time + 0.003, 0.38 - i * 0.06, 0.045, panTo((i - 1.5) * 0.35, M.master), 0.001));
+  };
+  const pin = time => { osc('sine', 340, 130, time, 0.06, 0.16, M.master, 0.001); nz(time, 0.018, 0.32, [bq('highpass', 3000)], { att: 0.0004 }); nz(time + 0.004, 0.05, 0.14, [bq('bandpass', 1100, 1.2)], { att: 0.001 }); };
+  const flick = (time, pan) => nz(time, 0.03, 0.16, [bq('bandpass', 4200, 1.4)], { att: 0.0008, dest: panTo(pan, M.master) });
+  const keepClean = (time, f, g, pan, t60) => { const r = M.cleanNote(time, f, g, pan, t60); if (r) fin.push(r.s); };
+
+  // ── 0.0–1.0  needle drop, the sheet lands, tape rips, the red squeegee pass; the riff plays on a little radio
+  if (live(0)) { osc('sine', 70, 40, 0.0, 0.18, 0.22, M.master, 0.002); nz(0.0, 0.02, 0.3, [bq('highpass', 1800)], { att: 0.0004 }); }
+  M.whoosh(0.07, 0.2, 0.12, 1700, 380);
+  slap(0.25, 1.15);
+  scrape(0.4, 0.5, 2300, 3100, 0.2, 0.9, 92, -0.4);          // tape unrolling: a fast raspy crackle
+  nz(0.5, 0.035, 0.42, [bq('highpass', 1600)], { att: 0.0006, dest: panTo(-0.5, M.master) });   // the tear
+  nz(0.583, 0.06, 0.14, [bq('lowpass', 900)], { att: 0.002 });
+  scrape(0.585, 1.0, 820, 1350, 0.3, 2.2, 36, -0.2);        // squeegee, left to right
+  [[0.167, 'E5'], [0.333, 'e'], [0.5, 'e'], [0.667, 'G5'], [0.833, 'A5']].forEach(([t, c]) => chord(t, c, { L: radio, R: radio, gain: 0.7, t60: 0.9, stop: t + 0.16 }));
+  M.swell(0.55, 1.0, 0.22, 900, 6500, 0.8);
+
+  // ── 1.0–2.5  the band drops in with the black pass; ZERO gets slashed, HERO stamped
+  chord(1.0, 'E5', { t60: 1.8, stop: 1.32 }); M.kick(1.0, 0.75); M.boom(1.0, 0.4); M.crash(1.0, 0.72, 2.2);
+  scrape(1.083, 1.33, 1400, 950, 0.24, 2.2, 40, 0.25);       // squeegee back, right to left
+  chord(1.333, 'e'); chord(1.5, 'e'); M.snare(1.333, 0.55);
+  chord(1.667, 'G5', { t60: 1.2, stop: 1.98 }); M.kick(1.667, 0.6);
+  scrape(1.667, 1.86, 2600, 4300, 0.16, 3, 52, -0.3);         // marker squeak
+  chord(2.0, 'A5', { t60: 1.4, stop: 2.3 }); M.snare(2.0, 0.6); thump(2.0, 1.1);
+  chord(2.167, 'e');
+  for (let i = 0; i < 8; i++) M.hat(1.0 + i / 6, i % 2 ? 0.18 : 0.3);
+  // fill: snare roll and a pick scrape down the strings
+  [2.333, 2.417, 2.5, 2.583].forEach((t, i) => M.snare(t, 0.32 + 0.1 * i));
+  if (live(2.333)) {
+    const s = ac.createBufferSource(); s.buffer = NB; const bp = bq('bandpass', 3000, 6), e = G(0);
+    s.connect(bp).connect(e); e.connect(M.L); e.connect(M.R);
+    bp.frequency.setValueAtTime(3200, at(2.333)); bp.frequency.exponentialRampToValueAtTime(380, at(2.64));
+    e.gain.setValueAtTime(0.0001, at(2.333)); e.gain.exponentialRampToValueAtTime(0.5, at(2.36)); e.gain.setValueAtTime(0.5, at(2.6)); e.gain.exponentialRampToValueAtTime(0.0001, at(2.66));
+    s.start(at(2.333), 0.4); s.stop(at(2.7));
+  }
+
+  // ── 2.5–4.6  stop-time stabs, one per cut-out letter; the hands flick on; the pick stamp
+  [[2.667, 'E5'], [3.0, 'G5'], [3.333, 'A5'], [3.667, 'B5']].forEach(([t, c], i) => {
+    chord(t, c, { t60: 1.3, stop: t + 0.24, gain: 0.6 }); M.kick(t, 0.62); M.crash(t, 0.32, 0.45); slap(t, 0.9, -0.3 + i * 0.2);
+    if (i % 2) M.snare(t, 0.45);
+  });
+  [[4.0, 'E5'], [4.083, 'G5'], [4.167, 'A5'], [4.25, 'B5']].forEach(([t, n], i) => { M.cleanNote(t, F[n], 1.0, -0.45 + i * 0.3, 1.6, 0.85); flick(t, -0.45 + i * 0.3); });
+  thump(4.333, 0.95); splat(4.333, 8); chord(4.333, 'E5', { t60: 0.6, stop: 4.47, gain: 0.6 }); M.kick(4.333, 0.4);
+  M.snare(4.49, 0.3); M.snare(4.5, 0.55); M.swell(4.25, 4.667, 0.26, 700, 7000, 1.1);
+
+  // ── 4.6–8.0  letterpress impression on the big E; the riff once more; ticket; pin; final chord; turntable stop
+  press(4.667); chord(4.667, 'E5', { t60: 1.8, stop: 4.98, gain: 0.62 }); M.kick(4.667, 0.7); M.boom(4.667, 0.4); M.crash(4.667, 0.85, 2.6);
+  chord(5.0, 'e'); chord(5.167, 'e'); M.snare(5.0, 0.55);
+  chord(5.333, 'G5', { t60: 1.2, stop: 5.64 }); M.kick(5.333, 0.6); slap(5.333, 0.85, 0.4);
+  chord(5.667, 'A5', { t60: 1.0, stop: 5.82 }); M.snare(5.667, 0.55);
+  chord(5.833, 'B5', { t60: 1.0, stop: 5.99, gain: 0.5 }); M.snare(5.833, 0.35); M.kick(5.833, 0.45);
+  for (let i = 0; i < 8; i++) M.hat(4.667 + i / 6, i % 2 ? 0.16 : 0.28);
+  chord(6.0, 'E5', { t60: 7, gain: 0.62, keep: true }); M.kick(6.0, 0.75); M.boom(6.0, 0.55); M.crash(6.0, 0.9, 3.0); pin(6.0);
+  [['E4', 0.0], ['B4', 0.05], ['E5', 0.1]].forEach(([n, dt], i) => keepClean(6.0 + dt, F[n], 0.42, 0.4 - i * 0.4, 3.6));
+  // turntable stop: everything still ringing slows to a stop
+  if (from < STOP_END) for (const s of fin) { const st = after(STOP), r0 = s.playbackRate.value; s.playbackRate.setValueAtTime(r0 * Math.pow(0.05, inv(STOP, STOP_END, st)), at(st)); s.playbackRate.exponentialRampToValueAtTime(r0 * 0.05, at(STOP_END)); }
+  if (live(7.86)) nz(7.86, 0.03, 0.12, [bq('bandpass', 1800, 1)], { att: 0.0005 });   // needle lifts
+}
+
+
+// ───────────────────────── engine API ─────────────────────────
+const RENDER = new URLSearchParams(location.search).has('render');
+if (RENDER) document.body.classList.add('render');
+setQuality(1);
+
+window.GZ = {
+  DUR, ready,
+  frame: t => render(t),
+  // motion blur: n sub-frames across a 180° shutter, averaged; returns a PNG as base64
+  capture(t, n = 1) {
+    if (!this.acc) { this.acc = mk(CW, CH); this.ax = this.acc.getContext('2d'); }
+    for (let i = 0; i < n; i++) { render(t + (n > 1 ? ((i + 0.5) / n - 0.5) / 120 : 0)); this.ax.globalAlpha = 1 / (i + 1); this.ax.drawImage(out, 0, 0); }
+    return this.acc.toDataURL('image/png').split(',')[1];
+  },
+  async audio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * DUR), sr); buildAudio(oc, 0, 0); const b = await oc.startRendering(); return gzWavB64(b); },
+};
+if (RENDER) return;
+
+// ───────────────────────── player UI ─────────────────────────
+const stage = document.getElementById('stage');
+const big = document.getElementById('big'), bigLabel = document.getElementById('bigLabel');
+const playBtn = document.getElementById('play'), playLabel = document.getElementById('playLabel'), playIcon = document.getElementById('playIcon');
+const soundBtn = document.getElementById('sound'), soundLabel = document.getElementById('soundLabel');
+const scrub = document.getElementById('scrub'), tcNow = document.getElementById('tcNow');
+const scenesEl = document.getElementById('scenes'), ticks = document.getElementById('ticks');
+const SOUND_FILE = 'gz2h-poster.mp3';
+const POSTER = 6.6;
+const ICON_PLAY = 'M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z';
+const ICON_PAUSE = 'M3 2h3.4v12H3zM9.6 2H13v12H9.6z';
+
+SCENES.forEach((sc, i) => {
+  const b = document.createElement('button');
+  b.className = 'scene'; b.type = 'button'; b.id = 'scene-' + i;
+  b.innerHTML = `<span class="st">${String(i + 1).padStart(2, '0')} · ${sc.t.toFixed(2)} s</span><span class="sn">${sc.name}</span><span class="sd">${sc.desc}</span><span class="fill"></span>`;
+  b.addEventListener('click', () => play(sc.t));
+  scenesEl.appendChild(b);
+  if (i) { const tk = document.createElement('i'); tk.style.left = `calc(${(sc.t / DUR) * 100}% + ${8 - 16 * sc.t / DUR}px)`; ticks.appendChild(tk); }
+});
+
+let now = POSTER, playing = false, soundOn = true, ac = null, t0 = 0, perf0 = 0, raf = 0, slow = 0;
+function fitQuality() {
+  const want = clamp(stage.clientWidth * Math.min(2, window.devicePixelRatio || 1) / W, 0.4, 1);
+  const q = Math.round(want * 20) / 20;
+  if (Math.abs(q - Q) > 0.049) setQuality(q);
+}
+function show(t) {
+  now = t; if (built) render(t);
+  scrub.value = t.toFixed(3); scrub.style.setProperty('--p', (t / DUR * 100) + '%');
+  tcNow.textContent = t.toFixed(2);
+  SCENES.forEach((sc, i) => {
+    const el = scenesEl.children[i], on = t >= sc.t && t < sc.end;
+    el.classList.toggle('on', on);
+    el.querySelector('.fill').style.width = (clamp((t - sc.t) / (sc.end - sc.t)) * 100) + '%';
+  });
+}
+// Sound comes from a pre-rendered soundtrack file played through an <audio> element, which the
+// iPhone silent switch does not mute (Web Audio is muted by it). Live synthesis is the fallback.
+const snd = new Audio(); snd.preload = 'auto'; snd.src = SOUND_FILE;
+let fileOK = true, mode = 'none', synthFrom = 0;
+snd.addEventListener('error', () => { fileOK = false; });
+snd.addEventListener('playing', () => { if (mode === 'file' && ac) { ac.close().catch(() => {}); ac = null; } });
+function stopAudio() { mode = 'none'; try { snd.pause(); } catch (err) {} if (ac) { ac.close().catch(() => {}); ac = null; } }
+function noSound() { mode = 'none'; soundLabel.textContent = 'No sound'; }
+function startSynth() {
+  if (!ac) return noSound();
+  try {
+    synthFrom = clamp((performance.now() - perf0) / 1000, 0, DUR);
+    if (ac.resume) ac.resume();
+    t0 = ac.currentTime + 0.15; buildAudio(ac, t0, synthFrom); mode = 'synth';
+  } catch (err) { noSound(); }
+}
+function setPlayingUI(p) {
+  playing = p;
+  playLabel.textContent = p ? 'Pause' : (now >= DUR - 0.01 ? 'Replay' : 'Play');
+  playIcon.firstElementChild.setAttribute('d', p ? ICON_PAUSE : ICON_PLAY);
+  big.hidden = p;
+}
+function play(from = 0) {
+  if (from >= DUR - 0.05) from = 0;
+  stopAudio(); cancelAnimationFrame(raf);
+  perf0 = performance.now() - from * 1000;
+  const startedAt = performance.now();
+  if (soundOn) {
+    soundLabel.textContent = 'Sound on';
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (err) {}
+    // unlock a context inside this tap, in case the file can't play and we fall back to synthesis
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.resume) ac.resume(); } catch (err) { ac = null; }
+    if (fileOK) {
+      mode = 'file';
+      try { snd.currentTime = from; } catch (err) {}
+      const p = snd.play();
+      if (p && p.catch) p.catch(() => { if (mode === 'file') startSynth(); });
+    } else startSynth();
+  }
+  slow = 0;
+  setPlayingUI(true);
+  const tick = () => {
+    let t;
+    if (mode === 'file') {
+      if (snd.ended) t = DUR;
+      else if (!snd.paused && snd.readyState >= 3) { t = snd.currentTime; perf0 = performance.now() - t * 1000; }
+      else if (performance.now() - startedAt < 1500) { t = from; perf0 = performance.now() - from * 1000; }
+      else { startSynth(); t = (performance.now() - perf0) / 1000; }
+    } else if (mode === 'synth' && ac) t = ac.currentTime - t0 + synthFrom - (ac.outputLatency || 0);
+    else t = (performance.now() - perf0) / 1000;
+    const f0 = performance.now();
+    show(clamp(t, 0, DUR));
+    if (performance.now() - f0 > 26 && ++slow > 20 && Q > 0.5) { setQuality(Math.max(0.5, Q - 0.2)); slow = 0; }
+    if (t >= DUR) { setPlayingUI(false); show(POSTER); now = DUR; playLabel.textContent = 'Replay'; bigLabel.textContent = 'Replay with sound'; big.hidden = false; stopAudio(); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+GZ.player = { snd, get mode() { return mode; } };
+function pause() { cancelAnimationFrame(raf); stopAudio(); setPlayingUI(false); }
+
+big.addEventListener('click', () => play(now >= DUR - 0.01 || now === POSTER ? 0 : now));
+playBtn.addEventListener('click', () => (playing ? pause() : play(now >= DUR - 0.01 ? 0 : now)));
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn)); soundLabel.textContent = soundOn ? 'Sound on' : 'Sound off';
+  bigLabel.textContent = soundOn ? 'Play with sound' : 'Play';
+  if (playing) play(now);
+});
+scrub.addEventListener('input', () => { if (playing) pause(); show(+scrub.value); });
+window.addEventListener('resize', () => { fitQuality(); if (!playing) show(now); });
+
+ready.then(() => { fitQuality(); show(now); });
+
+})();
+</script>
