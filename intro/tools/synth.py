@@ -4,7 +4,7 @@ Writes a 16-bit mono WAV. Timings match the animation timeline in gz2h-intro.htm
 import math, random, struct, wave, sys
 
 FS = 44100
-DUR = 6.6
+DUR = 7.2
 N = int(FS * DUR)
 mix = [0.0] * N
 random.seed(7)
@@ -41,10 +41,21 @@ def thump(t0, freq=58.0, amp=0.55, dur=0.28):
         # click layer
         mix[n] += amp * 0.25 * math.exp(-t * 180.0) * random.uniform(-1, 1)
 
+def whoosh(t0, dur=0.3, amp=0.16):
+    """Pick swing: filtered noise that swells and opens up just before the strum."""
+    start = int(t0 * FS); end = min(N, start + int(dur * FS))
+    lp = 0.0
+    for n in range(start, end):
+        p = (n - start) / (end - start)
+        env = math.sin(math.pi * p) ** 2 * (0.3 + 0.7 * p)
+        lp += (0.02 + 0.25 * p) * (random.uniform(-1, 1) - lp)
+        mix[n] += amp * env * lp * 3.0
+
 def chord(notes, t0, spacing, amp, **kw):
     for k, f in enumerate(notes):
         pluck(f, t0 + k * spacing, amp=amp, **kw)
 
+whoosh(1.10 - 0.24)
 # --- the main strum: E minor, low to high, matching the pick crossing times ---
 EM = [82.41, 123.47, 164.81, 196.00, 246.94, 329.63]
 chord(EM, 1.10, 0.07, amp=0.42, decay=0.9972, brightness=0.55)

@@ -169,7 +169,7 @@ const EXPORT = /[?&]export=1/.test(location.search);
 if (EXPORT) document.documentElement.classList.add('export');
 
 // ---------- timeline (seconds) ----------
-const DUR = 6.6;
+const DUR = 7.2;
 const STRING_Y = [420, 468, 516, 564, 612, 660];
 const STRING_Y_END = [138, 180, 222, 858, 900, 942];
 const STRING_W = [5.2, 4.6, 3.9, 2.9, 2.3, 1.9];
@@ -180,7 +180,7 @@ const RESOLVE_T = 3.30, RESOLVE_DT = 0.045;
 const MORPH_T0 = 3.32, MORPH_D = 0.85;
 const UNDER_T0 = 4.20, UNDER_D = 0.45;
 const URL_T0 = 4.30, URL_D = 0.6;
-const FADE_T0 = 6.1, FADE_D = 0.45;
+const FADE_T0 = 6.7, FADE_D = 0.45;
 
 // ---------- easing ----------
 const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
@@ -376,7 +376,7 @@ function render(t) {
   const stringsOp = 1 - 0.3 * seg(t, MORPH_T0, 0.7, E.outQuad);
   stringsG.setAttribute('opacity', stringsOp.toFixed(3));
   stringEls.forEach((el, i) => {
-    const draw = seg(t, 0.22 + i * 0.07, 0.6, E.outCubic);
+    const draw = seg(t, 0.08 + i * 0.07, 0.6, E.outCubic);
     el.setAttribute('stroke-dashoffset', (1 - draw).toFixed(4));
     el.setAttribute('d', stringPath(i, t));
   });
@@ -389,7 +389,7 @@ function render(t) {
     const px = STRUM_X - 2 + 36 * seg(t, pt0, pt1 - pt0) + kick;
     const rot = -24 + 8 * seg(t, pt0, pt1 - pt0);
     const op = seg(t, pt0, 0.12, E.outQuad) * (1 - seg(t, pt1 - 0.14, 0.14, E.outQuad));
-    pick.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(1.38)`);
+    pick.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(1.52)`);
     pick.setAttribute('opacity', op.toFixed(3));
   } else pick.setAttribute('opacity', '0');
   // flash
@@ -496,6 +496,16 @@ function synth(sr) {
       mix[k] += 0.55 * env * Math.sin(2 * Math.PI * sw * tt) + 0.14 * Math.exp(-tt * 180) * r();
     }
   };
+  const whoosh = (t0, dur, amp) => {
+    const st = Math.floor(t0 * sr), en = Math.min(n, st + Math.floor(dur * sr));
+    let lp = 0;
+    for (let k = st; k < en; k++) {
+      const p = (k - st) / (en - st), env = Math.pow(Math.sin(Math.PI * p), 2) * (0.3 + 0.7 * p);
+      lp += (0.02 + 0.25 * p) * (r() - lp);
+      mix[k] += amp * env * lp * 3;
+    }
+  };
+  whoosh(STRUM_T0 - 0.24, 0.3, 0.16);
   const EM = [82.41, 123.47, 164.81, 196.00, 246.94, 329.63];
   EM.forEach((f, k) => pluckS(f, STRUM_T0 + k * STRUM_DT, 0.42, 0.9972, 0.55, 4));
   LETTER_T.forEach(thump);
@@ -549,7 +559,7 @@ function restart() {
   playAudio();
   raf = requestAnimationFrame(frame);
 }
-function showStill() { playing = false; cancelAnimationFrame(raf); stopAudio(); render(5.4); timeEl.textContent = '5.40s'; }
+function showStill() { playing = false; cancelAnimationFrame(raf); stopAudio(); render(5.6); timeEl.textContent = '5.60s'; }
 
 async function boot() {
   try { await document.fonts.load('800 320px Outfit'); await document.fonts.load('500 46px Outfit'); } catch (e) {}
