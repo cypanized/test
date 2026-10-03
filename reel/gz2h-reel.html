@@ -1,0 +1,247 @@
+<title>GZ2H Intro Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a screening room. One silent showreel up top that runs every cut back to back, then a card per cut with its idea, its sound and a link to the player with the full mix. Single dark look on purpose: the cuts are judged against a dark room. */
+:root {
+  --bg: #0e0709;
+  --panel: #170b0e;
+  --panel-2: #1f0f13;
+  --line: #34191f;
+  --fg: #f4e9e4;
+  --muted: #ab958f;
+  --accent: #e8283e;
+  --brand: #b80016;
+  --cream: #ffe9d6;
+  --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html { background: var(--bg); }
+body { margin: 0; background: radial-gradient(90% 50% at 50% 0%, #2a0a12 0%, rgba(42, 10, 18, 0) 70%), var(--bg); color: var(--fg); font: 400 15px/1.55 var(--body); }
+.wrap { max-width: 1160px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 28px 64px; display: grid; gap: 44px; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+
+/* header */
+.head { display: grid; gap: 10px; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.eyebrow b { color: var(--accent); font-weight: 500; }
+h1 { margin: 0; font: 800 clamp(44px, 7.4vw, 92px)/0.92 var(--display); text-transform: uppercase; letter-spacing: 0.005em; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { margin: 4px 0 0; max-width: 62ch; color: var(--muted); font-size: 16px; }
+
+/* showreel */
+.reel { display: grid; gap: 12px; }
+.screen { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px var(--line), 0 30px 80px -40px rgba(232, 40, 62, 0.45); }
+.screen video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.slate { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: end; justify-content: space-between; gap: 12px; padding: 72px clamp(12px, 2.4vw, 22px) clamp(12px, 2vw, 18px); background: linear-gradient(to top, rgba(8, 2, 4, 0.94) 0%, rgba(8, 2, 4, 0.7) 45%, rgba(8, 2, 4, 0)); pointer-events: none; }
+.slate .n { font: 500 12px var(--mono); letter-spacing: 0.12em; color: var(--cream); opacity: 0.8; font-variant-numeric: tabular-nums; }
+.slate .t { font: 800 clamp(24px, 3.6vw, 40px)/1 var(--display); text-transform: uppercase; letter-spacing: 0.01em; }
+.slate .k { font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.slate > div { display: grid; gap: 4px; min-width: 0; }
+.bigplay { position: absolute; inset: 0; display: grid; place-items: center; border: 0; background: rgba(0, 0, 0, 0.35); color: var(--fg); cursor: pointer; font: 600 14px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.bigplay span { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 999px; background: rgba(14, 7, 9, 0.85); border: 1px solid var(--line); }
+.bigplay svg { width: 14px; height: 14px; fill: currentColor; }
+
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-decoration: none; white-space: nowrap; }
+.btn:hover { border-color: #5a2a33; }
+.btn svg { width: 13px; height: 13px; fill: currentColor; flex: none; }
+.btn.hot { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.hot:hover { background: var(--accent); border-color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); margin-left: auto; }
+.strip { overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
+.strip ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(112px, 1fr)); gap: 6px; }
+.strip button { position: relative; width: 100%; display: grid; gap: 2px; text-align: left; padding: 9px 10px 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--muted); cursor: pointer; overflow: hidden; font: inherit; }
+.strip button .i { font: 500 11px var(--mono); letter-spacing: 0.1em; font-variant-numeric: tabular-nums; }
+.strip button .nm { font: 700 17px/1.05 var(--display); text-transform: uppercase; letter-spacing: 0.02em; color: var(--fg); }
+.strip button .fill { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--accent); }
+.strip button[aria-current="true"] { border-color: #6a2531; background: var(--panel-2); color: var(--cream); }
+.strip button.seen .fill { width: 100%; background: #5a1a24; }
+
+/* cut cards */
+.sec { display: grid; gap: 18px; }
+.sec-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+h2 { margin: 0; font: 800 clamp(28px, 3.4vw, 38px)/1 var(--display); text-transform: uppercase; letter-spacing: 0.01em; }
+.sec-h p { margin: 0; color: var(--muted); font-size: 14px; max-width: 60ch; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.cut { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.media { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+.media video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+.media .hint { position: absolute; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; background: rgba(10, 4, 6, 0.8); border: 1px solid var(--line); font: 500 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); pointer-events: none; transition: opacity 0.2s; }
+.media .hint svg { width: 10px; height: 10px; fill: currentColor; }
+.media.playing .hint { opacity: 0; }
+.cut-h { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 14px; flex-wrap: wrap; }
+h3 { margin: 0; font: 800 30px/1 var(--display); text-transform: uppercase; letter-spacing: 0.015em; }
+.tag { font: 500 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.spec { font: 400 12px var(--mono); color: var(--muted); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.cut p { margin: 0; max-width: 62ch; }
+.sound { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; color: var(--muted); font-size: 14px; }
+.sound b { font: 500 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { height: 36px; padding: 0 12px; border: 0; background: var(--panel); color: var(--muted); font: 500 12px var(--mono); letter-spacing: 0.06em; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--cream); box-shadow: inset 0 -2px 0 var(--accent); }
+.pending { font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.files { display: grid; gap: 10px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.files h2 { font-size: 26px; }
+.files p { margin: 0; color: var(--muted); max-width: 70ch; }
+.files code { font: 400 13px var(--mono); color: var(--cream); background: var(--panel-2); padding: 1px 6px; border-radius: 3px; overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) { .media .hint { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow"><span><b>GuitarZero2Hero</b></span><span>8 intro cuts</span><span>1920×1080 · 60 fps · stereo</span></div>
+    <h1>Eight ways to open <em>GZ2H</em></h1>
+    <p class="lede">Six new directions and the first two cuts, each with its own soundtrack. The reel below is silent and runs them back to back. Open a cut to hear it with its full mix.</p>
+  </header>
+
+  <section class="reel" aria-label="Showreel">
+    <div class="screen">
+      <video id="reelVideo" muted playsinline preload="auto" aria-label="Silent showreel of all eight intros"></video>
+      <div class="slate" aria-live="polite"><div><span class="n" id="slateN">01 / 08</span><span class="t" id="slateT">Gig Poster</span><span class="k" id="slateK">Screen print</span></div></div>
+      <button class="bigplay" id="bigPlay" type="button" hidden><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg>Play the reel</span></button>
+    </div>
+    <div class="bar">
+      <button class="btn" id="reelToggle" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="reelIcon" d="M3 2h3.4v12H3zM9.6 2H13v12H9.6z"/></svg><span id="reelLabel">Pause</span></button>
+      <a class="btn hot" id="reelOpen" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.5h2.6L8.3 2.4c.4-.3 1-.1 1 .5v10.2c0 .6-.6.8-1 .5L4.6 10.5H2c-.4 0-.7-.3-.7-.7V6.2c0-.4.3-.7.7-.7zm9.4-.9a.7.7 0 0 1 1 0 4.9 4.9 0 0 1 0 6.8.7.7 0 1 1-1-1 3.5 3.5 0 0 0 0-4.8.7.7 0 0 1 0-1z"/></svg><span id="reelOpenLabel">Hear this one</span></a>
+      <span class="note">Previews are silent and 540p. The players run at full quality with sound.</span>
+    </div>
+    <nav class="strip" aria-label="Cuts in the reel"><ol id="strip"></ol></nav>
+  </section>
+
+  <section class="sec" aria-labelledby="newH">
+    <div class="sec-h"><h2 id="newH">Six new directions</h2><p>Each one is a different world for the same story: from zero to hero, ending on the logo, the wordmark and the URL.</p></div>
+    <div class="grid" id="gridNew"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="oldH">
+    <div class="sec-h"><h2 id="oldH">The first two cuts</h2><p>The remake of the original intro and the oscilloscope take that came after it.</p></div>
+    <div class="grid" id="gridOld"></div>
+  </section>
+
+  <section class="files" aria-labelledby="filesH">
+    <h2 id="filesH">Full-res files</h2>
+    <p>Every cut has a 1080p60 MP4 with sound, the mastered soundtrack as WAV and MP3, a storyboard sheet and its source. They're in the repo <code>cypanized/test</code> on branch <code>gz2h-intros</code>, one folder per cut, for example <code>intro-highway/gz2h-highway.mp4</code>.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const A = id => id ? 'https://claude.ai/artifact/' + id : '';
+const CUTS = [
+  { k: 'poster', group: 'new', name: 'Gig Poster', tag: 'Screen print', dur: '8.0 s', url: A('3sUTkpfEzWrYc4xetQRpE1'),
+    idea: 'Stop motion on a print-shop bench. A riso-red halftone 0 is pulled, ZERO is slashed out and HERO is rubber-stamped, the logo slaps down in cut paper, and the wordmark is pressed letterpress-style before a ticket stub gets pinned on.',
+    sound: 'A 180 BPM garage riff that starts on a tinny radio, print-shop foley for every action, and a turntable stop at the end.' },
+  { k: 'levelup', group: 'new', name: 'Level Up', tag: '8-bit game', dur: '8.0 s', url: A('FAa8veEvWuHvg9gRASHpvp'),
+    idea: 'True 320×180 pixel art. An LV 0 guitarist earns XP with every note and levels up faster and faster. At LV 99 he transforms, and the logo drops in block by block onto a title screen.',
+    sound: 'A 2A03-style chiptune with two pulse channels, stepped triangle bass and noise-channel drums.' },
+  { k: 'notebook', group: 'new', name: 'Lesson Notebook', tag: 'Pencil on grid paper', dur: '8.2 s', url: A('TPxdtkkr42exim7W6aeMZj'),
+    idea: 'A guitar tab is ruled on grid paper and the riff climbs from open strings to the 12th fret, with each note circled in red as it plays. Then the tab lines sweep into the logo, which gets hatched in with marker, and a gold star sticker lands.',
+    sound: 'Clean guitar in a room. The pencil and marker sounds are computed from the strokes on screen.' },
+  { k: 'pedal', group: 'new', name: 'Pedalboard', tag: 'Gear ad', dur: '8.0 s', url: A('UbDifRruMwofpd8jvqGJ2A'),
+    idea: 'A red GZ2H overdrive pedal and a tube amp in a dark studio. The gain knob clicks up to 10, a boot stomps the switch, the VU needle slams into the red, and the logo shows up as a chrome badge on the grille before the nameplate.',
+    sound: 'Amp hum that rises with the gain, knob detents, the footswitch clack, driven chords and feedback.' },
+  { k: 'ztoh', group: 'new', name: 'Z to H', tag: 'Swiss kinetic type', dur: '8.5 s', url: A('7Yy5s9KCpT7x4SU3LVKTnn'), vertical: true,
+    idea: 'Three colors, huge type and hard cuts. ZERO and HERO differ by one letter, so the Z turns into an N and the N’s diagonal swings flat into the crossbar of an H. Comes in a recomposed 9:16 cut for Reels, Shorts and TikTok.',
+    sound: 'Every cut and wipe lands on a 120 BPM beat.' },
+  { k: 'highway', group: 'new', name: 'Note Highway', tag: 'Rhythm game', dur: '8.4 s', url: A('Be92Gb9Su7oeE8vFGXjjen'),
+    idea: 'A fretboard highway at a night show. Picks land on the beat and fill the ZERO to HERO meter. At HERO the lane catches fire, then the highway folds up into the neck of the H and the letters burst into the wordmark.',
+    sound: 'A 150 BPM riff played straight from the note chart, with drums and a crowd that builds.' },
+  { k: 'cinematic', group: 'old', name: 'Cinematic', tag: 'Macro fretboard', dur: '8.0 s', url: A('2a8iT8ykK25Wexxi6Yqu43'),
+    idea: 'A macro pass down a glowing fretboard as a GZ2H pick strums each open string, then a spark burst and a pull back to the full logo, the four hands and the wordmark.',
+    sound: 'Clean electric into two distorted rigs, drums and risers.' },
+  { k: 'phosphor', group: 'old', name: 'Phosphor', tag: 'Oscilloscope', dur: '8.0 s', url: A('VbWep2UEzYRdWRXimX6CzT'),
+    idea: 'One beam on a curved CRT draws everything: a flat line at zero volts, the open strings as waveforms, intervals as Lissajous figures, then the logo and the wordmark.',
+    sound: 'The tube warming up, a cable plugged in, the open strings, a power chord as the scope flips to X-Y, and the tube switching off.' },
+];
+const src = k => 'media/' + k + '.mp4', poster = k => 'media/' + k + '.jpg';
+const ICON_PLAY = 'M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z';
+const ICON_PAUSE = 'M3 2h3.4v12H3zM9.6 2H13v12H9.6z';
+const pad = n => String(n).padStart(2, '0');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canHover = matchMedia('(hover: hover)').matches;
+
+// ── showreel ──
+const rv = document.getElementById('reelVideo'), strip = document.getElementById('strip');
+const slateN = document.getElementById('slateN'), slateT = document.getElementById('slateT'), slateK = document.getElementById('slateK');
+const toggle = document.getElementById('reelToggle'), icon = document.getElementById('reelIcon'), label = document.getElementById('reelLabel');
+const open = document.getElementById('reelOpen'), openLabel = document.getElementById('reelOpenLabel'), bigPlay = document.getElementById('bigPlay');
+const chips = CUTS.map((c, i) => {
+  const li = document.createElement('li'), b = document.createElement('button');
+  b.type = 'button'; b.innerHTML = `<span class="i">${pad(i + 1)} · ${c.dur}</span><span class="nm">${c.name}</span><span class="fill"></span>`;
+  b.addEventListener('click', () => { load(i); playReel(); });
+  li.appendChild(b); strip.appendChild(li); return b;
+});
+let cur = 0;
+function load(i) {
+  cur = i; const c = CUTS[i];
+  rv.src = src(c.k); rv.poster = poster(c.k);
+  slateN.textContent = `${pad(i + 1)} / ${pad(CUTS.length)}`; slateT.textContent = c.name; slateK.textContent = c.tag;
+  if (c.url) { open.href = c.url; open.removeAttribute('aria-disabled'); openLabel.textContent = 'Hear ' + c.name; open.hidden = false; }
+  else { open.hidden = true; }
+  chips.forEach((b, j) => { b.setAttribute('aria-current', String(j === i)); b.classList.toggle('seen', j < i); b.querySelector('.fill').style.width = j < i ? '100%' : '0'; });
+}
+function setUI(p) { icon.setAttribute('d', p ? ICON_PAUSE : ICON_PLAY); label.textContent = p ? 'Pause' : 'Play'; bigPlay.hidden = p; }
+function playReel() { const p = rv.play(); if (p && p.catch) p.catch(() => setUI(false)); }
+rv.addEventListener('play', () => setUI(true));
+rv.addEventListener('pause', () => { if (!rv.ended) setUI(false); });
+rv.addEventListener('ended', () => { load((cur + 1) % CUTS.length); playReel(); });
+rv.addEventListener('timeupdate', () => { if (rv.duration) chips[cur].querySelector('.fill').style.width = (rv.currentTime / rv.duration * 100) + '%'; });
+toggle.addEventListener('click', () => (rv.paused ? playReel() : rv.pause()));
+bigPlay.addEventListener('click', playReel);
+load(0);
+if (reduced) setUI(false); else playReel();
+// keep the reel quiet when it scrolls out of view
+if ('IntersectionObserver' in window) {
+  let wasPlaying = false;
+  new IntersectionObserver(([en]) => {
+    if (!en.isIntersecting && !rv.paused) { wasPlaying = true; rv.pause(); }
+    else if (en.isIntersecting && wasPlaying) { wasPlaying = false; playReel(); }
+  }, { threshold: 0.2 }).observe(rv);
+}
+
+// ── cards ──
+const cards = [];
+function card(c) {
+  const el = document.createElement('article'); el.className = 'cut'; el.id = c.k;
+  const link = c.url
+    ? `<a class="btn hot" href="${c.url}" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="${ICON_PLAY}"/></svg>Open the player with sound</a>`
+    : '<span class="pending">Player link coming</span>';
+  const seg = c.vertical ? `<div class="seg" role="group" aria-label="Aspect ratio"><button type="button" aria-pressed="true" data-v="0">16:9</button><button type="button" aria-pressed="false" data-v="1">9:16</button></div>` : '';
+  el.innerHTML = `
+    <div class="media" tabindex="0" role="button" aria-label="Play silent preview of ${c.name}">
+      <video muted loop playsinline preload="none" poster="${poster(c.k)}" src="${src(c.k)}"></video>
+      <span class="hint"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="${ICON_PLAY}"/></svg>Preview</span>
+    </div>
+    <div class="cut-h"><h3>${c.name}</h3><span class="tag">${c.tag}</span></div>
+    <div class="spec">${c.dur} · 1920×1080 · 60 fps · stereo${c.vertical ? ' · also 1080×1920' : ''}</div>
+    <p>${c.idea}</p>
+    <div class="sound"><b>Sound</b><span>${c.sound}</span></div>
+    <div class="acts">${link}${seg}</div>`;
+  const box = el.querySelector('.media'), v = box.querySelector('video');
+  const set = on => { box.classList.toggle('playing', on); box.setAttribute('aria-label', (on ? 'Pause' : 'Play') + ' silent preview of ' + c.name); };
+  const play = () => { cards.forEach(o => { if (o !== v && !o.paused) o.pause(); }); const p = v.play(); if (p && p.catch) p.catch(() => set(false)); };
+  v.addEventListener('play', () => set(true)); v.addEventListener('pause', () => set(false));
+  box.addEventListener('click', () => (v.paused ? play() : v.pause()));
+  box.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); v.paused ? play() : v.pause(); } });
+  if (canHover && !reduced) { box.addEventListener('mouseenter', play); box.addEventListener('mouseleave', () => v.pause()); }
+  if (c.vertical) el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    const vert = b.dataset.v === '1', k = vert ? c.k + '-vertical' : c.k, was = !v.paused;
+    el.querySelectorAll('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    v.poster = poster(k); v.src = src(k); if (was) play();
+  }));
+  cards.push(v);
+  return el;
+}
+CUTS.forEach(c => document.getElementById(c.group === 'new' ? 'gridNew' : 'gridOld').appendChild(card(c)));
+})();
+</script>
