@@ -693,6 +693,7 @@ const playBtn = document.getElementById('play'), playLabel = document.getElement
 const soundBtn = document.getElementById('sound'), soundLabel = document.getElementById('soundLabel');
 const scrub = document.getElementById('scrub'), tcNow = document.getElementById('tcNow');
 const scenesEl = document.getElementById('scenes'), ticks = document.getElementById('ticks');
+const SOUND_FILE = 'gz2h-phosphor.mp3';
 const POSTER = 4.6;
 const ICON_PLAY = 'M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z';
 const ICON_PAUSE = 'M3 2h3.4v12H3zM9.6 2H13v12H9.6z';
@@ -722,7 +723,22 @@ function show(t) {
     el.querySelector('.fill').style.width = (clamp((t - sc.t) / (sc.end - sc.t)) * 100) + '%';
   });
 }
-function stopAudio() { if (ac) { ac.close().catch(() => {}); ac = null; } }
+// Sound comes from a pre-rendered soundtrack file played through an <audio> element, which the
+// iPhone silent switch does not mute (Web Audio is muted by it). Live synthesis is the fallback.
+const snd = new Audio(); snd.preload = 'auto'; snd.src = SOUND_FILE;
+let fileOK = true, mode = 'none', synthFrom = 0;
+snd.addEventListener('error', () => { fileOK = false; });
+snd.addEventListener('playing', () => { if (mode === 'file' && ac) { ac.close().catch(() => {}); ac = null; } });
+function stopAudio() { mode = 'none'; try { snd.pause(); } catch (err) {} if (ac) { ac.close().catch(() => {}); ac = null; } }
+function noSound() { mode = 'none'; soundLabel.textContent = 'No sound'; }
+function startSynth() {
+  if (!ac) return noSound();
+  try {
+    synthFrom = clamp((performance.now() - perf0) / 1000, 0, DUR);
+    if (ac.resume) ac.resume();
+    t0 = ac.currentTime + 0.15; buildAudio(ac, t0, synthFrom); mode = 'synth';
+  } catch (err) { noSound(); }
+}
 function setPlayingUI(p) {
   playing = p;
   playLabel.textContent = p ? 'Pause' : (now >= DUR - 0.01 ? 'Replay' : 'Play');
@@ -732,23 +748,40 @@ function setPlayingUI(p) {
 function play(from = 0) {
   if (from >= DUR - 0.05) from = 0;
   stopAudio(); cancelAnimationFrame(raf);
+  perf0 = performance.now() - from * 1000;
+  const startedAt = performance.now();
   if (soundOn) {
-    try { ac = new (window.AudioContext || window.webkitAudioContext)(); t0 = ac.currentTime + 0.12; buildAudio(ac, t0, from); }
-    catch (err) { ac = null; }
+    soundLabel.textContent = 'Sound on';
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (err) {}
+    // unlock a context inside this tap, in case the file can't play and we fall back to synthesis
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.resume) ac.resume(); } catch (err) { ac = null; }
+    if (fileOK) {
+      mode = 'file';
+      try { snd.currentTime = from; } catch (err) {}
+      const p = snd.play();
+      if (p && p.catch) p.catch(() => { if (mode === 'file') startSynth(); });
+    } else startSynth();
   }
-  perf0 = performance.now() - from * 1000 + (ac ? 120 : 0);
   slow = 0;
   setPlayingUI(true);
   const tick = () => {
-    const t = ac ? ac.currentTime - t0 + from - (ac.outputLatency || 0) : (performance.now() - perf0) / 1000;
+    let t;
+    if (mode === 'file') {
+      if (snd.ended) t = DUR;
+      else if (!snd.paused && snd.readyState >= 3) { t = snd.currentTime; perf0 = performance.now() - t * 1000; }
+      else if (performance.now() - startedAt < 1500) { t = from; perf0 = performance.now() - from * 1000; }
+      else { startSynth(); t = (performance.now() - perf0) / 1000; }
+    } else if (mode === 'synth' && ac) t = ac.currentTime - t0 + synthFrom - (ac.outputLatency || 0);
+    else t = (performance.now() - perf0) / 1000;
     const f0 = performance.now();
     show(clamp(t, 0, DUR));
-    if (performance.now() - f0 > 26 && ++slow > 20 && Q > 0.5) { setQuality(Math.max(0.5, Q - 0.2)); BG = null; slow = 0; }
+    if (performance.now() - f0 > 26 && ++slow > 20 && Q > 0.5) { setQuality(Math.max(0.5, Q - 0.2)); BG = null;  slow = 0; }
     if (t >= DUR) { setPlayingUI(false); show(6.6); now = DUR; playLabel.textContent = 'Replay'; bigLabel.textContent = 'Replay with sound'; big.hidden = false; stopAudio(); return; }
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
 }
+GZ.player = { snd, get mode() { return mode; } };
 function pause() { cancelAnimationFrame(raf); stopAudio(); setPlayingUI(false); }
 
 big.addEventListener('click', () => play(now >= DUR - 0.01 || now === POSTER ? 0 : now));

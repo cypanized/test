@@ -4,9 +4,9 @@ An 8-second intro (1920×1080, 60 fps, stereo) staged on an oscilloscope. The gu
 
 | File | What it is |
 | --- | --- |
-| `gz2h-phosphor.mp4` | Final video with sound and motion blur, about −16 LUFS |
+| `gz2h-phosphor.mp4` | Final video with sound and motion blur, about −14 LUFS |
 | `gz2h-phosphor.html` | Self-contained interactive player (open it in a browser) |
-| `gz2h-phosphor.wav` | The soundtrack on its own |
+| `gz2h-phosphor.wav`, `.mp3` | The soundtrack on its own (the player streams the MP3) |
 | `gz2h-phosphor-storyboard.png` | Twelve key frames |
 | `src/` | Source: `template.html` (beam renderer, CRT shader, score), beam shapes, fonts, build and render scripts |
 
