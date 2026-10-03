@@ -1,0 +1,798 @@
+<title>GZ2H Phosphor</title>
+<style>
+/* Layout: the scope screen is the page's one object; transport and the four scenes sit under it like a front panel */
+:root {
+  --ink: #070304;
+  --panel: #120708;
+  --line: #2a1013;
+  --phosphor: #ff4a3a;
+  --core: #ffe3dc;
+  --text: #f3e6e3;
+  --muted: #a2898b;
+  --display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--ink); color: var(--text); }
+body { font-family: var(--display); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 28px 56px; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
+h1 { margin: 0; font-size: clamp(22px, 2.6vw, 30px); font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
+h1 span { font-family: var(--mono); font-weight: 400; font-size: 0.62em; letter-spacing: 0.14em; color: var(--phosphor); text-transform: uppercase; margin-left: 10px; vertical-align: 0.18em; }
+.meta { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden; border-radius: 6px; box-shadow: 0 0 0 1px #1c0b0d, 0 40px 90px -40px rgba(255, 60, 40, 0.35); }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; border: 0; padding: 0; cursor: pointer; color: var(--text); background: radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55)); }
+.overlay[hidden] { display: none !important; }
+.pill { display: inline-flex; align-items: center; gap: 14px; padding: 12px 22px 12px 12px; border-radius: 999px; background: rgba(7, 3, 4, 0.8); border: 1px solid rgba(255, 74, 58, 0.35); font: 700 14px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; transition: transform 0.2s ease, border-color 0.2s ease; }
+.overlay:hover .pill, .overlay:focus-visible .pill { transform: scale(1.04); border-color: rgba(255, 74, 58, 0.8); }
+.overlay:focus-visible { outline: none; }
+.overlay:focus-visible .pill { outline: 2px solid var(--phosphor); outline-offset: 3px; }
+.disc { width: 46px; height: 46px; border-radius: 50%; background: var(--phosphor); display: grid; place-items: center; box-shadow: 0 0 22px rgba(255, 74, 58, 0.6); }
+.disc svg { width: 18px; height: 18px; margin-left: 3px; fill: #1a0405; }
+.transport { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+.tbtn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 700 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+.tbtn:hover { border-color: #4a1a1f; }
+.tbtn:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+.tbtn svg { width: 14px; height: 14px; fill: currentColor; }
+.tbtn[aria-pressed="false"] { color: var(--muted); }
+.track { position: relative; flex: 1 1 260px; min-width: 0; height: 38px; display: flex; align-items: center; }
+.ticks { position: absolute; inset: 0; pointer-events: none; }
+.ticks i { position: absolute; top: 6px; width: 1px; height: 7px; background: var(--muted); opacity: 0.6; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 38px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: linear-gradient(to right, var(--phosphor) var(--p, 0%), var(--line) var(--p, 0%)); }
+input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--line); }
+input[type="range"]::-moz-range-progress { height: 3px; background: var(--phosphor); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5.5px; border-radius: 50%; background: var(--core); border: 0; box-shadow: 0 0 10px rgba(255, 74, 58, 0.8); }
+input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--core); border: 0; }
+input[type="range"]:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+.tc { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tc b { color: var(--text); font-weight: 400; }
+.scenes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .scenes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.scene { position: relative; display: grid; gap: 6px; align-content: start; text-align: left; padding: 14px 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--text); font: inherit; cursor: pointer; overflow: hidden; min-width: 0; }
+.scene:hover { border-color: #4a1a1f; }
+.scene:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+.scene .st { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+.scene .sn { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.scene .sd { font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.scene .fill { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--phosphor); box-shadow: 0 0 8px var(--phosphor); }
+.scene.on { border-color: rgba(255, 74, 58, 0.55); }
+.scene.on .st { color: var(--phosphor); }
+body.render { margin: 0; overflow: hidden; background: #000; }
+body.render .wrap > *:not(.stage) { display: none !important; }
+body.render .wrap { padding: 0; max-width: none; display: block; }
+body.render .stage { width: 1920px; height: 1080px; box-shadow: none; border-radius: 0; }
+body.render .overlay { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .pill, .overlay:hover .pill { transition: none; transform: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>GuitarZero2Hero <span>Phosphor cut</span></h1>
+    <div class="meta">8 s · 1920×1080 · 60 fps · stereo sound</div>
+  </header>
+
+  <div class="stage" id="stage">
+    <canvas id="c" width="1920" height="1080" aria-label="GuitarZero2Hero oscilloscope intro"></canvas>
+    <button class="overlay" id="big" type="button" aria-label="Play intro with sound">
+      <span class="pill"><span class="disc"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg></span><span id="bigLabel">Play with sound</span></span>
+    </button>
+  </div>
+
+  <div class="transport">
+    <button class="tbtn" id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" id="playIcon"><path d="M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z"/></svg><span id="playLabel">Play</span></button>
+    <button class="tbtn" id="sound" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.5h2.6L8.3 2.4c.4-.3 1-.1 1 .5v10.2c0 .6-.6.8-1 .5L4.6 10.5H2c-.4 0-.7-.3-.7-.7V6.2c0-.4.3-.7.7-.7zm9.4-.9a.7.7 0 0 1 1 0 4.9 4.9 0 0 1 0 6.8.7.7 0 1 1-1-1 3.5 3.5 0 0 0 0-4.8.7.7 0 0 1 0-1z"/></svg><span id="soundLabel">Sound on</span></button>
+    <div class="track">
+      <div class="ticks" id="ticks"></div>
+      <input type="range" id="scrub" min="0" max="8" step="0.001" value="4.6" aria-label="Timeline position in seconds">
+    </div>
+    <div class="tc"><b id="tcNow">4.60</b> / 8.00 s</div>
+  </div>
+
+  <nav class="scenes" id="scenes" aria-label="Scenes"></nav>
+</div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+(() => {
+'use strict';
+
+// ───────────────────────── math ─────────────────────────
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const inv = (a, b, x) => clamp((x - a) / (b - a));
+const sstep = (a, b, x) => { const t = inv(a, b, x); return t * t * (3 - 2 * t); };
+const eOut3 = t => 1 - (1 - t) ** 3;
+const eIn3 = t => t * t * t;
+const eIO3 = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const mulberry = a => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const TAU = Math.PI * 2;
+
+// ───────────────────────── timeline (seconds) ─────────────────────────
+const DUR = 8.0;
+const T = {
+  on: 0.05, plug: 0.62, pluck: 0.95,
+  arp: [1.38, 1.50, 1.62, 1.74, 1.86],
+  strum: 2.12, xy: 2.17,
+  beats: [2.72, 2.97, 3.22, 3.47],
+  logo: 3.86, logoIn: 4.32,
+  wm0: 5.06, wm: 5.58, url: 5.80,
+  off: 7.30,
+};
+const SCENES = [
+  { t: 0.00, end: 0.95, name: 'Flatline', desc: 'The CRT warms up, a cable clicks in, and the trace sits at zero volts.' },
+  { t: 0.95, end: 2.12, name: 'Open strings', desc: 'A low E, then A D G B E. Each string adds its own wave to the trace.' },
+  { t: 2.12, end: 3.86, name: 'Intervals', desc: 'The power chord flips the scope to X-Y. A fifth, octave, fourth and third draw their shapes, then unison settles into a circle.' },
+  { t: 3.86, end: 8.00, name: 'Zero2Hero', desc: 'The zero bursts into the logo, the logo flows into the wordmark, and the tube switches off.' },
+];
+
+// ───────────────────────── screen geometry ─────────────────────────
+const W = 1920, H = 1080, CX = 960, CY = 520;
+const GR = { x0: 160, x1: 1760, y0: 90, y1: 990, div: 100 };
+const NOTES = [
+  { t: T.pluck, f: 82.41, A: 1.0, p: 0.2, n: 'E2' },
+  { t: T.arp[0], f: 110.0, A: 0.62, p: 0.17, n: 'A2' },
+  { t: T.arp[1], f: 146.83, A: 0.55, p: 0.16, n: 'D3' },
+  { t: T.arp[2], f: 196.0, A: 0.5, p: 0.15, n: 'G3' },
+  { t: T.arp[3], f: 246.94, A: 0.45, p: 0.14, n: 'B3' },
+  { t: T.arp[4], f: 329.63, A: 0.42, p: 0.13, n: 'E4' },
+];
+const XY = [
+  { t: T.strum, a: 2, b: 3, name: 'PERFECT FIFTH', r: '3:2', x: 'E2', fx: 82.41, y: 'B2', fy: 123.47 },
+  { t: T.beats[0], a: 1, b: 2, name: 'OCTAVE', r: '2:1', x: 'E2', fx: 82.41, y: 'E3', fy: 164.81 },
+  { t: T.beats[1], a: 3, b: 4, name: 'PERFECT FOURTH', r: '4:3', x: 'E2', fx: 82.41, y: 'A2', fy: 110.0 },
+  { t: T.beats[2], a: 4, b: 5, name: 'MAJOR THIRD', r: '5:4', x: 'E2', fx: 82.41, y: 'G#2', fy: 103.83 },
+  { t: T.beats[3], a: 1, b: 1, name: 'UNISON', r: '1:1', x: 'E2', fx: 82.41, y: 'E2', fy: 82.41 },
+];
+const HUM_HZ = 41.2;   // the logo is traced 41.2 times a second: an E1
+
+// beam shapes (screen px): x, y, visibility of the segment that ends at this point
+const NB = SHAPES.N;
+const toBeam = arr => { const o = new Float32Array(NB * 3); for (let i = 0; i < NB; i++) { o[i * 3] = arr[i * 3]; o[i * 3 + 1] = arr[i * 3 + 1]; o[i * 3 + 2] = 1 - arr[i * 3 + 2]; } return o; };
+const LOGO_B = toBeam(SHAPES.logo), WM_B = toBeam(SHAPES.wm);
+const BUF = [0, 1, 2, 3, 4].map(() => new Float32Array(NB * 3));
+
+// ───────────────────────── canvases ─────────────────────────
+const out = document.getElementById('c');
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+let Q = 1, CW = 1920, CH = 1080;
+let sC, s, eC, e, b1C, b1, b2C, b2;
+function setQuality(q) {
+  Q = q; CW = Math.round(W * q); CH = Math.round(H * q);
+  out.width = CW; out.height = CH;
+  sC = mk(CW, CH); s = sC.getContext('2d');
+  eC = mk(CW, CH); e = eC.getContext('2d');
+  b1C = mk(Math.ceil(CW / 4), Math.ceil(CH / 4)); b1 = b1C.getContext('2d');
+  b2C = mk(Math.ceil(CW / 8), Math.ceil(CH / 8)); b2 = b2C.getContext('2d');
+  if (gl) gl.viewport(0, 0, CW, CH);
+}
+
+// ───────────────────────── CRT shader ─────────────────────────
+const VS = 'attribute vec2 p; varying vec2 vUv; void main(){ vUv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }';
+const FS = `precision highp float;
+varying vec2 vUv;
+uniform sampler2D uTex;
+uniform vec2 uRes;
+uniform float uTime, uCurve, uCA, uScan, uBright, uNoise, uSx, uSy, uLine, uGlitch, uGlass;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void main(){
+  vec2 p = vUv * 2.0 - 1.0;
+  vec2 c = p * (1.0 + uCurve * vec2(p.y * p.y * 0.55, p.x * p.x * 0.9));
+  float tear = uGlitch * (hash(vec2(floor(vUv.y * 54.0), floor(uTime * 60.0))) - 0.5) * step(0.72, hash(vec2(floor(vUv.y * 18.0), floor(uTime * 30.0) + 3.0)));
+  vec2 q = vec2((c.x + tear * 0.12) / max(uSx, 0.0001), c.y / max(uSy, 0.0001));
+  vec2 uv = q * 0.5 + 0.5;
+  float inside = step(abs(q.x), 1.0) * step(abs(q.y), 1.0);
+  vec2 dir = c * (uCA + uGlitch * 0.004);
+  vec3 col;
+  col.r = texture2D(uTex, uv + dir).r;
+  col.g = texture2D(uTex, uv).g;
+  col.b = texture2D(uTex, uv - dir).b;
+  col *= inside;
+  float sl = 0.5 + 0.5 * cos(vUv.y * uRes.y * 3.14159265 / 1.5);
+  col *= mix(1.0, 0.68 + 0.32 * sl, uScan);
+  // the beam line / dot seen while the tube powers on and off
+  float ly = c.y / (uSy * 0.3 + 0.0022);
+  float lx = smoothstep(1.0, 0.92, abs(c.x) / max(uSx, 0.0025));
+  col += uLine * exp(-ly * ly) * lx * vec3(1.0, 0.72, 0.66);
+  vec2 cd = c * vec2(1.0, uRes.y / uRes.x);
+  col += uLine * (0.5 * exp(-dot(cd, cd) / 0.0012) + 1.4 * exp(-dot(cd, cd) / 0.00006)) * vec3(1.0, 0.35, 0.28) * step(uSx, 0.05);
+  // tube edge, corners, vignette, glass
+  vec2 a = abs(c);
+  float r = 0.07;
+  float corner = length(max(a - vec2(1.0 - r), 0.0)) / r;
+  float mask = smoothstep(1.0, 0.86, corner) * smoothstep(1.005, 0.975, max(a.x, a.y));
+  col *= mask;
+  col *= 1.0 - 0.32 * dot(p * 0.8, p * 0.8);
+  col *= uBright;
+  col += (hash(vUv * uRes + fract(uTime * 7.31)) - 0.5) * uNoise * mask;
+  col += uGlass * (vec3(1.0, 0.86, 0.84) * 0.03 * smoothstep(0.85, 0.0, length(p - vec2(-0.55, 0.62))) + vec3(0.05, 0.012, 0.014)) * mask;
+  gl_FragColor = vec4(col, 1.0);
+}`;
+let gl = null, U = {}, tex = null, out2d = null;
+(function initGL() {
+  try { gl = out.getContext('webgl', { preserveDrawingBuffer: true, antialias: false, alpha: false, premultipliedAlpha: false }); } catch (err) { gl = null; }
+  if (!gl) { out2d = out.getContext('2d'); return; }
+  const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);
+  const bu = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bu); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  for (const n of ['uTex', 'uRes', 'uTime', 'uCurve', 'uCA', 'uScan', 'uBright', 'uNoise', 'uSx', 'uSy', 'uLine', 'uGlitch', 'uGlass']) U[n] = gl.getUniformLocation(pr, n);
+  tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+})();
+
+// ───────────────────────── fonts ─────────────────────────
+const b64 = x => Uint8Array.from(atob(x), c => c.charCodeAt(0)).buffer;
+const ready = (async () => {
+  const faces = [
+    new FontFace('Space Grotesk', b64(FONTS.sg), { weight: '300 700' }),
+    new FontFace('Space Mono', b64(FONTS.sm4), { weight: '400' }),
+    new FontFace('Space Mono', b64(FONTS.sm7), { weight: '700' }),
+  ];
+  for (const f of faces) { await f.load(); document.fonts.add(f); }
+})();
+
+// ───────────────────────── signals ─────────────────────────
+function noteAmp(N, t) { const d = t - N.t; return d < 0 ? 0 : N.A * Math.min(1, d / 0.004) * Math.exp(-d / 1.6); }
+// the voltage CH1 sees, tau seconds into a triggered sweep at time t
+function sig(t, tau) {
+  let v = 0;
+  for (const N of NOTES) {
+    const a = noteAmp(N, t); if (a < 0.002) continue;
+    const drift = N.f * t * 0.0025;
+    for (let n = 1; n <= 7; n++) v += a * Math.sin(n * Math.PI * N.p) / Math.pow(n, 1.45) * Math.exp(-(t - N.t) * n * 0.45) * Math.sin(TAU * (n * N.f * tau + drift * n) + n * 1.3);
+  }
+  const hd = t - T.plug;
+  if (hd > 0 && hd < 0.5) { const ha = 1.1 * Math.exp(-hd / 0.09); v += ha * (Math.sin(TAU * 60 * tau) + 0.55 * Math.sin(TAU * 120 * tau + 1) + 0.4 * Math.sin(TAU * 180 * tau + 2)) + ha * 0.35 * (hash(tau * 9100 + t * 13) - 0.5); }
+  const sd = t - (T.strum - 0.035);
+  if (sd > 0) { const sa = 3.2 * Math.min(1, sd / 0.03); for (const f of [82.41, 123.47, 164.81]) v += sa * Math.sin(TAU * f * tau + f); }
+  return v;
+}
+const YT_N = 1100;
+const YT = new Float32Array(YT_N * 3), YT2 = new Float32Array(YT_N * 3);
+function ytTrace(t, o) {
+  const over = t > T.strum - 0.035;
+  for (let i = 0; i < YT_N; i++) {
+    const x = GR.x0 + (GR.x1 - GR.x0) * i / (YT_N - 1), tau = (i / (YT_N - 1)) * 0.032;
+    const v = sig(t, tau) + 0.012 * (hash(i * 3.7 + Math.floor(t * 60) * 0.37) - 0.5);
+    const y = CY - (over ? 330 * Math.tanh(1.6 * v) : 290 * Math.tanh(0.9 * v));
+    o[i * 3] = x; o[i * 3 + 1] = y; o[i * 3 + 2] = i ? 1 : 0;
+  }
+  return o;
+}
+function liss(a, b, phi, R, o, cx = CX, cy = CY) {
+  for (let i = 0; i < NB; i++) { const th = TAU * i / (NB - 1); o[i * 3] = cx + R * Math.sin(a * th + phi); o[i * 3 + 1] = cy - R * Math.sin(b * th); o[i * 3 + 2] = i ? 1 : 0; }
+  return o;
+}
+function mix(A, B, m, o, visPow = 1) {
+  const mv = Math.pow(m, visPow);
+  for (let i = 0; i < NB * 3; i += 3) { o[i] = A[i] + (B[i] - A[i]) * m; o[i + 1] = A[i + 1] + (B[i + 1] - A[i + 1]) * m; o[i + 2] = A[i + 2] + (B[i + 2] - A[i + 2]) * mv; }
+  return o;
+}
+const xyStage = t => { let k = 0; for (let i = 0; i < XY.length; i++) if (t >= XY[i].t) k = i; return k; };
+const xyPhi = (t, k) => (k < 4 ? 0.4 + 1.15 * (t - T.strum) : Math.PI / 2 + (0.18 - Math.PI / 2) * Math.exp(-(t - XY[4].t) / 0.16));
+const xyR = t => { let r = 330; for (const b of T.beats) { const d = t - b; if (d > 0) r *= 1 + 0.07 * Math.exp(-d / 0.08); } return r - 46 * sstep(3.62, T.logo, t); };
+function figure(t, o) {
+  const k = xyStage(t), X = XY[k], R = xyR(t);
+  let scale = 1 + 0.3 * (1 - eOut3(inv(T.xy, T.xy + 0.18, t)));
+  liss(X.a, X.b, xyPhi(t, k), R * scale, o);
+  if (k > 0) { const m = eOut3(inv(X.t, X.t + 0.1, t)); if (m < 1) { const P = XY[k - 1]; liss(P.a, P.b, xyPhi(t, k - 1), R, BUF[4]); mix(BUF[4], o, m, o); } }
+  return o;
+}
+function circleAt(t, o) { const X = XY[4]; return liss(X.a, X.b, xyPhi(t, 4), xyR(t), o); }
+function jitter(o, amp, seed) {
+  if (amp < 0.05) return o;
+  for (let i = 0; i < NB; i++) { o[i * 3] += amp * (hash(i * 1.37 + seed) - 0.5); o[i * 3 + 1] += amp * (hash(i * 2.11 + seed + 5) - 0.5); }
+  return o;
+}
+// what the beam draws at time t (null while the trace is in Y-T mode)
+function beamAt(t, o) {
+  if (t < T.xy) return null;
+  const fi = Math.floor(t * 60);
+  if (t < T.logo) return figure(t, o);
+  if (t < T.wm0) {
+    const m = eOut3(inv(T.logo, T.logoIn, t));
+    circleAt(Math.min(t, T.logo), BUF[3]);
+    mix(BUF[3], LOGO_B, m, o, 0.5);
+    const sc = 1 + 0.14 * Math.sin(Math.PI * m) * (1 - m * 0.5);
+    for (let i = 0; i < NB * 3; i += 3) { o[i] = CX + (o[i] - CX) * sc; o[i + 1] = CY + (o[i + 1] - CY) * sc; }
+    return jitter(o, 26 * (1 - m) ** 2 + 5 * Math.exp(-(t - T.logo) / 0.16), fi);
+  }
+  const m = eIO3(inv(T.wm0, T.wm, t));
+  mix(LOGO_B, WM_B, m, o, 1);
+  const wv = Math.sin(Math.PI * m);
+  if (wv > 0.001) for (let i = 0; i < NB * 3; i += 3) o[i + 1] += 22 * wv * Math.sin(o[i] * 0.012 + t * 14);
+  return jitter(o, 7 * Math.exp(-Math.max(0, t - T.wm) / 0.14) * (t >= T.wm ? 1 : 0) + 3 * wv, fi);
+}
+
+// ───────────────────────── beam renderer ─────────────────────────
+const BK = 7, BKS = [...Array(BK)].map(() => ({ n: 0, d: new Float32Array(NB * 4 + 8) }));
+function drawBeam(c, P, n, alpha, opts = {}) {
+  if (!P || alpha <= 0.002) return;
+  let tot = 0, cnt = 0;
+  for (let i = 1; i < n; i++) if (P[i * 3 + 2] > 0.01) { tot += Math.hypot(P[i * 3] - P[i * 3 - 3], P[i * 3 + 1] - P[i * 3 - 2]); cnt++; }
+  const ref = cnt ? tot / cnt : 1;
+  for (const b of BKS) b.n = 0;
+  const scan = opts.scan, scanPos = opts.scanPos || 0;
+  for (let i = 1; i < n; i++) {
+    const v = P[i * 3 + 2]; if (v <= 0.01) continue;
+    const x0 = P[i * 3 - 3], y0 = P[i * 3 - 2], x1 = P[i * 3], y1 = P[i * 3 + 1];
+    const L = Math.hypot(x1 - x0, y1 - y0) + 0.0001;
+    let I = v * Math.pow(clamp(ref / L, 0.08, 1.8), 0.75);
+    if (scan) { let d = (i / n - scanPos) % 1; if (d < 0) d += 1; I *= 0.8 + 0.85 * Math.exp(-d * 26); }
+    const k = Math.min(BK - 1, Math.floor(I / 1.9 * BK));
+    const B = BKS[k], j = B.n * 4; B.d[j] = x0; B.d[j + 1] = y0; B.d[j + 2] = x1; B.d[j + 3] = y1; B.n++;
+  }
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (let k = 0; k < BK; k++) {
+    const B = BKS[k]; if (!B.n) continue;
+    const lvl = (k + 0.6) / BK * 1.9;
+    c.beginPath();
+    let lx = NaN, ly = NaN;
+    for (let j = 0; j < B.n * 4; j += 4) { if (B.d[j] !== lx || B.d[j + 1] !== ly) c.moveTo(B.d[j], B.d[j + 1]); c.lineTo(B.d[j + 2], B.d[j + 3]); lx = B.d[j + 2]; ly = B.d[j + 3]; }
+    c.globalAlpha = clamp(alpha * lvl * 0.42); c.strokeStyle = '#ff3b2c'; c.lineWidth = opts.glow || 7; c.stroke();
+    c.globalAlpha = clamp(alpha * lvl * 0.95); c.strokeStyle = '#ffe1d8'; c.lineWidth = opts.core || 2.1; c.stroke();
+  }
+  c.globalAlpha = 1;
+}
+
+// ───────────────────────── readouts & graticule ─────────────────────────
+const PH = (a) => `rgba(255,96,80,${a})`;
+function typed(str, t0, t, cps = 55) { if (t < t0) return ''; return str.slice(0, Math.floor((t - t0) * cps)); }
+function txt(c, str, x, y, align = 'left', ls = 2) {
+  if (!str) return;
+  let w = 0; for (const ch of str) w += c.measureText(ch).width + ls; w -= ls;
+  let cx = align === 'right' ? x - w : align === 'center' ? x - w / 2 : x;
+  for (const ch of str) { c.fillText(ch, cx, y); cx += c.measureText(ch).width + ls; }
+  return w;
+}
+function chip(c, str, x, y) {
+  c.font = '700 20px "Space Mono"';
+  let w = 0; for (const ch of str) w += c.measureText(ch).width + 3;
+  c.fillRect(x - 10, y - 21, w + 17, 30);
+  c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; txt(c, str, x, y, 'left', 3); c.restore();
+  return w + 17;
+}
+function graticule(c, t, lvl) {
+  if (lvl <= 0.01) return;
+  c.save();
+  c.strokeStyle = PH(0.24 * lvl); c.lineWidth = 1.5; c.strokeRect(GR.x0, GR.y0, GR.x1 - GR.x0, GR.y1 - GR.y0);
+  c.fillStyle = PH(0.26 * lvl);
+  for (let x = GR.x0 + GR.div; x < GR.x1; x += GR.div) for (let y = GR.y0 + 20; y < GR.y1; y += 20) c.fillRect(x - 1, y - 1, 2, 2);
+  for (let y = GR.y0 + GR.div; y < GR.y1; y += GR.div) for (let x = GR.x0 + 20; x < GR.x1; x += 20) c.fillRect(x - 1, y - 1, 2, 2);
+  c.fillStyle = PH(0.36 * lvl);
+  for (let x = GR.x0; x <= GR.x1; x += 20) c.fillRect(x - 0.75, CY - (x % 100 === 60 ? 9 : 5), 1.5, x % 100 === 60 ? 18 : 10);
+  for (let y = GR.y0; y <= GR.y1; y += 20) c.fillRect(CX - ((y - GR.y0) % 100 === 0 ? 9 : 5), y - 0.75, (y - GR.y0) % 100 === 0 ? 18 : 10, 1.5);
+  c.restore();
+}
+function readouts(c, t) {
+  const on = sstep(0.36, 0.5, t);
+  if (on <= 0) return;
+  c.save(); c.textBaseline = 'alphabetic';
+  const ty = 60, by = 1046, t0 = 0.42;
+  c.fillStyle = PH(0.9 * on);
+  const cw = chip(c, typed('GZ2H', t0, t), GR.x0 + 10, ty);
+  c.font = '400 20px "Space Mono"'; c.fillStyle = PH(0.8 * on);
+  const yt = t < T.xy;
+  txt(c, typed(t < T.plug ? 'CH1  NO INPUT' : 'CH1  GUITAR · DC', t0 + 0.05, t), GR.x0 + 10 + cw + 12, ty);
+  txt(c, typed(yt ? '2.00 ms/div · 1.00 V/div' : t < T.logo ? 'X-Y · CH1→X  CH2→Y' : 'X-Y · VECTOR', t0 + 0.1, t), CX, ty, 'center');
+  const blink = Math.floor(t * 2.5) % 2 ? 1 : 0.3;
+  c.fillStyle = PH(0.85 * on * blink); c.beginPath(); c.arc(GR.x1 - 92, ty - 7, 6, 0, TAU); c.fill();
+  c.fillStyle = PH(0.8 * on); txt(c, typed('RUN', t0 + 0.15, t), GR.x1 - 10, ty, 'right');
+  // bottom row
+  let left = '', mid = '';
+  if (t < T.plug) { left = 'NO SIGNAL'; }
+  else if (t < T.pluck) { left = t < T.plug + 0.25 ? 'CH1  60 Hz HUM' : 'CH1  0.00 V'; mid = 'ZERO'; }
+  else if (yt) { let N = NOTES[0]; for (const nn of NOTES) if (t >= nn.t) N = nn; left = `CH1  ${N.n}  ${N.f.toFixed(2)} Hz`; }
+  else if (t < T.logo) { const X = XY[xyStage(t)]; left = `X ${X.x} ${X.fx.toFixed(2)}  Y ${X.y} ${X.fy.toFixed(2)}`; mid = `${X.name}  ${X.r}`; }
+  else if (t < T.wm0) { left = `TRACE GZ2H · ${HUM_HZ.toFixed(2)} Hz`; mid = 'SIGNAL LOCKED'; }
+  else { left = 'TRACE GUITARZERO2HERO'; mid = 'SIGNAL LOCKED'; }
+  c.fillStyle = PH(0.82 * on);
+  txt(c, typed(left, t0 + 0.2, t), GR.x0 + 10, by);
+  if (mid) { c.font = '700 20px "Space Mono"'; txt(c, mid, CX, by, 'center', 4); }
+  // string lamps while the strings come in
+  if (t > T.plug && t < T.xy) {
+    const lx = GR.x1 - 10 - 5 * 46;
+    c.font = '400 15px "Space Mono"';
+    NOTES.forEach((N, i) => {
+      const x = lx + i * 46, lit = t >= N.t, flash = lit ? Math.exp(-(t - N.t) / 0.12) : 0;
+      c.fillStyle = PH((lit ? 0.85 : 0.22) * on);
+      c.beginPath(); c.arc(x, by - 12, 8 + 3 * flash, 0, TAU); lit ? c.fill() : (c.strokeStyle = PH(0.35 * on), c.lineWidth = 1.5, c.stroke());
+      c.fillStyle = PH(0.6 * on); txt(c, 'EADGBE'[i], x, by + 14, 'center', 0);
+    });
+  }
+  c.restore();
+}
+
+// ───────────────────────── frame ─────────────────────────
+let BG = null;
+function crt(t) {
+  // tube on: dot → line → picture; tube off: picture → line → dot
+  let sx = 1, sy = 1, line = 0, bright = 1;
+  if (t < 0.36) {
+    if (t < T.on) { sx = sy = 0.0025; line = 0; bright = 0; }
+    else if (t < 0.11) { sx = sy = 0.0025; line = 1.6 * sstep(T.on, 0.08, t); }
+    else if (t < 0.2) { sx = Math.max(0.0025, eOut3(inv(0.11, 0.2, t))); sy = 0.0025; line = 1.5; }
+    else { sx = 1; sy = Math.max(0.0025, eOut3(inv(0.2, 0.36, t))); line = 1.5 * (1 - sy) ** 4; bright = 1 + 0.5 * (1 - sy); }
+  } else if (t > T.off) {
+    const a = inv(T.off, T.off + 0.16, t), b = inv(T.off + 0.16, T.off + 0.28, t);
+    sy = Math.max(0.0025, 1 - eIn3(a)); sx = Math.max(0.0025, 1 - eIn3(b));
+    line = 1.7 * (1 - sy) ** 4 * (1 - sstep(T.off + 0.3, T.off + 0.62, t));
+    bright = 1 + 0.9 * a * a;
+  }
+  return { sx, sy, line, bright };
+}
+function hits(t) { let g = 0; for (const [h, a, d] of [[T.strum, 1, 0.12], [T.logo, 0.8, 0.1], [T.wm, 0.6, 0.1], ...T.beats.map(b => [b, 0.25, 0.06])]) { const x = t - h; if (x >= 0 && x < 1) g += a * Math.exp(-x / d); } return g; }
+
+function render(t, noiseMul = 1) {
+  t = clamp(t, 0, DUR);
+  // scene: glass, graticule, readouts
+  s.setTransform(Q, 0, 0, Q, 0, 0); s.globalCompositeOperation = 'source-over'; s.globalAlpha = 1; s.filter = 'none';
+  if (!BG) { BG = s.createRadialGradient(CX, CY, 0, CX, CY, 1150); BG.addColorStop(0, '#1a0809'); BG.addColorStop(0.6, '#0c0405'); BG.addColorStop(1, '#050203'); }
+  s.fillStyle = BG; s.fillRect(0, 0, W, H);
+  const gLvl = sstep(0.3, 0.6, t) * (1 - 0.45 * sstep(T.logo, T.logoIn, t)) * (1 + 0.6 * hits(t));
+  graticule(s, t, gLvl);
+  readouts(s, t);
+  // beam
+  e.setTransform(Q, 0, 0, Q, 0, 0); e.clearRect(0, 0, W, H); e.globalCompositeOperation = 'lighter';
+  const hit = hits(t);
+  if (t >= 0.2 && t < T.xy) {
+    drawBeam(e, ytTrace(t - 1 / 60, YT2), YT_N, 0.3);
+    drawBeam(e, ytTrace(t, YT), YT_N, 1 + 0.6 * hit, { core: 2.2, glow: 8 });
+  } else if (t >= T.xy) {
+    const moving = t < T.logoIn + 0.1 || (t > T.wm0 - 0.02 && t < T.wm + 0.3);
+    if (moving) { drawBeam(e, beamAt(t - 1 / 60, BUF[1]), NB, 0.22); drawBeam(e, beamAt(t - 1 / 120, BUF[2]), NB, 0.38); }
+    const scan = t > T.logoIn;
+    drawBeam(e, beamAt(t, BUF[0]), NB, 1 + 0.7 * hit, { scan, scanPos: (t * 0.9) % 1 });
+  }
+  // bloom
+  b1.setTransform(1, 0, 0, 1, 0, 0); b1.clearRect(0, 0, b1C.width, b1C.height); b1.filter = 'blur(2px)'; b1.drawImage(eC, 0, 0, b1C.width, b1C.height); b1.filter = 'none';
+  b2.setTransform(1, 0, 0, 1, 0, 0); b2.clearRect(0, 0, b2C.width, b2C.height); b2.filter = 'blur(3px)'; b2.drawImage(b1C, 0, 0, b2C.width, b2C.height); b2.filter = 'none';
+  s.setTransform(1, 0, 0, 1, 0, 0); s.globalCompositeOperation = 'lighter';
+  s.globalAlpha = 1; s.drawImage(eC, 0, 0);
+  s.globalAlpha = 0.9; s.drawImage(b1C, 0, 0, CW, CH);
+  s.globalAlpha = 0.85; s.drawImage(b2C, 0, 0, CW, CH);
+  if (hit > 0.02) { s.globalAlpha = clamp(0.18 * hit); s.fillStyle = '#ff5a48'; s.fillRect(0, 0, CW, CH); }
+  // URL readout under the wordmark
+  if (t > T.url && t < T.off + 0.2) {
+    s.globalCompositeOperation = 'lighter'; s.setTransform(Q, 0, 0, Q, 0, 0);
+    s.font = '400 30px "Space Mono"'; s.textBaseline = 'alphabetic';
+    const str = typed('guitarzero2hero.com', T.url, t, 40);
+    s.globalAlpha = 1; s.fillStyle = 'rgba(255,214,204,0.92)';
+    const w = txt(s, str, CX - 228, 688, 'left', 4) || 0;
+    if (Math.floor(t * 3) % 2 === 0 || str.length < 19) { s.fillStyle = 'rgba(255,120,100,0.9)'; s.fillRect(CX - 228 + w + 8, 664, 16, 30); }
+  }
+  s.globalAlpha = 1; s.globalCompositeOperation = 'source-over';
+  // tube
+  const k = crt(t);
+  const fade = 1 - sstep(T.off + 0.4, DUR - 0.02, t);
+  const glitch = clamp(1.4 * Math.exp(-Math.max(0, t - T.strum) / 0.07) * (t >= T.strum - 0.035 ? 1 : 0) + 0.5 * Math.exp(-Math.max(0, t - T.logo) / 0.06) * (t >= T.logo ? 1 : 0));
+  if (gl) {
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sC);
+    gl.uniform1i(U.uTex, 0); gl.uniform2f(U.uRes, CW, CH); gl.uniform1f(U.uTime, t);
+    gl.uniform1f(U.uCurve, 0.07); gl.uniform1f(U.uCA, 0.0016 + 0.002 * hit); gl.uniform1f(U.uScan, 0.55 * Math.min(1, CH / 700));
+    gl.uniform1f(U.uBright, k.bright * fade); gl.uniform1f(U.uNoise, 0.022 * noiseMul * fade); gl.uniform1f(U.uSx, k.sx); gl.uniform1f(U.uSy, k.sy);
+    gl.uniform1f(U.uLine, k.line * fade); gl.uniform1f(U.uGlitch, glitch); gl.uniform1f(U.uGlass, sstep(0.02, 0.4, t) * fade);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  } else {
+    out2d.setTransform(1, 0, 0, 1, 0, 0); out2d.fillStyle = '#000'; out2d.fillRect(0, 0, CW, CH);
+    out2d.globalAlpha = clamp(k.bright * fade);
+    out2d.drawImage(sC, CW * (1 - k.sx) / 2, CH * (1 - k.sy) / 2, CW * k.sx, CH * k.sy);
+    if (k.line > 0.01) { out2d.globalAlpha = clamp(k.line * fade * 0.7); out2d.fillStyle = '#ffd2c8'; out2d.fillRect(CW * (1 - k.sx) / 2, CH / 2 - 2 * Q, Math.max(4, CW * k.sx), 4 * Q); }
+    out2d.globalAlpha = 1;
+  }
+}
+
+// ───────────────────────── audio ─────────────────────────
+function ksBuffer(ac, f, dur, o = {}) {
+  const sr = ac.sampleRate, n = Math.floor(sr * dur), outB = new Float32Array(n);
+  const t60 = o.t60 || 3, bright = o.bright ?? 0.55, pick = o.pick ?? 0.13, damp = o.damp ?? 0.5;
+  const per = sr / f, N = Math.max(2, Math.round(per - damp)), buf = new Float32Array(N), r = mulberry(o.seed || 1);
+  let lp = 0;
+  for (let i = 0; i < N; i++) { lp += bright * ((r() * 2 - 1) - lp); buf[i] = lp; }
+  const D = Math.max(1, Math.round(pick * N)), ex = buf.slice();
+  for (let i = 0; i < N; i++) buf[i] = ex[i] - 0.9 * ex[(i - D + N) % N];
+  let mean = 0; for (let i = 0; i < N; i++) mean += buf[i]; mean /= N;
+  let pk = 0; for (let i = 0; i < N; i++) { buf[i] -= mean; pk = Math.max(pk, Math.abs(buf[i])); }
+  for (let i = 0; i < N; i++) buf[i] /= pk || 1;
+  const g = Math.pow(0.001, 1 / (f * t60));
+  let idx = 0;
+  for (let i = 0; i < n; i++) { const a = buf[idx], b = buf[(idx + 1) % N]; outB[i] = a; buf[idx] = g * ((1 - damp) * a + damp * b); idx = (idx + 1) % N; }
+  for (let i = 0; i < Math.min(60, n); i++) outB[i] *= i / 60;
+  const ab = ac.createBuffer(1, n, sr); ab.copyToChannel(outB, 0); return ab;
+}
+function noiseBuf(ac, dur, seed, ch = 1) {
+  const n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(ch, n, ac.sampleRate);
+  for (let c = 0; c < ch; c++) { const d = b.getChannelData(c), r = mulberry(seed + c * 17); for (let i = 0; i < n; i++) d[i] = r() * 2 - 1; }
+  return b;
+}
+function makeIR(ac, dur, decay) {
+  const sr = ac.sampleRate, n = Math.floor(sr * dur), b = ac.createBuffer(2, n, sr);
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c), r = mulberry(400 + c); let lp = 0;
+    for (let i = 0; i < n; i++) { const tt = i / sr, cut = lerp(0.9, 0.08, Math.min(1, tt / dur)); lp += cut * ((r() * 2 - 1) - lp); d[i] = lp * Math.pow(1 - i / n, decay) * (i < sr * 0.012 ? i / (sr * 0.012) : 1); }
+  }
+  return b;
+}
+function shaper(ac, drive, asym = 0) {
+  const n = 4096, c = new Float32Array(n), off = Math.tanh(drive * asym);
+  let mx = 0;
+  for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(drive * (x + asym)) - off; mx = Math.max(mx, Math.abs(c[i])); }
+  for (let i = 0; i < n; i++) c[i] /= mx;
+  const ws = ac.createWaveShaper(); ws.curve = c; ws.oversample = '4x'; return ws;
+}
+// the logo as a stereo signal: left = x, right = y. Fed to a real scope in X-Y mode it draws GZ2H.
+function logoHumBuffer(ac) {
+  const sr = ac.sampleRate, M = Math.round(sr / HUM_HZ), b = ac.createBuffer(2, M, sr), L = b.getChannelData(0), R = b.getChannelData(1);
+  for (let j = 0; j < M; j++) { const i = Math.floor(j * NB / M); L[j] = (LOGO_B[i * 3] - CX) / 600; R[j] = -(LOGO_B[i * 3 + 1] - CY) / 600; }
+  return b;
+}
+function buildAudio(ac, t0, from = 0) {
+  const at = x => t0 + x - from;
+  const live = x => x >= from - 0.001;
+  const bq = (type, f, q = 0.707, gain = 0) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; b.gain.value = gain; return b; };
+  const G = v => { const g = ac.createGain(); g.gain.value = v; return g; };
+  const chain = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+
+  const master = G(0.85), comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 3.5; comp.attack.value = 0.004; comp.release.value = 0.2;
+  chain(master, comp, ac.destination);
+  const fadeAt = 7.62;
+  if (from < fadeAt) { master.gain.setValueAtTime(0.85, at(fadeAt)); master.gain.linearRampToValueAtTime(0.0001, at(DUR)); }
+  const rev = ac.createConvolver(); rev.buffer = makeIR(ac, 2.6, 2.6);
+  chain(rev, G(0.5), master);
+  const send = (node, amt) => { node.connect(G(amt)).connect(rev); };
+  const clean = G(0.24), cOut = chain(clean, shaper(ac, 1.8), bq('highpass', 75), bq('peaking', 2600, 1, 3), bq('lowpass', 5600, 0.6));
+  cOut.connect(master); send(cOut, 0.5);
+  const rig = pan => {
+    const inp = G(0.32);
+    const o = chain(inp, bq('highpass', 120), bq('peaking', 750, 0.9, 5), shaper(ac, 16, 0.08), bq('highpass', 90), bq('peaking', 380, 1, -4), bq('peaking', 1800, 1.1, 4), bq('lowpass', 4300, 0.8), bq('lowpass', 5600, 0.6), G(0.85));
+    const p = ac.createStereoPanner(); p.pan.value = pan; o.connect(p); p.connect(master); send(p, 0.18);
+    return inp;
+  };
+  const L = rig(-0.85), R = rig(0.85);
+  const NBF = noiseBuf(ac, 3, 9, 2);
+  const src = (buf, time, dest, gain = 1, rate = 1, stopAt) => {
+    if (!live(time)) return null;
+    const sN = ac.createBufferSource(); sN.buffer = buf; sN.playbackRate.value = rate;
+    const g = G(gain); sN.connect(g); if (dest) g.connect(dest); sN.start(at(time));
+    if (stopAt) { g.gain.setValueAtTime(gain, at(stopAt)); g.gain.exponentialRampToValueAtTime(0.0001, at(stopAt + 0.09)); sN.stop(at(stopAt + 0.12)); }
+    return { s: sN, g };
+  };
+  const panTo = (v, dest) => { const p = ac.createStereoPanner(); p.pan.value = v; p.connect(dest); return p; };
+  const F = { E1: 41.2, E2: 82.41, G2: 98.0, A2: 110.0, B2: 123.47, D3: 146.83, E3: 164.81, G3: 196.0, A3: 220.0, B3: 246.94, E4: 329.63, Gs4: 415.3, B4: 493.88, E5: 659.26, E6: 1318.5 };
+  let seed = 1;
+  const cleanNote = (time, f, gain, pan, t60 = 3.2) => src(ksBuffer(ac, f, t60 * 1.1, { t60, bright: 0.62, pick: 0.14, seed: seed++ }), time, panTo(pan, clean), gain);
+  const strum = (times, notes, t60, gain, stopAt, mute) => notes.forEach((n, i) => {
+    const o = { t60, bright: mute ? 0.3 : 0.7, pick: 0.12, damp: mute ? 0.62 : 0.5 };
+    src(ksBuffer(ac, F[n], Math.min(t60 * 1.1, 4.5), { ...o, seed: seed++ }), times[i], L, gain, 1, stopAt);
+    src(ksBuffer(ac, F[n], Math.min(t60 * 1.1, 4.5), { ...o, seed: seed++ }), times[i] + 0.011, R, gain, 1.0023, stopAt);
+  });
+  const env = (node, time, peak, dur, att = 0.003) => { node.gain.setValueAtTime(0.0001, at(time)); node.gain.exponentialRampToValueAtTime(peak, at(time + att)); node.gain.exponentialRampToValueAtTime(0.0001, at(time + dur)); };
+  const osc = (type, f0, f1, time, dur, gain, dest, att) => {
+    if (!live(time)) return; const o = ac.createOscillator(), a = G(0); o.type = type; o.frequency.setValueAtTime(f0, at(time)); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, at(time + dur * 0.5));
+    env(a, time, gain, dur, att); o.connect(a); a.connect(dest); o.start(at(time)); o.stop(at(time + dur + 0.02)); return a;
+  };
+  const noise = (time, dur, gain, filters, dest = master, att) => {
+    if (!live(time)) return; const n = src(NBF, time, null, 1); if (!n) return; n.g.disconnect();
+    const a = G(0); let node = n.g; for (const f of filters) { node.connect(f); node = f; } node.connect(a); a.connect(dest); env(a, time, gain, dur, att); n.s.stop(at(time + dur + 0.02)); return a;
+  };
+  const kick = (time, g = 1) => { osc('sine', 155, 45, time, 0.5, g, master, 0.004); noise(time, 0.02, 0.3 * g, [bq('highpass', 1800)]); };
+  const snare = (time, g = 1) => { const a = noise(time, 0.22, 0.55 * g, [bq('highpass', 900), bq('peaking', 2000, 0.8, 4)]); if (a) send(a, 0.35); osc('triangle', 200, 160, time, 0.12, 0.4 * g, master); };
+  const crash = (time, g = 1, dur = 2.6) => { const a = noise(time, dur, 0.42 * g, [bq('highpass', 4200), bq('peaking', 7600, 1.2, 5)]); if (a) send(a, 0.3); };
+  const boom = (time, g = 1) => osc('sine', 62, 31, time, 1.7, 0.9 * g, master, 0.01);
+  const tom = (time, f, g = 1) => { const a = osc('sine', f * 1.7, f, time, 0.38, 0.75 * g, master, 0.004); if (a) send(a, 0.3); };
+  const click = (time, g = 1) => { noise(time, 0.012, 0.5 * g, [bq('highpass', 2500)], master, 0.0005); osc('square', 2200, 2200, time, 0.008, 0.05 * g, master, 0.0005); };
+  const swell = (t1, t2, g, f1, f2, q, type = 'bandpass') => {
+    if (!live(t2)) return;
+    const sN = ac.createBufferSource(); sN.buffer = NBF; const flt = bq(type, f1, q), a = G(0);
+    sN.connect(flt).connect(a); a.connect(master); send(a, 0.25);
+    const st = Math.max(t1, from);
+    flt.frequency.setValueAtTime(lerp(f1, f2, inv(t1, t2, st)), at(st)); flt.frequency.exponentialRampToValueAtTime(f2, at(t2));
+    a.gain.setValueAtTime(Math.max(0.0001, g * inv(t1, t2, st) ** 3), at(st)); a.gain.exponentialRampToValueAtTime(g, at(t2)); a.gain.exponentialRampToValueAtTime(0.0001, at(t2 + 0.03));
+    sN.start(at(st)); sN.stop(at(t2 + 0.05));
+  };
+  // a pair of sine probes, hard left (X) and right (Y): what the scope is drawing in X-Y mode
+  const probe = (t1, t2, fx, fy, g, fy2) => {
+    if (!live(t2)) return;
+    const st = Math.max(t1, from);
+    [[fx, -1, fx], [fy, 1, fy2 || fy]].forEach(([f, pan, f2]) => {
+      const o = ac.createOscillator(), a = G(0); o.frequency.setValueAtTime(f2 !== f ? f2 : f, at(st)); if (f2 !== f) o.frequency.exponentialRampToValueAtTime(f, at(Math.min(t2, st + 0.35)));
+      a.gain.setValueAtTime(0.0001, at(st)); a.gain.exponentialRampToValueAtTime(g, at(st + 0.01)); a.gain.setValueAtTime(g, at(t2 - 0.01)); a.gain.exponentialRampToValueAtTime(0.0001, at(t2 + 0.02));
+      o.connect(a); a.connect(panTo(pan, master)); o.start(at(st)); o.stop(at(t2 + 0.04));
+    });
+  };
+
+  // ── score ──
+  // tube warms up: thump, degauss wobble, faint line whine, static
+  osc('sine', 72, 38, T.on, 0.35, 0.28, master, 0.004);
+  if (live(T.on)) { const o = ac.createOscillator(), lfo = ac.createOscillator(), lg = G(0.5), a = G(0); o.type = 'sawtooth'; o.frequency.value = 50; lfo.frequency.value = 9; lfo.connect(lg).connect(a.gain); const lp = bq('lowpass', 420); o.connect(lp).connect(a); a.connect(master); a.gain.setValueAtTime(0.0001, at(T.on)); a.gain.linearRampToValueAtTime(0.06, at(T.on + 0.03)); a.gain.exponentialRampToValueAtTime(0.0001, at(T.on + 0.8)); o.start(at(T.on)); lfo.start(at(T.on)); o.stop(at(T.on + 0.85)); lfo.stop(at(T.on + 0.85)); }
+  osc('sine', 7800, 7800, T.on + 0.1, 1.6, 0.006, panTo(0.3, master), 0.2);
+  noise(T.on + 0.02, 0.16, 0.12, [bq('highpass', 3000)]);
+  // cable plugged in: pop, ground hum, settle to silence (zero)
+  noise(T.plug, 0.03, 0.3, [bq('lowpass', 900)], master, 0.001);
+  if (live(T.plug)) { const o = ac.createOscillator(), a = G(0); o.type = 'sawtooth'; o.frequency.value = 60; o.connect(bq('lowpass', 1100)).connect(a); a.connect(master); env(a, T.plug, 0.07, 0.42, 0.004); o.start(at(T.plug)); o.stop(at(T.plug + 0.45)); }
+  click(0.42, 0.4);
+  // the open strings
+  cleanNote(T.pluck, F.E2, 0.95, -0.25, 3.6);
+  ['A2', 'D3', 'G3', 'B3', 'E4'].forEach((n, i) => cleanNote(T.arp[i], F[n], 0.82, -0.15 + i * 0.11, 3.0));
+  swell(1.86, T.strum - 0.005, 0.3, 3000, 9000, 0.7, 'highpass');
+  // power chord: the scope flips to X-Y
+  strum([0, 0.01, 0.02, 0.031, 0.042].map(d => T.strum - 0.02 + d), ['E2', 'B2', 'E3', 'B3', 'E4'], 3.4, 0.55, 2.68, false);
+  kick(T.strum, 0.75); boom(T.strum, 0.45); crash(T.strum, 0.8, 2.6); snare(T.strum, 0.5); click(T.xy, 0.9);
+  XY.forEach((X, k) => {
+    const end = k < 4 ? XY[k + 1].t : T.logo;
+    probe(X.t + (k ? 0 : 0.05), end, X.fx, X.fy, 0.05, k === 4 ? X.fy * 1.03 : 0);
+  });
+  const chug = (time, notes) => strum([0, 0.006, 0.012].map(d => time + d), notes, 0.3, 1.0, null, true);
+  chug(T.beats[0], ['E2', 'B2', 'E3']); kick(T.beats[0], 0.55); click(T.beats[0], 0.5);
+  chug(T.beats[1], ['A2', 'E3', 'A3']); snare(T.beats[1], 0.6); click(T.beats[1], 0.5);
+  chug(T.beats[2], ['G2', 'D3', 'G3']); kick(T.beats[2], 0.55); click(T.beats[2], 0.5);
+  chug(T.beats[3], ['E2', 'B2', 'E3']); snare(T.beats[3], 0.65); click(T.beats[3], 0.5);
+  swell(3.47, T.logo - 0.005, 0.32, 600, 7000, 1.2);
+  // the zero becomes the logo
+  strum([0, 0.009, 0.018, 0.027].map(d => T.logo + d), ['E2', 'B2', 'E3', 'B3'], 3.0, 0.6, 5.0, false);
+  kick(T.logo, 0.8); boom(T.logo, 0.55); crash(T.logo, 0.75, 2.4); snare(T.logo, 0.4);
+  if (live(T.logo)) { const sN = ac.createBufferSource(); sN.buffer = logoHumBuffer(ac); sN.loop = true; const a = G(0); sN.connect(bq('lowpass', 2600)).connect(a); a.connect(master); a.gain.setValueAtTime(0.0001, at(T.logo)); a.gain.exponentialRampToValueAtTime(0.06, at(T.logo + 0.05)); a.gain.setValueAtTime(0.06, at(T.wm0)); a.gain.exponentialRampToValueAtTime(0.0001, at(T.wm0 + 0.3)); sN.start(at(T.logo)); sN.stop(at(T.wm0 + 0.32)); }
+  // into the wordmark
+  swell(4.82, T.wm - 0.005, 0.3, 2500, 9000, 0.7, 'highpass');
+  [[5.27, 210], [5.345, 175], [5.42, 140], [5.495, 112]].forEach(([tt, f]) => tom(tt, f, 0.3));
+  strum([0, 0.009, 0.018, 0.027].map(d => T.wm + d), ['E2', 'B2', 'E3', 'B3'], 4.0, 0.6, null, false);
+  kick(T.wm, 0.75); boom(T.wm, 0.55); crash(T.wm, 0.85, 3.0); snare(T.wm, 0.5);
+  ['E4', 'Gs4', 'B4', 'E5'].forEach((n, i) => cleanNote(T.wm + 0.04 + i * 0.06, F[n], 0.32, 0.35 - i * 0.2, 3.4));
+  for (let i = 0; i < 19; i++) click(T.url + i / 40, 0.08);
+  // tube off: pop, falling whine, fizz
+  noise(T.off, 0.05, 0.5, [bq('lowpass', 700)], master, 0.001);
+  osc('sine', 5200, 160, T.off + 0.02, 0.5, 0.1, master, 0.003);
+  noise(T.off + 0.05, 0.45, 0.08, [bq('highpass', 2500)]);
+}
+function wavB64(buf) {
+  const ch = buf.numberOfChannels, n = buf.length, sr = buf.sampleRate;
+  let pk = 0; for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(d[i])); }
+  const gain = 0.84 / (pk || 1);
+  const bytes = new DataView(new ArrayBuffer(44 + n * ch * 2));
+  const w = (o, str) => { for (let i = 0; i < str.length; i++) bytes.setUint8(o + i, str.charCodeAt(i)); };
+  w(0, 'RIFF'); bytes.setUint32(4, 36 + n * ch * 2, true); w(8, 'WAVE'); w(12, 'fmt '); bytes.setUint32(16, 16, true); bytes.setUint16(20, 1, true); bytes.setUint16(22, ch, true);
+  bytes.setUint32(24, sr, true); bytes.setUint32(28, sr * ch * 2, true); bytes.setUint16(32, ch * 2, true); bytes.setUint16(34, 16, true); w(36, 'data'); bytes.setUint32(40, n * ch * 2, true);
+  const chans = [...Array(ch)].map((_, c) => buf.getChannelData(c));
+  let o = 44; for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) { const v = clamp(chans[c][i] * gain, -1, 1); bytes.setInt16(o, v * 32767, true); o += 2; }
+  let str = ''; const u8 = new Uint8Array(bytes.buffer); for (let i = 0; i < u8.length; i += 0x8000) str += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return { b64: btoa(str), peak: pk };
+}
+
+// ───────────────────────── boot ─────────────────────────
+const RENDER = new URLSearchParams(location.search).has('render');
+if (RENDER) document.body.classList.add('render');
+setQuality(1);
+
+window.GZ = {
+  DUR, ready,
+  frame: t => render(t),
+  // motion blur: n sub-frames across a 180° shutter, averaged; returns a PNG as base64
+  capture(t, n = 1) {
+    if (!this.acc) { this.acc = mk(CW, CH); this.ax = this.acc.getContext('2d'); }
+    for (let i = 0; i < n; i++) { render(t + (n > 1 ? ((i + 0.5) / n - 0.5) / 120 : 0), Math.sqrt(n)); this.ax.globalAlpha = 1 / (i + 1); this.ax.drawImage(out, 0, 0); }
+    return this.acc.toDataURL('image/png').split(',')[1];
+  },
+  async audio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * DUR), sr); buildAudio(oc, 0, 0); const b = await oc.startRendering(); return wavB64(b); },
+};
+if (RENDER) return;
+
+// ───────────────────────── player UI ─────────────────────────
+const stage = document.getElementById('stage');
+const big = document.getElementById('big'), bigLabel = document.getElementById('bigLabel');
+const playBtn = document.getElementById('play'), playLabel = document.getElementById('playLabel'), playIcon = document.getElementById('playIcon');
+const soundBtn = document.getElementById('sound'), soundLabel = document.getElementById('soundLabel');
+const scrub = document.getElementById('scrub'), tcNow = document.getElementById('tcNow');
+const scenesEl = document.getElementById('scenes'), ticks = document.getElementById('ticks');
+const SOUND_FILE = 'gz2h-phosphor.mp3';
+const POSTER = 4.6;
+const ICON_PLAY = 'M3 1.8v12.4c0 .6.7 1 1.2.7l10-6.2c.5-.3.5-1.1 0-1.4l-10-6.2C3.7.8 3 1.2 3 1.8z';
+const ICON_PAUSE = 'M3 2h3.4v12H3zM9.6 2H13v12H9.6z';
+
+SCENES.forEach((sc, i) => {
+  const b = document.createElement('button');
+  b.className = 'scene'; b.type = 'button'; b.id = 'scene-' + i;
+  b.innerHTML = `<span class="st">${String(i + 1).padStart(2, '0')} · ${sc.t.toFixed(2)} s</span><span class="sn">${sc.name}</span><span class="sd">${sc.desc}</span><span class="fill"></span>`;
+  b.addEventListener('click', () => play(sc.t));
+  scenesEl.appendChild(b);
+  if (i) { const tk = document.createElement('i'); tk.style.left = `calc(${(sc.t / DUR) * 100}% + ${7 - 14 * sc.t / DUR}px)`; ticks.appendChild(tk); }
+});
+
+let now = POSTER, playing = false, soundOn = true, ac = null, t0 = 0, perf0 = 0, raf = 0, slow = 0;
+function fitQuality() {
+  const want = clamp(stage.clientWidth * Math.min(2, window.devicePixelRatio || 1) / W, 0.4, 1);
+  const q = Math.round(want * 20) / 20;
+  if (Math.abs(q - Q) > 0.049) { setQuality(q); BG = null; }
+}
+function show(t) {
+  now = t; render(t);
+  scrub.value = t.toFixed(3); scrub.style.setProperty('--p', (t / DUR * 100) + '%');
+  tcNow.textContent = t.toFixed(2);
+  SCENES.forEach((sc, i) => {
+    const el = scenesEl.children[i], on = t >= sc.t && t < sc.end;
+    el.classList.toggle('on', on);
+    el.querySelector('.fill').style.width = (clamp((t - sc.t) / (sc.end - sc.t)) * 100) + '%';
+  });
+}
+// Sound comes from a pre-rendered soundtrack file played through an <audio> element, which the
+// iPhone silent switch does not mute (Web Audio is muted by it). Live synthesis is the fallback.
+const snd = new Audio(); snd.preload = 'auto'; snd.src = SOUND_FILE;
+let fileOK = true, mode = 'none', synthFrom = 0;
+snd.addEventListener('error', () => { fileOK = false; });
+snd.addEventListener('playing', () => { if (mode === 'file' && ac) { ac.close().catch(() => {}); ac = null; } });
+function stopAudio() { mode = 'none'; try { snd.pause(); } catch (err) {} if (ac) { ac.close().catch(() => {}); ac = null; } }
+function noSound() { mode = 'none'; soundLabel.textContent = 'No sound'; }
+function startSynth() {
+  if (!ac) return noSound();
+  try {
+    synthFrom = clamp((performance.now() - perf0) / 1000, 0, DUR);
+    if (ac.resume) ac.resume();
+    t0 = ac.currentTime + 0.15; buildAudio(ac, t0, synthFrom); mode = 'synth';
+  } catch (err) { noSound(); }
+}
+function setPlayingUI(p) {
+  playing = p;
+  playLabel.textContent = p ? 'Pause' : (now >= DUR - 0.01 ? 'Replay' : 'Play');
+  playIcon.firstElementChild.setAttribute('d', p ? ICON_PAUSE : ICON_PLAY);
+  big.hidden = p;
+}
+function play(from = 0) {
+  if (from >= DUR - 0.05) from = 0;
+  stopAudio(); cancelAnimationFrame(raf);
+  perf0 = performance.now() - from * 1000;
+  const startedAt = performance.now();
+  if (soundOn) {
+    soundLabel.textContent = 'Sound on';
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (err) {}
+    // unlock a context inside this tap, in case the file can't play and we fall back to synthesis
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.resume) ac.resume(); } catch (err) { ac = null; }
+    if (fileOK) {
+      mode = 'file';
+      try { snd.currentTime = from; } catch (err) {}
+      const p = snd.play();
+      if (p && p.catch) p.catch(() => { if (mode === 'file') startSynth(); });
+    } else startSynth();
+  }
+  slow = 0;
+  setPlayingUI(true);
+  const tick = () => {
+    let t;
+    if (mode === 'file') {
+      if (snd.ended) t = DUR;
+      else if (!snd.paused && snd.readyState >= 3) { t = snd.currentTime; perf0 = performance.now() - t * 1000; }
+      else if (performance.now() - startedAt < 1500) { t = from; perf0 = performance.now() - from * 1000; }
+      else { startSynth(); t = (performance.now() - perf0) / 1000; }
+    } else if (mode === 'synth' && ac) t = ac.currentTime - t0 + synthFrom - (ac.outputLatency || 0);
+    else t = (performance.now() - perf0) / 1000;
+    const f0 = performance.now();
+    show(clamp(t, 0, DUR));
+    if (performance.now() - f0 > 26 && ++slow > 20 && Q > 0.5) { setQuality(Math.max(0.5, Q - 0.2)); BG = null;  slow = 0; }
+    if (t >= DUR) { setPlayingUI(false); show(6.6); now = DUR; playLabel.textContent = 'Replay'; bigLabel.textContent = 'Replay with sound'; big.hidden = false; stopAudio(); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+GZ.player = { snd, get mode() { return mode; } };
+function pause() { cancelAnimationFrame(raf); stopAudio(); setPlayingUI(false); }
+
+big.addEventListener('click', () => play(now >= DUR - 0.01 || now === POSTER ? 0 : now));
+playBtn.addEventListener('click', () => (playing ? pause() : play(now >= DUR - 0.01 ? 0 : now)));
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn)); soundLabel.textContent = soundOn ? 'Sound on' : 'Sound off';
+  bigLabel.textContent = soundOn ? 'Play with sound' : 'Play';
+  if (playing) play(now);
+});
+scrub.addEventListener('input', () => { if (playing) pause(); show(+scrub.value); });
+window.addEventListener('resize', () => { fitQuality(); if (!playing) show(now); });
+
+ready.then(() => { fitQuality(); show(now); });
+})();
+</script>
