@@ -869,8 +869,9 @@ const BOOT = (() => {
   grid(ws.map(sring), true, i => [0, 156, (ws[i] + ws[i + 1]) / 2], (i, j) => { const wm = (ws[i] + ws[i + 1]) / 2, th = TAU * (j + 0.5) / NR, ga = 0.5 * inv(112, 240, wm); return wm > 112 && Math.abs(Math.cos(th)) > Math.cos(ga) ? 'gusset' : 'leather'; });
   // sole + welt
   const sring2 = u => { const A = half(u), b0 = soleBot(u), b1 = soleTop(u); return [[A - 1.4, u, b1 + 0.6], [A, u, b1 - 0.8], [A, u, b1 - 3.6], [A, u, b0 + 1.4], [A - 1.4, u, b0], [-A + 1.4, u, b0], [-A, u, b0 + 1.4], [-A, u, b1 - 3.6], [-A, u, b1 - 0.8], [-A + 1.4, u, b1 + 0.6]]; };
-  const mats = ['welt', 'welt', 'sole', 'sole', 'tread', 'sole', 'sole', 'welt', 'welt'];
-  grid(us.map(sring2), false, i => { const uc = (us[i] + us[i + 1]) / 2; return [0, uc, (soleBot(uc) + soleTop(uc)) / 2]; }, (i, j) => mats[j]);
+  // closed ring: the last face is the welt's top ledge, which shows in the groove where the upper tucks in
+  const mats = ['welt', 'welt', 'sole', 'sole', 'tread', 'sole', 'sole', 'welt', 'welt', 'welt'];
+  grid(us.map(sring2), true, i => { const uc = (us[i] + us[i + 1]) / 2; return [0, uc, (soleBot(uc) + soleTop(uc)) / 2]; }, (i, j) => mats[j]);
   const stitch = us.filter(u => u > -80 && u < 212).map(u => [half(u) + 0.15, u, soleTop(u) - 2.2]);
   return { grids, stitch };
 })();
