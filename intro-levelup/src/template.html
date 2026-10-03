@@ -1,0 +1,1010 @@
+<title>GZ2H Level Up</title>
+<style>
+/* Layout: the game screen is the page's one object; the transport and four stage-select cards sit under it like a console menu */
+:root {
+  --ink: #13060c;
+  --panel: #2d0c1d;
+  --panel-hi: #43122b;
+  --edge: #000000;
+  --red: #b80016;
+  --crimson: #4b0011;
+  --gold: #ffc21a;
+  --amber: #c46a00;
+  --cream: #f7e6c4;
+  --muted: #c2a596;
+  --px: 4px;
+  --pixel: "GZ2H Pixel", "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  --mono: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--ink); color: var(--cream); }
+body { margin: 0; font-family: var(--mono); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 28px 56px; display: grid; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; }
+h1 { margin: 0; font: 400 30px/1.1 var(--pixel); letter-spacing: 0; color: var(--cream); text-shadow: 3px 3px 0 var(--red); overflow-wrap: anywhere; }
+h1 span { display: inline-block; margin-left: 12px; padding: 3px 8px 2px; font-size: 20px; color: #1a0a00; background: var(--gold); text-shadow: none; vertical-align: 4px; box-shadow: 0 -3px 0 0 var(--edge), 0 3px 0 0 var(--edge), -3px 0 0 0 var(--edge), 3px 0 0 0 var(--edge); }
+.meta { font: 400 20px/1.2 var(--pixel); color: var(--muted); }
+/* chunky pixel frame: four offset shadows leave the corners notched */
+.pxbox { box-shadow: 0 calc(-1 * var(--px)) 0 0 var(--edge), 0 var(--px) 0 0 var(--edge), calc(-1 * var(--px)) 0 0 0 var(--edge), var(--px) 0 0 0 var(--edge); }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden; margin: var(--px); width: calc(100% - 2 * var(--px));
+  box-shadow: 0 -6px 0 0 var(--edge), 0 6px 0 0 var(--edge), -6px 0 0 0 var(--edge), 6px 0 0 0 var(--edge), 0 -12px 0 0 var(--red), 0 12px 0 0 var(--red), -12px 0 0 0 var(--red), 12px 0 0 0 var(--red), -6px -6px 0 0 var(--red), 6px -6px 0 0 var(--red), -6px 6px 0 0 var(--red), 6px 6px 0 0 var(--red); }
+.stage canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+.stage-shell { padding: 12px; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; border: 0; padding: 0; cursor: pointer; color: var(--cream); background: rgba(19, 6, 12, 0.35); }
+.overlay[hidden] { display: none !important; }
+.pill { display: inline-flex; align-items: center; gap: 14px; padding: 14px 22px 12px 18px; background: var(--panel); font: 400 20px/1 var(--pixel); color: var(--cream);
+  box-shadow: 0 -4px 0 0 var(--edge), 0 4px 0 0 var(--edge), -4px 0 0 0 var(--edge), 4px 0 0 0 var(--edge), inset 0 4px 0 0 var(--panel-hi), inset 0 -4px 0 0 var(--crimson); }
+.pill .cur { color: var(--gold); }
+.overlay:hover .pill, .overlay:focus-visible .pill { background: var(--red); }
+.overlay:hover .pill .cur, .overlay:focus-visible .pill .cur { animation: nudge 0.5s steps(2) infinite; }
+.overlay:focus-visible { outline: none; }
+.overlay:focus-visible .pill { outline: 4px solid var(--gold); outline-offset: 6px; }
+@keyframes nudge { 50% { transform: translateX(4px); } }
+.transport { display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap; padding: 4px; }
+.tbtn { position: relative; display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 2px 14px 0 12px; margin: 4px; border: 0; background: var(--panel); color: var(--cream); font: 400 20px/1 var(--pixel); cursor: pointer;
+  box-shadow: 0 -4px 0 0 var(--edge), 0 4px 0 0 var(--edge), -4px 0 0 0 var(--edge), 4px 0 0 0 var(--edge), inset 0 4px 0 0 var(--panel-hi), inset 0 -4px 0 0 var(--crimson); }
+.tbtn:hover { background: var(--panel-hi); }
+.tbtn:active { transform: translateY(2px); }
+.tbtn:focus-visible { outline: 4px solid var(--gold); outline-offset: 6px; }
+.tbtn svg { width: 16px; height: 16px; fill: currentColor; shape-rendering: crispEdges; }
+.tbtn[aria-pressed="false"] { color: var(--muted); }
+.track { position: relative; flex: 1 1 260px; min-width: 0; height: 40px; display: flex; align-items: center; }
+.ticks { position: absolute; inset: 0; pointer-events: none; }
+.ticks i { position: absolute; top: 4px; width: 4px; height: 8px; background: var(--cream); }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 40px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 12px; background: repeating-linear-gradient(to right, transparent 0 10px, var(--edge) 10px 12px), linear-gradient(to right, var(--gold) var(--p, 0%), var(--panel) var(--p, 0%)); box-shadow: 0 -4px 0 0 var(--edge), 0 4px 0 0 var(--edge), -4px 0 0 0 var(--edge), 4px 0 0 0 var(--edge); }
+input[type="range"]::-moz-range-track { height: 12px; background: var(--panel); box-shadow: 0 -4px 0 0 var(--edge), 0 4px 0 0 var(--edge), -4px 0 0 0 var(--edge), 4px 0 0 0 var(--edge); }
+input[type="range"]::-moz-range-progress { height: 12px; background: var(--gold); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 24px; margin-top: -6px; border-radius: 0; background: var(--cream); border: 0; box-shadow: 0 0 0 4px var(--edge); }
+input[type="range"]::-moz-range-thumb { width: 12px; height: 24px; border-radius: 0; background: var(--cream); border: 4px solid var(--edge); }
+input[type="range"]:focus-visible { outline: 4px solid var(--gold); outline-offset: 4px; }
+.tc { font: 400 20px/1 var(--pixel); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tc b { color: var(--cream); font-weight: 400; }
+.scenes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 4px; }
+@media (max-width: 760px) { .scenes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+.scene { position: relative; display: grid; gap: 8px; align-content: start; text-align: left; padding: 14px 14px 20px; margin: 4px; border: 0; background: var(--panel); color: var(--cream); font: inherit; cursor: pointer; overflow: hidden; min-width: 0;
+  box-shadow: 0 -4px 0 0 var(--edge), 0 4px 0 0 var(--edge), -4px 0 0 0 var(--edge), 4px 0 0 0 var(--edge), inset 0 4px 0 0 var(--panel-hi); }
+.scene:hover { background: var(--panel-hi); }
+.scene:focus-visible { outline: 4px solid var(--gold); outline-offset: 6px; }
+.scene .st { font: 400 20px/1 var(--pixel); color: var(--muted); }
+.scene .sn { font: 400 20px/1.2 var(--pixel); color: var(--cream); }
+.scene .sn::before { content: "\25B6"; color: var(--panel-hi); margin-right: 8px; }
+.scene .sd { font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+.scene .fill { position: absolute; left: 0; bottom: 0; height: 8px; width: 0; background: repeating-linear-gradient(to right, var(--gold) 0 8px, var(--amber) 8px 10px); }
+.scene.on { background: var(--crimson); }
+.scene.on .st { color: var(--gold); }
+.scene.on .sn::before, .scene:hover .sn::before, .scene:focus-visible .sn::before { color: var(--gold); }
+body.render { margin: 0; overflow: hidden; background: #000; }
+body.render .wrap > *:not(.stage-shell) { display: none !important; }
+body.render .wrap, body.render .stage-shell { padding: 0; max-width: none; display: block; }
+body.render .stage { width: 1920px; height: 1080px; margin: 0; box-shadow: none; }
+body.render .overlay { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .overlay .pill .cur, .overlay:hover .pill .cur, .overlay:focus-visible .pill .cur { animation: none; } .tbtn:active { transform: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>GuitarZero2Hero <span>LEVEL UP</span></h1>
+    <div class="meta">8 s · 1920×1080 · 60 fps · stereo</div>
+  </header>
+
+  <div class="stage-shell">
+    <div class="stage" id="stage">
+      <canvas id="c" width="1920" height="1080" aria-label="GuitarZero2Hero 8-bit intro: a guitarist levels up from zero to hero"></canvas>
+      <button class="overlay" id="big" type="button" aria-label="Play intro with sound">
+        <span class="pill"><span class="cur" aria-hidden="true">▶</span><span id="bigLabel">Play with sound</span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="transport">
+    <button class="tbtn" id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" id="playIcon"><path d="M3 1h3v2h2v2h2v2h2v2h-2v2H8v2H6v2H3z"/></svg><span id="playLabel">Play</span></button>
+    <button class="tbtn" id="sound" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 5h3l4-4h2v14H8l-4-4H1zM12 4h2v2h-2zM12 10h2v2h-2zM14 6h2v4h-2z"/></svg><span id="soundLabel">Sound on</span></button>
+    <div class="track">
+      <div class="ticks" id="ticks"></div>
+      <input type="range" id="scrub" min="0" max="8" step="0.001" value="3.6" aria-label="Timeline position in seconds">
+    </div>
+    <div class="tc"><b id="tcNow">3.60</b> / 8.00 s</div>
+  </div>
+
+  <nav class="scenes" id="scenes" aria-label="Scenes"></nav>
+</div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+(() => {
+'use strict';
+
+// ───────────────────────── math ─────────────────────────
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const inv = (a, b, x) => clamp((x - a) / (b - a));
+const eOut2 = t => 1 - (1 - t) * (1 - t);
+const eOut3 = t => 1 - (1 - t) ** 3;
+const eIn2 = t => t * t;
+const mulberry = a => () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const hashi = n => { let x = Math.imul((n | 0) ^ 0x9e3779b9, 0x85ebca6b); x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35); x ^= x >>> 16; return (x >>> 0) / 4294967296; };
+const rnd = (i, k = 0) => hashi(i * 7919 + k * 104729 + 17);
+const TAU = Math.PI * 2;
+const gameT = (t, fps = 30) => Math.floor(t * fps + 1e-6) / fps;   // animation sampled at a game-like rate
+
+// ───────────────────────── timeline (seconds) ─────────────────────────
+const DUR = 8.0;
+const BPM = 160, BEAT = 60 / BPM, S16 = BEAT / 4;     // 0.375 s beats, 0.09375 s sixteenths
+const T0 = 1.0;                                      // bar 1, beat 1: the first note
+const n16 = n => T0 + n * S16;
+const T = {
+  coinIn: 0.22, coinSlot: 0.42, credit: 0.44,
+  iris0: 0.62, iris1: 0.98,
+  lv1: n16(12), bar2: n16(16), sweep: n16(20), flick: n16(23) - 0.02, hero: n16(24),
+  crouch: n16(30), jump: n16(30) + 0.035, hit: n16(32),
+  tiles0: n16(32) + 0.05, tiles1: n16(39),
+  shine: n16(39) + 0.03,
+  hands: [n16(40), n16(42), n16(44), n16(46)],
+  title: n16(48), url: 5.98, press: 6.3, fade: 7.72,
+};
+const SCENES = [
+  { t: 0.00, end: T0, name: 'Insert coin', desc: 'A black screen blinks for a credit. The coin drops, the iris opens on the stage.' },
+  { t: T0, end: T.hit, name: 'Zero to hero', desc: 'LV 0 plays his first riff for +1 XP. Level ups stack fast, amps pile up, and LV 99 transforms him into the hero.' },
+  { t: T.hit, end: T.title, name: 'Boss hit', desc: 'One jump strum and the GZ2H logo drops in block by block, then the four hands pop on.' },
+  { t: T.title, end: DUR, name: 'Title screen', desc: 'The pixel wordmark lands with a fanfare. PRESS START blinks over the URL.' },
+];
+// the riff: [sixteenth, note, length in 16ths, XP shown]
+const RIFF = [
+  [0, 'E4', 2, 1], [2, 'E4', 1, 1], [3, 'G4', 1, 1], [4, 'A4', 2, 2], [6, 'G4', 1, 2], [7, 'A4', 1, 3], [8, 'B4', 2, 3], [10, 'D5', 1, 5], [11, 'B4', 1, 8],
+  [16, 'C5', 1, 10], [17, 'E5', 1, 20], [18, 'G5', 1, 50], [19, 'C6', 1, 100], [20, 'D5', 1, 200], [21, 'F#5', 1, 500], [22, 'A5', 1, 1000], [23, 'D6', 1, 2000],
+  [24, 'E5', 2, 9999], [26, 'E5', 1, 9999], [27, 'G#5', 1, 9999], [28, 'A5', 1, 9999], [29, 'G#5', 1, 9999], [30, 'A5', 1, 9999], [31, 'B5', 1, 9999],
+].map(([n, note, len, xp], i) => ({ i, n, t: n16(n), note, len, xp }));
+const LEVELUPS = [12, 18, 20, 22, 24].map(n16);
+const LV_AT = [[0, 0], [n16(12), 1], [n16(18), 3], [n16(20), 8], [n16(22), 21], [n16(24), 99]];
+
+// ───────────────────────── palette & framebuffer ─────────────────────────
+const W = 320, H = 180;
+const [K, I, P, C, R, E, M, WH, Y, O, S, G] = [...Array(12).keys()];
+const PAL32 = new Uint32Array(PALETTE.map(([r, g, b]) => ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0));
+// lighting ramps: what each colour becomes one step brighter / darker
+const LIT = Uint8Array.from([I, P, C, R, E, Y, WH, WH, M, Y, M, S]);
+const DARK = Uint8Array.from([K, K, I, P, C, R, S, M, O, C, O, P]);
+const ID = Uint8Array.from([...Array(12).keys()]);
+const lutPow = (L, n) => { let o = ID.slice(); for (let k = 0; k < n; k++) o = o.map(c => L[c]); return o; };
+const LITN = [0, 1, 2, 3, 4, 5].map(n => lutPow(LIT, n)), DARKN = [...Array(9).keys()].map(n => lutPow(DARK, n));
+const buf = new Uint8Array(W * H);
+const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const bayer = (x, y) => (B4[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+
+function cls(c) { buf.fill(c); }
+function px(x, y, c) { x = Math.round(x); y = Math.round(y); if (x >= 0 && y >= 0 && x < W && y < H) buf[y * W + x] = c; }
+function rect(x, y, w, h, c) {
+  x = Math.round(x); y = Math.round(y);
+  const x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(W, x + w), y1 = Math.min(H, y + h);
+  if (x1 <= x0) return;
+  for (let yy = y0; yy < y1; yy++) buf.fill(c, yy * W + x0, yy * W + x1);
+}
+function lutRect(x, y, w, h, L) {
+  const x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(W, x + w), y1 = Math.min(H, y + h);
+  for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) buf[yy * W + xx] = L[buf[yy * W + xx]];
+}
+function disc(cx, cy, r, c) { cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++) { const dx = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.8)); rect(cx - dx, cy + dy, dx * 2 + 1, 1, c); } }
+function ring(cx, cy, r, c, gap = 0) {
+  cx = Math.round(cx); cy = Math.round(cy); r = Math.round(r); if (r < 1) return;
+  let x = r, y = 0, err = 1 - r;
+  while (x >= y) {
+    for (const [a, b] of [[x, y], [y, x], [-y, x], [-x, y], [-x, -y], [-y, -x], [y, -x], [x, -y]]) if (!gap || ((a + b + 64) % gap)) px(cx + a, cy + b, c);
+    y++; if (err < 0) err += 2 * y + 1; else { x--; err += 2 * (y - x) + 1; }
+  }
+}
+function line(x0, y0, x1, y1, c) {
+  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) { px(x0, y0, c); if (x0 === x1 && y0 === y1) break; const e2 = 2 * err; if (e2 >= dy) { err += dy; x0 += sx; } if (e2 <= dx) { err += dx; y0 += sy; } }
+}
+
+// ───────────────────────── sprites ─────────────────────────
+const SPR = {};
+for (const [name, rows] of Object.entries(SPRITES)) {
+  const h = rows.length, w = Math.max(...rows.map(r => r.length)), d = new Uint8Array(w * h).fill(255);
+  rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const k = PAL_KEYS.indexOf(row[x]); if (k >= 0) d[y * w + x] = k; } });
+  SPR[name] = { w, h, d };
+}
+SPR.head = (() => { const a = SPR.amp, h = 5, d = a.d.slice(0, a.w * h); return { w: a.w, h, d }; })();
+// draw a sprite: o.flip mirrors it, o.col paints every opaque pixel one colour, o.lut recolours, o.clipY hides rows below a screen y
+function spr(s, x, y, o = {}) {
+  if (typeof s === 'string') s = SPR[s];
+  x = Math.round(x); y = Math.round(y);
+  for (let j = 0; j < s.h; j++) {
+    const yy = y + j; if (yy < 0 || yy >= H || (o.clipY !== undefined && yy >= o.clipY)) continue;
+    for (let i = 0; i < s.w; i++) {
+      const v = s.d[j * s.w + (o.flip ? s.w - 1 - i : i)]; if (v === 255) continue;
+      const xx = x + i; if (xx < 0 || xx >= W) continue;
+      buf[yy * W + xx] = o.col !== undefined ? o.col : o.lut ? o.lut[v] : v;
+    }
+  }
+}
+
+// ───────────────────────── bitmap font ─────────────────────────
+const PF = {};
+for (const [ch, rows] of Object.entries(PFONT)) PF[ch] = { w: rows[0].length, rows };
+const glyphOf = ch => PF[ch] || PF['?'];
+function textW(s, sc = 1) { let w = 0; for (const ch of s) w += (glyphOf(ch).w + 1) * sc; return Math.max(0, w - sc); }
+function glyph(g, x, y, sc, c) { for (let r = 0; r < g.rows.length; r++) { const row = g.rows[r]; for (let i = 0; i < g.w; i++) if (row[i] === '#') rect(x + i * sc, y + r * sc, sc, sc, c); } }
+const OL8 = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+// text with its cap top at y. o: sc scale, al 'l'|'c'|'r', bold, ol outline colour, sh shadow colour, dy(i) per-letter offset (null hides), col(i) per-letter colour
+function text(s, x, y, c, o = {}) {
+  const sc = o.sc || 1, bold = o.bold ? 1 : 0, w = textW(s, sc) + bold;
+  if (o.al === 'c') x = Math.round(x - w / 2); else if (o.al === 'r') x = Math.round(x - w);
+  const pass = (ox, oy, colFn) => {
+    let cx = x, i = 0;
+    for (const ch of s) {
+      const g = glyphOf(ch), dy = o.dy ? o.dy(i) : 0;
+      if (dy !== null) { const cc = colFn(i); glyph(g, cx + ox, y + dy + oy, sc, cc); if (bold) glyph(g, cx + ox + 1, y + dy + oy, sc, cc); }
+      cx += (g.w + 1) * sc; i++;
+    }
+  };
+  if (o.sh !== undefined) pass(o.shd || 1, o.shd || 1, () => o.sh);
+  if (o.ol !== undefined) for (const [ox, oy] of OL8) pass(ox, oy, () => o.ol);
+  pass(0, 0, i => (o.col ? o.col(i) : c));
+  return w;
+}
+
+// ───────────────────────── logo & wordmark as pixel art ─────────────────────────
+// masks from the rasterized traced logo (assets/pixels.json): letters get a lit top edge, a shaded bottom edge and a black outline
+const LW = PIX.logo.w, LH = PIX.logo.h;
+function maskOf(names, src, w, h) {
+  const m = new Uint8Array(w * h);
+  for (const n of names) { const p = src[n]; p.rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') m[(p.y + j) * w + p.x + i] = 1; }); }
+  return m;
+}
+function styled(mask, w, h, fill, top, bottom, outline, pad, diag) {
+  const ow = w + pad * 2, oh = h + pad * 2, d = new Uint8Array(ow * oh).fill(255);
+  const at = (x, y) => (x >= 0 && y >= 0 && x < w && y < h ? mask[y * w + x] : 0);
+  for (let y = -pad; y < h + pad; y++) for (let x = -pad; x < w + pad; x++) {
+    let v = 255;
+    if (at(x, y)) v = !at(x, y - 1) ? top : !at(x, y + 1) ? bottom : fill;
+    else if (at(x - 1, y) || at(x + 1, y) || at(x, y - 1) || at(x, y + 1) || (diag && (at(x - 1, y - 1) || at(x + 1, y - 1) || at(x - 1, y + 1) || at(x + 1, y + 1)))) v = outline;
+    d[(y + pad) * ow + x + pad] = v;
+  }
+  return { w: ow, h: oh, d };
+}
+const LETTERS = maskOf(['G', 'Z', 'two', 'H'], PIX.logo.pieces, LW, LH);
+const LOGO_IMG = styled(LETTERS, LW, LH, R, E, C, K, 1, true);
+const HAND_IDS = ['horns', 'thumb', 'wave', 'ok'];
+const HANDS = HAND_IDS.map(id => {
+  const p = PIX.logo.pieces[id], m = maskOf([id], PIX.logo.pieces, LW, LH);
+  const img = styled(m, LW, LH, M, WH, S, K, 1, true);
+  return { id, img, cx: p.x + p.w / 2, cy: p.y + p.h / 2 };
+});
+// the logo falls in as 6×6 blocks, bottom rows first, like a stack building up
+const TS = 6, TILES = [];
+for (let ty = 0; ty * TS < LOGO_IMG.h; ty++) for (let tx = 0; tx * TS < LOGO_IMG.w; tx++) {
+  let ink = 0, any = 0;
+  for (let y = ty * TS; y < Math.min(LOGO_IMG.h, ty * TS + TS); y++) for (let x = tx * TS; x < Math.min(LOGO_IMG.w, tx * TS + TS); x++) { const v = LOGO_IMG.d[y * LOGO_IMG.w + x]; if (v !== 255) { any++; if (v !== K) ink++; } }
+  if (any) TILES.push({ tx, ty, ink });
+}
+const TROWS = Math.ceil(LOGO_IMG.h / TS);
+TILES.forEach((tl, k) => {
+  const fromBottom = TROWS - 1 - tl.ty;
+  tl.land = T.tiles0 + 0.1 + (fromBottom / (TROWS - 1)) * (T.tiles1 - T.tiles0 - 0.12);
+  tl.fall = 0.15;
+});
+const WM_MASK = (() => { const p = PIX.wm, m = new Uint8Array(p.w * p.h); p.rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') m[j * p.w + i] = 1; }); return m; })();
+const WM_IMG = (() => {
+  const w = PIX.wm.w, h = PIX.wm.h, pad = 3, base = styled(WM_MASK, w, h, M, WH, S, K, pad, true);
+  // a two-step red extrusion down-right, behind the outline
+  const out = { w: base.w + 2, h: base.h + 2, d: new Uint8Array((base.w + 2) * (base.h + 2)).fill(255) };
+  for (const [off, col] of [[2, C], [1, R]]) for (let y = 0; y < base.h; y++) for (let x = 0; x < base.w; x++) if (base.d[y * base.w + x] !== 255) out.d[(y + off) * out.w + x + off] = col;
+  for (let y = 0; y < base.h; y++) for (let x = 0; x < base.w; x++) { const v = base.d[y * base.w + x]; if (v !== 255) out.d[y * out.w + x] = v; }
+  out.pad = pad;
+  return out;
+})();
+const WM_LETTERS = PIX.wm.letters;
+
+// ───────────────────────── stage scene ─────────────────────────
+const levelAt = t => { let v = 0; for (const [tt, lv] of LV_AT) if (t >= tt) v = lv; if (t >= n16(22) && t < n16(24)) v = Math.round(lerp(21, 99, Math.floor(inv(n16(22), n16(24), t) * 8) / 8)); return v; };
+const lastLevelUp = t => { let r = -1; for (const tt of LEVELUPS) if (t >= tt) r = tt; return r; };
+const heroForm = t => (t >= T.hero ? true : t >= T.flick ? Math.floor((t - T.flick) * 20) % 2 === 1 : false);
+const PLX = 148, PLY = 105;                 // the player's body sprite (feet on the stage at y 135)
+const LAMPS = [32, 96, 160, 224, 288];
+const lampOn = (k, t) => (k === 2 ? t >= 0 : (k === 1 || k === 3) ? t >= T.lv1 : t >= n16(18));
+const AMPS = [   // stack drops: x, slot, sprite, time
+  { x: 100, slot: 0, s: 'cab', t: n16(18) }, { x: 200, slot: 0, s: 'cab', t: n16(20) },
+  { x: 100, slot: 1, s: 'cab', t: n16(22) }, { x: 200, slot: 1, s: 'cab', t: n16(23) },
+  { x: 100, slot: 2, s: 'head', t: n16(24) }, { x: 200, slot: 2, s: 'head', t: n16(24) + 0.04 },
+];
+const AMP_Y = [111, 97, 92];
+// the crowd: silhouettes in two rows that turn up as the level climbs
+const CROWD = (() => {
+  const out = [], joins = [0, 0, 0, T.lv1, T.lv1, T.lv1, n16(18), n16(18), n16(18), n16(20), n16(20), n16(20), n16(22), n16(22), T.hero, T.hero, T.hero, T.hero, T.hero, T.hero];
+  const order = [5, 12, 16, 2, 9, 14, 0, 7, 19, 4, 11, 17, 1, 8, 3, 6, 10, 13, 15, 18];
+  for (let i = 0; i < 20; i++) {
+    const back = i % 2 === 0, slot = Math.floor(i / 2);
+    const x = back ? 14 + slot * 32 + Math.round((rnd(i, 1) - 0.5) * 8) : 2 + slot * 33 + Math.round((rnd(i, 1) - 0.5) * 10);
+    out.push({ i, back, x, r: back ? 5 : 7, hair: Math.floor(rnd(i, 2) * 5), join: joins[order.indexOf(i)], ph: rnd(i, 5), arms: Math.floor(rnd(i, 6) * 4) });
+  }
+  return out;
+})();
+const SLEEPER = 12, PHONE = 5;
+
+function drawWall(t, heroLit) {
+  for (let y = 13; y < 118; y++) {
+    const row = Math.floor((y - 13) / 5), off = (row & 1) * 6, fade = inv(13, 60, y);
+    for (let x = 0; x < W; x++) {
+      const mortar = (y - 13) % 5 === 4 || (x + off) % 12 === 11;
+      let c = mortar ? K : I;
+      if (!mortar && fade < 1 && bayer(x, y) > fade) c = K;
+      buf[y * W + x] = c;
+    }
+  }
+  // truss
+  rect(0, 14, W, 1, G); rect(0, 19, W, 1, G);
+  for (let x = 0; x < W; x++) { const k = x % 8, yy = 14 + (k < 4 ? k : 8 - k) + 1; if (yy < 19) px(x, yy, G); }
+  // a GZ2H drape on the back wall
+  rect(124, 27, 72, 22, K); rect(125, 27, 70, 21, heroLit ? C : P);
+  for (let x = 125; x < 195; x += 2) px(x, 48, heroLit ? C : P);
+  text('GZ2H', 160, 31, heroLit ? R : C, { sc: 2, al: 'c', bold: true });
+}
+function drawFloor(t) {
+  rect(0, 118, W, 22, P);
+  for (const y of [118, 120, 123, 127, 132, 138]) rect(0, y, W, 1, I);
+  for (let k = -12; k <= 12; k++) line(160 + k * 18, 118, 160 + k * 30, 139, I);
+}
+// a beam: palette-shifts everything under it one step brighter, with dithered soft edges and a pool on the floor
+function beam(lx, fx, hwFloor, strength) {
+  if (strength <= 0) return;
+  const y0 = 25, y1 = 139;
+  for (let y = y0; y <= y1; y++) {
+    const f = (y - y0) / (y1 - y0), cx = lerp(lx, fx, f), hw = lerp(2, hwFloor, f);
+    const xa = Math.max(0, Math.floor(cx - hw - 2)), xb = Math.min(W - 1, Math.ceil(cx + hw + 2));
+    for (let x = xa; x <= xb; x++) {
+      const edge = hw - Math.abs(x + 0.5 - cx);
+      let a = edge > 2 ? 1 : edge > -1 ? (edge + 1) / 3 : 0;
+      a *= strength >= 1 ? 1 : strength;
+      if (a > 0 && a >= bayer(x, y)) buf[y * W + x] = LIT[buf[y * W + x]];
+      if (strength > 1 && y > 117 && edge > hw * 0.35) buf[y * W + x] = LIT[buf[y * W + x]];
+    }
+  }
+}
+function drawBeams(t) {
+  const hero = t >= T.hero, beatI = Math.floor((t - T0) / (BEAT / 2));
+  LAMPS.forEach((lx, k) => {
+    if (!lampOn(k, t)) return;
+    let fx = [70, 120, 161, 202, 252][k], st = 1;
+    if (t < T.lv1) st = k === 2 ? 0.55 + 0.1 * (Math.floor(t * 8) % 2) : 0;
+    if (t >= T.bar2 && !hero) st = 1.0 + (Math.floor((t - T.bar2) / S16) % 2 === 0 && k % 2 === 0 ? 1 : 0);
+    if (hero) {
+      const swing = [[30, 300], [160, 60], [161, 161], [260, 160], [290, 20]][k];
+      fx = swing[beatI % 2]; st = k === 2 ? 2 : (beatI + k) % 2 ? 2 : 1;
+    }
+    beam(lx, fx, k === 2 && t < T.lv1 ? 17 : 22, st);
+  });
+  LAMPS.forEach((lx, k) => { spr('lamp', lx - 3, 20); if (!lampOn(k, t)) { rect(lx - 2, 24, 5, 1, G); } else if (hero && Math.floor((t - T0) / S16) % 2) rect(lx - 2, 24, 5, 1, WH); });
+}
+function dropY(t0, t, yEnd) {   // something dropped from above that lands at t0 with one small bounce
+  if (t < t0) { const d = t0 - t; return yEnd - Math.round(0.5 * 3600 * d * d); }
+  const a = t - t0; return yEnd - (a < 0.035 ? 2 : a < 0.07 ? 1 : 0);
+}
+function drawAmps(t) {
+  spr('tinyAmp', 182, 126);
+  for (const a of AMPS) {
+    if (t < a.t - 0.2) continue;
+    const y = dropY(a.t, gameT(t, 60), AMP_Y[a.slot]);
+    spr(a.s, a.x, y);
+  }
+}
+function drawPlayer(t) {
+  const hero = heroForm(t), g = gameT(t, 30);
+  let x = PLX, y = PLY;
+  const beatPh = ((t - T0) / BEAT) % 1;
+  if (t >= T.hero && t < T.crouch) y += beatPh < 0.5 && beatPh >= 0 ? 1 : 0;
+  if (t >= T.crouch && t < T.jump) y += 2;
+  if (t >= T.jump) { const u = clamp((g - T.jump) / (T.hit - T.jump)); y -= Math.round(22 * (1 - (1 - u) * (1 - u))); }
+  // strum: the hand is down for a few frames after every note
+  let down = false; for (const N of RIFF) if (t >= N.t && t < N.t + 0.055) down = true;
+  if (t >= T.jump) down = true;
+  if (hero) {
+    const fr = Math.floor(g * 10) % 3;
+    if (t >= T.hero) { spr('flame' + fr, x - 7, y + 23); spr('flame' + ((fr + 1) % 3), x + 16, y + 23, { flip: true }); }
+    spr('cape' + fr, x - 7, y + 13);
+    spr('hero', x - 1, y - 1);
+    spr(down ? 'heroGtrB' : 'heroGtrA', x - 1, y + 1);
+  } else {
+    spr('zero', x, y);
+    spr(down ? 'zeroGtrB' : 'zeroGtrA', x, y);
+    if (t > 0.7 && t < T.lv1 + 0.2) { const k = ((t - 0.7) % 0.6) / 0.6; spr('sweat', x + 2, y + 3 + Math.floor(k * 6)); }
+  }
+  return { x, y };
+}
+function drawNotesFx(t, pl) {
+  for (const N of RIFF) {
+    const d = t - N.t; if (d < 0 || d > 0.8) continue;
+    const g = gameT(d, 30), hero = N.n >= 24;
+    // a note flies out of the guitar
+    const dir = N.i % 2 ? 1 : -1, vx = dir * (14 + 26 * rnd(N.i, 7)), vy = -(55 + 40 * rnd(N.i, 8));
+    const nx = pl.x + 8 + vx * g, ny = pl.y + 19 + vy * g + 40 * g * g;
+    if (d < 0.6 || Math.floor(d * 15) % 2 === 0) spr(N.i % 3 === 2 ? 'note2' : 'note', nx, ny, { col: [Y, M, E][N.i % 3] });
+    // sparks from the strum hand
+    if (d < 0.14) {
+      const r = 3 + Math.floor(g * 70), cc = d < 0.04 ? WH : d < 0.09 ? Y : E;
+      for (let k = 0; k < 6; k++) { const a = TAU * (k / 6 + rnd(N.i, 9)); px(pl.x + 6 + Math.cos(a) * r, pl.y + 20 + Math.sin(a) * r * 0.8, cc); }
+    }
+    // +XP rises over the head
+    const shown = N.n < 12 || (N.n < 24 ? N.n % 2 === 0 : N.n % 4 === 0);
+    if (shown && d < 0.4 && (d < 0.3 || Math.floor(d * 20) % 2 === 0)) {
+      const k = N.n < 12 ? N.i : N.n / 2, side = N.n < 12 ? [-12, 4, 20][k % 3] : hero ? [-26, 38][(N.n / 4) % 2] : [-22, 8, 38][k % 3];
+      text('+' + N.xp, pl.x + 8 + side, pl.y - 4 - Math.round(eOut2(Math.min(1, g / 0.3)) * 22), N.xp >= 1000 ? E : Y, { al: 'c', ol: K });
+    }
+  }
+}
+function drawPit(t) {
+  const hero = t >= T.hero, ramp = hero ? [R, C, P, I, K] : t >= T.lv1 ? [C, P, I, K, K] : [P, I, K, K, K];
+  for (let y = 146; y < H; y++) {
+    const pos = (y - 146) / (H - 146) * 3.2, b = Math.min(3, Math.floor(pos)), f = pos - b;
+    for (let x = 0; x < W; x++) buf[y * W + x] = f > bayer(x, y) ? ramp[b + 1] : ramp[b];
+  }
+}
+function drawCrowd(t) {
+  const hero = t >= T.hero, rim = hero ? (Math.floor((t - T0) / (BEAT / 2)) % 2 ? R : E) : t >= T.lv1 ? C : P;
+  const beat = (t - T0) / BEAT;
+  for (const pass of [true, false]) for (const p of CROWD) {
+    if (p.back !== pass || t < p.join) continue;
+    const since = gameT(t - p.join, 30);
+    let hy = p.back ? 149 : 159;
+    hy += p.join > 0 ? Math.max(0, 10 - Math.round(since * 80)) : 0;
+    if (t >= T.lv1 && p.i !== SLEEPER) hy += Math.floor((beat + p.ph * 0.5) % 1 * 2) ? 0 : 1;
+    if (hero) { const ph = (beat * 2 + p.ph) % 1; hy -= Math.round(4 * Math.sin(Math.PI * ph)); }
+    const r = p.r, sw = r + 5;
+    const body = (c, dy) => {
+      disc(p.x, hy + dy, r, c);
+      if (p.hair === 1) disc(p.x - 1, hy - r + dy, 2, c);
+      if (p.hair === 2) rect(p.x - r, hy - 2 + dy, r * 2 + 4, 2, c);
+      if (p.hair === 3) for (let k = -2; k <= 2; k++) rect(p.x + k * 2, hy - r - 2 + dy, 1, 3, c);
+      if (p.hair === 4) rect(p.x - r - 1, hy - 2 + dy, r * 2 + 3, r + 3, c);
+      rect(p.x - sw + 1, hy + r - 1 + dy, sw * 2 - 1, H, c); rect(p.x - sw, hy + r + 1 + dy, sw * 2 + 1, H, c);
+      if (hero && p.arms !== 3 || (t >= n16(18) && p.arms === 0 && !hero)) {
+        const up = hero ? 1 : 0.6;
+        for (const sd of p.arms === 1 && hero ? [-1, 1] : [p.i % 2 ? 1 : -1]) {
+          const ax = p.x + sd * (sw - 2), ay = hy + r + 2 + dy, hx = p.x + sd * (sw + 1), hyy = hy - Math.round((r + 9) * up) + dy;
+          rect(Math.min(ax, hx), hyy + 3, 2, ay - hyy - 2, c); rect(Math.min(ax, hx) + (sd > 0 ? 1 : -1), hyy + 6, 2, ay - hyy - 6, c);
+          spr(p.arms === 2 ? 'fist' : 'horns', hx - 2, hyy - 3, { col: c });
+          if (hero && p.arms === 2 && dy === 0) { px(hx, hyy - 4, Math.floor(t * 12 + p.i) % 2 ? Y : E); px(hx, hyy - 5, Y); }
+        }
+      }
+    };
+    body(rim, -1); body(K, 0);
+    if (p.i === PHONE && !hero) { rect(p.x + 4, hy - 2, 3, 4, M); }
+    if (p.i === SLEEPER) {
+      if (t < T.lv1) for (let k = 0; k < 3; k++) { const ph = ((t * 1.2 + k / 3) % 1); text('z', p.x + 4 + Math.round(ph * 8), hy - 10 - Math.round(ph * 12), ph > 0.75 ? G : M); }
+      else if (t < T.lv1 + 0.45) text('!', p.x, hy - 16 - (t < T.lv1 + 0.05 ? 2 : 0), WH, { al: 'c', ol: K, bold: true });
+    }
+  }
+}
+function drawStageFront(t) {
+  rect(0, 139, W, 1, t >= T.hero ? E : R); rect(0, 140, W, 6, K);
+  const hero = t >= T.hero, k8 = Math.floor((t - T0) / (BEAT / 2));
+  for (let x = 8; x < W; x += 16) { const on = hero ? ((x / 16 + k8) % 2 === 0) : t >= T.lv1; rect(x, 142, 3, 2, on ? Y : O); }
+}
+function drawConfetti(t) {
+  if (t < T.hero) return;
+  for (let k = 0; k < 46; k++) {
+    const t0 = T.hero + rnd(k, 11) * 0.5, d = gameT(t - t0, 30); if (d < 0) continue;
+    const x = Math.round(rnd(k, 12) * W + 6 * Math.sin(d * 7 + k)), y = 12 + Math.round(d * (45 + 40 * rnd(k, 13)) - 6);
+    if (y > 150) continue;
+    const c = [Y, M, E, WH][k % 4], flip = Math.floor(d * 10 + k) % 2;
+    rect(x, y, flip ? 2 : 1, flip ? 1 : 2, c);
+  }
+}
+function drawHUD(t) {
+  rect(0, 0, W, 12, K); rect(0, 12, W, 1, C);
+  const lv = levelAt(t), lu = lastLevelUp(t), flash = lu > 0 && t - lu < 0.12 && Math.floor((t - lu) * 30) % 2 === 0;
+  text('LV', 5, 3, M);
+  text(String(lv).padStart(2, '0'), 18, 3, flash ? WH : Y, { bold: true });
+  const hero = t >= T.hero;
+  text(hero ? 'HERO' : 'ZERO', 36, 3, hero ? (Math.floor(t * 10) % 2 ? Y : WH) : M);
+  text('XP', 68, 3, M);
+  // XP bar: 20 segments
+  const bx = 82; rect(bx, 2, 104, 9, G); rect(bx + 1, 3, 102, 7, K);
+  let fill = 0;
+  if (t < T.lv1) { let cum = 0; for (const N of RIFF) if (N.n < 12 && t >= N.t) cum += N.xp; fill = cum / 26; }
+  else if (t < T.bar2) fill = 0;
+  else if (t < T.hero) { const k = Math.floor((t - T.bar2) / S16); fill = (k % 2) ? 1 : 0.5; }
+  else fill = 1;
+  const segs = Math.round(fill * 20);
+  for (let s = 0; s < segs; s++) {
+    const c = hero ? [Y, WH, E, Y][(s + Math.floor(t * 20)) % 4] : Y;
+    rect(bx + 2 + s * 5, 4, 4, 4, c); rect(bx + 2 + s * 5, 7, 4, 1, hero ? c : O);
+  }
+  if (hero && Math.floor(t * 6) % 2 === 0) text('MAX', bx + 52, 3, K, { al: 'c' });
+  // the note being played
+  let cur = null; for (const N of RIFF) if (t >= N.t && t < N.t + N.len * S16 + 0.15) cur = N;
+  text('NOTE', 268, 3, G, { al: 'r' });
+  if (cur && t < T.hit) text(cur.note, 290, 3, M);
+  else text('--', 290, 3, G);
+}
+function banner(str, t, t0, sc = 2, bump = 0) {
+  const d = t - t0; if (d < 0) return;
+  const g = gameT(d, 60), cyc = Math.floor(t * 30) % 3;
+  text(str, 160, 56 - bump, Y, {
+    sc, al: 'c', bold: true, ol: K,
+    dy: i => { const di = g - i * 0.012; if (di < 0) return null; return di < 0.04 ? -Math.round((0.04 - di) * 300) : di < 0.08 ? -Math.round(Math.sin((di - 0.04) / 0.04 * Math.PI) * 3) : 0; },
+    col: i => [Y, WH, E][(cyc + i) % 3],
+  });
+}
+function drawBanners(t) {
+  if (t >= T.lv1 && t < T.bar2) { if (t < T.bar2 - 0.08 || Math.floor(t * 30) % 2) banner('LEVEL UP!', t, T.lv1); }
+  else if (t >= n16(18) && t < T.hero) { const lu = lastLevelUp(t); banner('LEVEL UP!', t, n16(18), 2, t - lu < 0.05 ? 2 : 0); }
+  else if (t >= T.hero && t < T.crouch) {
+    banner('LV 99 · HERO', t, T.hero);
+  }
+}
+function stageScene(t) {
+  const hero = t >= T.hero;
+  cls(K);
+  drawWall(t, hero);
+  drawFloor(t);
+  drawBeams(t);
+  drawAmps(t);
+  // a shockwave when the hero form kicks in
+  if (t >= T.hero && t < T.hero + 0.3) { const d = gameT(t - T.hero, 30); ring(PLX + 9, PLY + 16, 6 + d * 160, WH, 0); ring(PLX + 9, PLY + 16, 2 + d * 110, Y, 3); }
+  const pl = drawPlayer(t);
+  drawNotesFx(t, pl);
+  drawStageFront(t);
+  drawPit(t);
+  drawCrowd(t);
+  drawConfetti(t);
+  drawHUD(t);
+  drawBanners(t);
+  return pl;
+}
+
+// ───────────────────────── coin scene ─────────────────────────
+function coinScene(t) {
+  cls(K);
+  // the coin door
+  const dx = 148, dy = 90, sx = 152, sy = 96;
+  rect(dx, dy, 24, 34, K); rect(dx + 1, dy + 1, 22, 32, G); rect(dx + 1, dy + 1, 22, 1, M); rect(dx + 1, dy + 1, 1, 32, M); rect(dx + 1, dy + 32, 22, 1, P); rect(dx + 22, dy + 1, 1, 32, P);
+  for (const [qx, qy] of [[3, 3], [19, 3], [3, 29], [19, 29]]) { rect(dx + qx, dy + qy, 2, 2, I); px(dx + qx, dy + qy, M); }
+  const lit = t >= T.coinSlot && t < T.coinSlot + 0.12, pulse = Math.floor(t * 4) % 2;
+  rect(dx + 7, dy + 5, 10, 17, K); rect(dx + 8, dy + 6, 8, 15, lit ? WH : pulse ? R : E); rect(dx + 9, dy + 7, 6, 13, lit ? Y : C); rect(dx + 11, dy + 8, 2, 11, K);
+  rect(dx + 7, dy + 24, 10, 6, K); rect(dx + 8, dy + 25, 8, 4, C); rect(dx + 8, dy + 25, 8, 1, R); rect(dx + 11, dy + 26, 2, 2, K);
+  // the coin drops into the slot, spinning
+  if (t >= T.coinIn && t < T.coinSlot) {
+    const g = gameT(t, 60), u = (g - T.coinIn) / (T.coinSlot - T.coinIn);
+    const y = Math.round(lerp(-10, sy + 2, eIn2(u)));
+    const fr = ['coin0', 'coin1', 'coin2', 'coin1'][Math.floor(g * 15) % 4];
+    spr(u > 0.85 ? 'coin2' : fr, sx + 4, y, { clipY: sy + 3 });
+    if (u < 0.6 && Math.floor(g * 20) % 3 === 0) spr('star2', sx + 9, y - 1, { col: WH });
+  }
+  if (t < T.credit) { if (Math.floor(t / 0.16) % 2 === 0) text('INSERT COIN', 160, 56, M, { sc: 2, al: 'c', bold: true, sh: R }); }
+  else if (Math.floor((t - T.credit) * 15) % 2 === 0) text('PLAYER 1', 160, 56, Y, { sc: 2, al: 'c', bold: true, sh: R });
+  text('CREDIT ' + (t >= T.coinSlot ? '1' : '0'), 160, 160, t >= T.coinSlot && t < T.coinSlot + 0.2 ? WH : G, { al: 'c' });
+  text('GZ2H', 160, 8, C, { al: 'c' });
+}
+
+// ───────────────────────── logo & title ─────────────────────────
+const LOGO_X = Math.round((W - LOGO_IMG.w) / 2), LOGO_Y0 = 46, LOGO_Y1 = 6;
+const WM_X = Math.round((W - PIX.wm.w) / 2) - WM_IMG.pad, WM_Y = 98 - WM_IMG.pad;
+function logoY(t) { if (t < T.title) return LOGO_Y0; const u = eOut3(inv(T.title, T.title + 0.2, gameT(t, 60))); return Math.round(lerp(LOGO_Y0, LOGO_Y1, u)); }
+function playfield(t) {
+  cls(I);
+  for (let y = 4; y < H; y += 8) for (let x = 4; x < W; x += 8) px(x, y, P);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const e = Math.min(x, W - 1 - x, y * 1.6, (H - 1 - y) * 1.6); if (e < 24 && bayer(x, y) * 24 > e) buf[y * W + x] = K; }
+}
+function drawTile(tl, x, y, lut) {
+  for (let j = 0; j < TS; j++) for (let i = 0; i < TS; i++) {
+    const lx = tl.tx * TS + i, ly = tl.ty * TS + j; if (lx >= LOGO_IMG.w || ly >= LOGO_IMG.h) continue;
+    const v = LOGO_IMG.d[ly * LOGO_IMG.w + lx]; if (v === 255) continue;
+    px(x + i, y + j, lut ? lut[v] : v);
+  }
+}
+function bevel(x, y) { rect(x, y, TS, TS, R); rect(x, y, TS, 1, E); rect(x, y, 1, TS, E); rect(x, y + TS - 1, TS, 1, C); rect(x + TS - 1, y, 1, TS, C); px(x + 1, y + 1, M); }
+function drawLogo(t, ly) {
+  const allIn = t >= T.tiles1 + 0.08;
+  // shadow
+  if (allIn) for (let y = 0; y < LOGO_IMG.h; y++) for (let x = 0; x < LOGO_IMG.w; x++) if (LOGO_IMG.d[y * LOGO_IMG.w + x] !== 255) { const xx = LOGO_X + x + 2, yy = ly + y + 2; if (xx < W && yy < H && yy >= 0) buf[yy * W + xx] = DARK[buf[yy * W + xx]]; }
+  const g = gameT(t, 60);
+  for (const tl of TILES) {
+    const X = LOGO_X + tl.tx * TS, Y = ly + tl.ty * TS;
+    if (g < tl.land - tl.fall) continue;
+    if (g < tl.land) {
+      const d = tl.land - g, yy = Y - Math.round(0.5 * ((Y + 30) * 2 / (tl.fall * tl.fall)) * d * d);
+      if (tl.ink >= 8) bevel(X, yy); else drawTile(tl, X, yy, LITN[1]);
+      continue;
+    }
+    const a = g - tl.land;
+    drawTile(tl, X, Y - (a < 0.034 ? 1 : 0), a < 0.034 ? LITN[3] : a < 0.07 ? LITN[1] : null);
+  }
+  // the finished logo catches a glint
+  if (t >= T.shine && t < T.shine + 0.3) {
+    const s = Math.floor(lerp(-20, LOGO_IMG.w + 40, (g - T.shine) / 0.3));
+    for (let y = 0; y < LOGO_IMG.h; y++) for (let x = 0; x < LOGO_IMG.w; x++) {
+      const v = LOGO_IMG.d[y * LOGO_IMG.w + x]; if (v === 255 || v === K) continue;
+      const dd = x + y * 0.5 - s; if (dd > -6 && dd < 6) px(LOGO_X + x, ly + y, Math.abs(dd) < 2 ? WH : LIT[v]);
+    }
+  }
+  // the four hands pop on
+  HANDS.forEach((hd, k) => {
+    const th = T.hands[k]; if (t < th) return;
+    const a = gameT(t - th, 60), off = a < 0.017 ? -5 : a < 0.05 ? -3 : a < 0.084 ? 1 : 0;
+    spr(hd.img, LOGO_X, ly + off, a < 0.034 ? { col: WH } : {});
+    if (a < 0.3) for (let q = 0; q < 6; q++) {
+      const ang = TAU * (q / 6 + k * 0.08), r = 6 + a * 70, sx = LOGO_X + 1 + hd.cx + Math.cos(ang) * r, sy = ly + 1 + hd.cy + Math.sin(ang) * r * 0.85;
+      if (a < 0.2 || Math.floor(a * 30) % 2) spr(a < 0.12 ? 'star' : 'star2', sx - (a < 0.12 ? 2 : 1), sy - (a < 0.12 ? 2 : 1), { col: q % 2 ? Y : WH });
+    }
+  });
+}
+function drawWordmark(t) {
+  const g = gameT(t, 60);
+  const n = WM_LETTERS.length, edges = WM_LETTERS.map((l, i) => (i ? Math.round((WM_LETTERS[i - 1].x2 + l.x1) / 2) : -99));
+  for (let x = 0; x < WM_IMG.w; x++) {
+    const lx = x - WM_IMG.pad; let k = 0; while (k + 1 < n && lx >= edges[k + 1]) k++;
+    const t0 = T.title + 0.12 + k * 0.02, d = g - t0; if (d < 0) continue;
+    const off = d < 0.034 ? -4 : d < 0.067 ? -2 : d < 0.1 ? -1 : 0;
+    const flash = d < 0.05;
+    for (let y = 0; y < WM_IMG.h; y++) { const v = WM_IMG.d[y * WM_IMG.w + x]; if (v !== 255) px(WM_X + x, WM_Y + y + off, flash && v !== K ? WH : v); }
+  }
+}
+const TWINKLES = [[40, 30], [282, 22], [22, 84], [298, 92], [70, 140], [252, 136], [160, 128], [118, 4]];
+function titleExtras(t) {
+  // twinkles
+  if (t > T.title + 0.4) TWINKLES.forEach(([x, y], k) => { const ph = ((t - T.title) * 1.3 + k * 0.37) % 1; if (ph < 0.3) { const f = Math.floor(ph / 0.1); spr(f === 1 ? 'star' : 'star2', x - (f === 1 ? 2 : 1), y - (f === 1 ? 2 : 1), { col: f === 1 ? WH : [Y, M][k % 2] }); } });
+  // URL types itself in
+  if (t >= T.url) {
+    const url = 'guitarzero2hero.com', nch = Math.min(url.length, Math.floor((t - T.url) * 45));
+    const w = textW(url), x0 = Math.round(160 - w / 2);
+    text(url.slice(0, nch), x0, 159, M, { sh: C });
+    if (nch < url.length || Math.floor(t * 3) % 2 === 0) rect(x0 + textW(url.slice(0, nch)) + 2, 159, 4, 7, R);
+  }
+  if (t >= T.press && Math.floor((t - T.press) / 0.3) % 2 === 0) {
+    text('PRESS START', 166, 136, Y, { al: 'c', sh: C, bold: true });
+    spr('pick', 120 - (Math.floor(t * 4) % 2), 136);
+  }
+}
+
+// ───────────────────────── frame ─────────────────────────
+const lowC = document.createElement('canvas'); lowC.width = W; lowC.height = H;
+const low = lowC.getContext('2d');
+const IMG = low.createImageData(W, H), U32 = new Uint32Array(IMG.data.buffer);
+const out = document.getElementById('c'), octx = out.getContext('2d');
+let Q = 1, CW = 1920, CH = 1080;
+function setQuality(q) { Q = q; const k = clamp(Math.round(6 * q), 1, 6); CW = W * k; CH = H * k; out.width = CW; out.height = CH; }
+function present(L, sx, sy) {
+  for (let y = 0; y < H; y++) {
+    const ys = y - sy;
+    for (let x = 0; x < W; x++) {
+      const xs = x - sx;
+      const c = xs >= 0 && ys >= 0 && xs < W && ys < H ? buf[ys * W + xs] : K;
+      U32[y * W + x] = PAL32[L ? L[c] : c];
+    }
+  }
+  low.putImageData(IMG, 0, 0);
+  octx.imageSmoothingEnabled = false;
+  octx.drawImage(lowC, 0, 0, CW, CH);
+}
+function render(t) {
+  t = clamp(t, 0, DUR);
+  let L = null, sx = 0, sy = 0;
+  if (t < T.iris0) coinScene(t);
+  else if (t < T.hit) {
+    stageScene(t);
+    if (t < T.iris1) {   // iris opens on the player, radius stepped like an old console
+      const r = Math.floor(eIn2(inv(T.iris0, T.iris1, t)) * 200 / 4) * 4, cx = PLX + 9, cy = PLY + 14;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const dx = x - cx, dy = (y - cy); if (dx * dx + dy * dy > r * r) buf[y * W + x] = K; }
+    }
+    // palette flashes on every level up, a big one for the hero
+    for (const lu of LEVELUPS) { const d = t - lu; if (d >= 0 && d < 0.05) L = LITN[lu === T.hero ? 4 : 1]; else if (lu === T.hero && d >= 0.05 && d < 0.12) L = LITN[2]; }
+    if (t >= T.flick && t < T.hero && Math.floor(t * 30) % 3 === 0) L = LITN[1];
+  } else {
+    playfield(t);
+    const ly = logoY(t);
+    drawLogo(t, ly);
+    if (t >= T.hit && t < T.hit + 0.36) { const d = gameT(t - T.hit, 30); ring(160, 92, 4 + d * 300, WH, 0); if (d < 0.27) ring(160, 92, d * 220, Y, 4); if (d < 0.2) ring(160, 92, d * 150, E, 3); }
+    if (t >= T.title) { drawWordmark(t); titleExtras(t); }
+    const d = t - T.hit;
+    if (d < 0.034) L = LITN[5]; else if (d < 0.067) L = LITN[3]; else if (d < 0.1) L = LITN[1];
+    if (d < 0.25) { const f = Math.floor(t * 60), a = Math.round(4 * (1 - d / 0.25)); sx = Math.round((rnd(f, 21) - 0.5) * 2 * a); sy = Math.round((rnd(f, 22) - 0.5) * 2 * a); }
+    const tl = t - T.title; if (tl >= 0 && tl < 0.034) L = LITN[2]; else if (tl >= 0.034 && tl < 0.067) L = LITN[1];
+    for (const th of T.hands) { const dh = t - th; if (dh >= 0 && dh < 0.034) L = LITN[1]; }
+  }
+  if (t > T.fade) L = DARKN[Math.min(8, Math.floor((t - T.fade) / (DUR - T.fade) * 9))];
+  present(L, sx, sy);
+}
+// ───────────────────────── audio: a 2A03-style chip ─────────────────────────
+// Two pulse channels (12.5 / 25 / 50 % duty as PeriodicWaves), the 4-bit stepped triangle for bass and kicks,
+// and the 15-bit LFSR noise channel for drums. Volumes are 4-bit and step at the 60 Hz frame rate, like the real chip.
+const SEMI = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
+const hz = n => { const m = n.match(/^([A-G]#?)(\d)$/); return 440 * 2 ** ((12 * (+m[2] + 1) + SEMI[m[1]] - 69) / 12); };
+function buildAudio(ac, t0, from = 0) {
+  const sr = ac.sampleRate, FR = 1 / 60;
+  const at = x => t0 + x - from;
+  const live = x => x >= from - 0.001;
+  const G_ = v => { const g = ac.createGain(); g.gain.value = v; return g; };
+  const bq = (type, f, q = 0.707) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; };
+  const master = G_(1), comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 2.5; comp.attack.value = 0.003; comp.release.value = 0.12;
+  master.connect(bq('highpass', 40)).connect(bq('lowpass', 14000)).connect(comp).connect(ac.destination);
+  if (from < T.fade) { master.gain.setValueAtTime(1, at(T.fade)); master.gain.linearRampToValueAtTime(0.0001, at(DUR)); }
+  // a dotted-eighth echo, the one modern touch on the chip
+  const dl = ac.createDelay(1); dl.delayTime.value = S16 * 3;
+  const fb = G_(0.28), dlf = bq('lowpass', 2800); dl.connect(dlf); dlf.connect(fb); fb.connect(dl); dlf.connect(G_(0.22)).connect(master);
+  const bus = (gain, pan, echo) => { const g = G_(gain), p = ac.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(master); if (echo) g.connect(G_(echo)).connect(dl); return g; };
+  const P1 = bus(0.24, -0.22, 0.55), P2 = bus(0.18, 0.26, 0.5), FX = bus(0.14, 0.08, 0.35), TRI = bus(0.2, 0, 0), KCK = bus(0.2, 0, 0), NOI = bus(0.22, 0, 0.04);
+  // waveforms, un-normalized so every duty has the same peak-to-peak swing, as on the chip
+  const pulse = d => { const n = 160, re = new Float32Array(n + 1), im = new Float32Array(n + 1); for (let k = 1; k <= n; k++) re[k] = 2 * 2 / (k * Math.PI) * Math.sin(k * Math.PI * d); return ac.createPeriodicWave(re, im, { disableNormalization: true }); };
+  const D12 = pulse(0.125), D25 = pulse(0.25), D50 = pulse(0.5);
+  const TRIW = (() => {   // the 2A03 triangle: 32 steps of a 4-bit ramp up and down
+    const N = 2048, n = 96, re = new Float32Array(n + 1), im = new Float32Array(n + 1), v = new Float32Array(N);
+    for (let j = 0; j < N; j++) { const s = Math.floor(j * 32 / N); v[j] = (s < 16 ? 15 - s : s - 16) / 7.5 - 1; }
+    for (let k = 1; k <= n; k++) { let a = 0, b = 0; for (let j = 0; j < N; j++) { a += v[j] * Math.cos(TAU * k * j / N); b += v[j] * Math.sin(TAU * k * j / N); } re[k] = 2 * a / N; im[k] = 2 * b / N; }
+    return ac.createPeriodicWave(re, im, { disableNormalization: true });
+  })();
+  // stepped 4-bit envelope: start at v, lose one step every `decay` frames down to `sus`; cresc ramps v → v1 instead
+  function env(g, t, dur, o) {
+    const v0 = o.v ?? 12, dec = o.decay || 0, sus = o.sus ?? (dec ? 0 : v0);
+    const nF = Math.max(1, Math.floor((dur - 0.003) / FR) + 1);
+    let prev = 0; g.gain.setValueAtTime(0, at(t));
+    for (let k = 0; k < nF; k++) {
+      let lv = o.v1 !== undefined ? Math.round(lerp(v0, o.v1, k / Math.max(1, nF - 1))) : dec ? Math.max(sus, v0 - Math.floor(k / dec)) : v0;
+      if (k === 0 || lv !== prev) { const tk = t + k * FR; g.gain.setValueAtTime(prev / 15, at(tk)); g.gain.linearRampToValueAtTime(lv / 15, at(tk + (k ? 0.003 : 0.002))); prev = lv; }
+      if (lv === 0 && k > 0) break;
+    }
+    g.gain.setValueAtTime(prev / 15, at(t + dur)); g.gain.linearRampToValueAtTime(0, at(t + dur + 0.007));
+  }
+  // one note on a pulse or triangle channel. o.arp: semitone cycle per frame; o.sweep: semitones per frame; o.vib: cents
+  function note(busN, wave, f, t, dur, o = {}) {
+    if (!live(t) || dur <= 0) return;
+    const osc = ac.createOscillator(), g = G_(0); osc.setPeriodicWave(wave); osc.connect(g); g.connect(busN);
+    const nF = Math.max(1, Math.floor((dur - 0.003) / FR) + 1);
+    if (o.arp) for (let k = 0; k < nF; k++) osc.frequency.setValueAtTime(f * 2 ** (o.arp[k % o.arp.length] / 12), at(t + k * FR));
+    else if (o.sweep) for (let k = 0; k < nF; k++) osc.frequency.setValueAtTime(f * 2 ** (o.sweep * k / 12), at(t + k * FR));
+    else { osc.frequency.setValueAtTime(f, at(t)); if (o.vib) for (let k = o.vibAt ?? 10; k < nF; k++) osc.frequency.setValueAtTime(f * 2 ** (o.vib * Math.sin(TAU * (k - (o.vibAt ?? 10)) / 8) / 1200), at(t + k * FR)); }
+    env(g, t, dur, o);
+    osc.start(at(t)); osc.stop(at(t + dur + 0.025));
+  }
+  // the noise channel: 15-bit LFSR clocked at the chip's noise rates (long mode hiss, short mode metallic)
+  const lfsr = (clock, short, secs = 1.5) => {
+    const n = Math.floor(sr * secs), b = ac.createBuffer(1, n, sr), d = b.getChannelData(0), st = clock / sr;
+    let reg = 1, acc = 0;
+    for (let i = 0; i < n; i++) { acc += st; while (acc >= 1) { acc -= 1; const f = (reg ^ (reg >> (short ? 6 : 1))) & 1; reg = (reg >> 1) | (f << 14); } d[i] = reg & 1 ? -1 : 1; }
+    return b;
+  };
+  const NZ = { hi: lfsr(447443, false), bright: lfsr(111861, false), mid: lfsr(27965, false), low: lfsr(8860, false), metal: lfsr(55930, true) };
+  let nseed = 1;
+  function noise(t, dur, o = {}) {
+    if (!live(t)) return;
+    const s = ac.createBufferSource(), g = G_(0); s.buffer = o.buf || NZ.mid; s.loop = true;
+    let node = s; if (o.lp) { const f = bq('lowpass', o.lp); s.connect(f); node = f; }
+    node.connect(g); g.connect(o.bus || NOI);
+    env(g, t, dur, o);
+    s.start(at(t), (nseed++ * 0.137) % 1.2); s.stop(at(t + dur + 0.02));
+  }
+  // drums
+  const hat = (t, v = 4) => noise(t, 0.05, { buf: NZ.hi, v, decay: 1 });
+  const clack = (t, v = 4) => noise(t, 0.04, { buf: NZ.metal, v, decay: 1 });
+  const snare = (t, v = 12) => { noise(t, 0.2, { buf: NZ.bright, v, decay: 1 }); note(TRI, TRIW, 200, t, 0.05, { v: 15, sweep: -1.2 }); };
+  const kick = (t, v = 15) => { note(KCK, TRIW, 160, t, 0.1, { v, sweep: -2.6 }); noise(t, 0.03, { buf: NZ.low, v: 7, decay: 1 }); };
+  const crash = (t, v = 11, dur = 1.0) => noise(t, dur, { buf: NZ.bright, v, decay: Math.max(1, Math.round(dur * 60 / v)) });
+  const tri = (n, t, dur) => note(TRI, TRIW, hz(n), t, dur);
+  const S = S16;
+
+  // ── score ──
+  // coin in: the two-note coin chime, B5 then E6
+  note(FX, D50, hz('B5'), T.coinSlot, 0.07, { v: 11 });
+  note(FX, D50, hz('E6'), T.coinSlot + 0.07, 0.5, { v: 11, decay: 3 });
+  // pickup while the iris opens: B, D, D# up to the E
+  [[-4, 'B3', 2], [-2, 'D4', 1], [-1, 'D#4', 1]].forEach(([n, nt, l]) => {
+    note(P1, D25, hz(nt), n16(n), l * S * 0.9, { v: 10, decay: 4, sus: 6 });
+    note(P2, D12, hz(nt) * 2, n16(n), l * S * 0.9, { v: 6, decay: 3, sus: 3 });
+  });
+  tri('B1', n16(-4), S * 1.6); snare(n16(-2), 7); snare(n16(-1), 10);
+
+  // bar 1: LV 0 plays the riff on a thin 12.5 % pulse, each note collects an XP blip
+  const blips = ['B5', 'C#6', 'D#6', 'E6', 'F#6', 'G#6', 'A6', 'B6', 'C#7'];
+  RIFF.filter(N => N.n < 12).forEach((N, k) => {
+    note(P1, D12, hz(N.note), N.t, N.len * S * 0.85, { v: 13, decay: 5, sus: 8 });
+    note(P2, D12, hz(blips[k]), N.t + 0.012, 0.04, { v: 5 });
+  });
+  for (let n = 0; n < 12; n += 2) tri('E2', n16(n), S * 1.25);
+  for (let n = 0; n < 12; n += 2) hat(n16(n), 3);
+  kick(n16(0), 13); snare(n16(4), 8); kick(n16(8), 13);
+  // level up jingle
+  ['E5', 'G#5', 'B5', 'E6'].forEach((nt, k) => note(P2, D50, hz(nt), n16(12) + k * S / 2, S / 2, { v: 11 }));
+  note(P2, D50, hz('E6'), n16(14), S * 2, { v: 11, decay: 3, sus: 5, vib: 18, vibAt: 3 });
+  ['B4', 'E5', 'G#5', 'B5'].forEach((nt, k) => note(P1, D25, hz(nt), n16(12) + k * S / 2, S / 2, { v: 9 }));
+  note(P1, D25, hz('B5'), n16(14), S * 2, { v: 9, decay: 3, sus: 4 });
+  tri('E2', n16(12), S * 1.6); tri('B2', n16(14), S * 1.6);
+  snare(n16(12), 10); crash(n16(12), 6, 0.5); hat(n16(14), 3);
+
+  // bar 2: the shred, C then D arpeggios on a 25 % pulse; level ups ding; a power-up sweep climbs into the transform
+  RIFF.filter(N => N.n >= 16 && N.n < 24).forEach(N => note(P1, D25, hz(N.note), N.t, S * 0.92, { v: 11, decay: 4, sus: 7 }));
+  [[18, ['C6', 'E6', 'G6']], [20, ['D6', 'F#6', 'A6']], [22, ['F#6', 'A6', 'D7']]].forEach(([n, ch]) => ch.forEach((nt, k) => note(P2, D12, hz(nt), n16(n) + k * S / 3, S / 3, { v: 7 })));
+  note(FX, D12, 196, n16(20), S * 4 - 0.01, { v: 4, v1: 11, sweep: 1.55 });
+  [['C2', 'C3'], ['C2', 'C3'], ['D2', 'D3'], ['D2', 'D3']].forEach(([a, b], k) => { tri(a, n16(16 + k * 2), S * 0.8); tri(b, n16(17 + k * 2), S * 0.8); });
+  for (let n = 16; n < 24; n++) hat(n16(n), n % 2 ? 2 : 4);
+  kick(n16(16)); snare(n16(18), 11); kick(n16(20)); snare(n16(22), 11); snare(n16(23), 13);
+
+  // bar 2, beats 3–4: HERO. The same riff, now major, on a full 50 % pulse with the second pulse an octave down
+  noise(T.hero, 0.5, { buf: NZ.hi, v: 13, decay: 2 });
+  note(FX, D50, hz('E6'), T.hero, 0.32, { v: 10, decay: 2, arp: [0, 4, 7, 12] });
+  RIFF.filter(N => N.n >= 24).forEach(N => {
+    note(P1, D50, hz(N.note), N.t, N.len * S * 0.92, { v: 13, decay: 5, sus: 9, vib: N.len > 1 ? 20 : 0, vibAt: 6 });
+    note(P2, D25, hz(N.note) / 2, N.t, N.len * S * 0.92, { v: 9, decay: 5, sus: 6 });
+  });
+  for (let n = 24; n < 32; n++) tri(n % 2 ? 'E3' : 'E2', n16(n), S * 0.8);
+  for (let n = 24; n < 32; n++) hat(n16(n), n % 2 ? 3 : 5);
+  kick(n16(24)); snare(n16(26), 12); kick(n16(28)); kick(n16(29), 11); snare(n16(30), 12); snare(n16(31), 9);
+  crash(T.hero, 10, 1.0);
+  noise(T.hero + 0.02, n16(32) - T.hero + 0.5, { buf: NZ.mid, v: 2, v1: 6, lp: 2400 });   // the crowd roars
+  noise(n16(32) + 0.5, 0.6, { buf: NZ.mid, v: 6, decay: 6, lp: 2400 });
+
+  // the boss hit: a big E chord, the triangle drops an octave, then a run while the logo blocks stack up
+  note(P1, D50, hz('E6'), T.hit, 0.9, { v: 14, decay: 5, vib: 22, vibAt: 8 });
+  note(FX, D25, hz('E5'), T.hit, 0.62, { v: 11, decay: 4, arp: [0, 4, 7] });
+  note(KCK, TRIW, hz('E2'), T.hit, 0.36, { sweep: -0.55 });
+  kick(T.hit); crash(T.hit, 13, 1.3); snare(T.hit, 9);
+  ['B4', 'E5', 'G#5', 'B5', 'E6', 'D6', 'B5'].forEach((nt, k) => note(P2, D25, hz(nt), n16(33 + k), S * 0.8, { v: 8, decay: 2, sus: 4 }));
+  for (const n of [34, 36, 38]) tri('E2', n16(n), S * 1.2);
+  for (let n = 33; n < 40; n++) { clack(n16(n), 3 + (n % 2)); }
+  note(FX, D12, hz('E7'), T.shine, 0.12, { v: 6, decay: 1 });
+
+  // four hands, four stabs: C, C, D, D (bVI and bVII) leading home to E
+  const stab = (t, top, mid, low, bass, len, v = 12) => {
+    note(P1, D50, hz(top), t, len, { v, decay: 3, sus: 6 }); note(P2, D25, hz(mid), t, len, { v: v - 2, decay: 3, sus: 5 });
+    note(FX, D12, hz(low), t, len, { v: v - 4, decay: 3, sus: 4 }); tri(bass, t, len);
+  };
+  const pop = t => note(FX, D50, 330, t + 0.005, 0.07, { v: 8, sweep: 4 });
+  stab(T.hands[0], 'C6', 'G5', 'E5', 'C3', S * 1.6); pop(T.hands[0]); kick(T.hands[0]); snare(T.hands[0], 9);
+  stab(T.hands[1], 'C6', 'G5', 'E5', 'C3', S * 1.6); pop(T.hands[1]); snare(T.hands[1], 10);
+  stab(T.hands[2], 'D6', 'A5', 'F#5', 'D3', S * 1.6); pop(T.hands[2]); kick(T.hands[2]); snare(T.hands[2], 10);
+  stab(T.hands[3], 'D6', 'A5', 'F#5', 'D3', S * 0.85); pop(T.hands[3]); snare(T.hands[3], 11);
+  stab(n16(47), 'D6', 'A5', 'F#5', 'D3', S * 0.85, 13); snare(n16(47), 13);
+  for (let n = 40; n < 48; n++) hat(n16(n), 3);
+
+  // title fanfare in E
+  [[48, 'E5', 'B4', 1], [49, 'G#5', 'E5', 1], [50, 'B5', 'G#5', 2]].forEach(([n, a, b, l]) => { note(P1, D50, hz(a), n16(n), l * S * 0.9, { v: 13, decay: 6, sus: 9 }); note(P2, D25, hz(b), n16(n), l * S * 0.9, { v: 10, decay: 6, sus: 7 }); });
+  note(P1, D50, hz('E6'), n16(52), 1.25, { v: 13, decay: 6, sus: 0, vib: 24, vibAt: 9 });
+  note(P2, D25, hz('B5'), n16(52), 1.15, { v: 10, decay: 7, sus: 0, vib: 16, vibAt: 12 });
+  note(FX, D12, hz('E5'), n16(52), 1.9, { v: 7, decay: 15, arp: [0, 4, 7, 12] });
+  tri('E2', n16(48), S * 1.8); tri('B1', n16(50), S * 1.8); tri('E2', n16(52), 0.5);
+  kick(n16(48)); crash(n16(48), 12, 1.4); snare(n16(50), 11); kick(n16(52)); crash(n16(52), 9, 1.6); snare(n16(52), 9);
+  // the URL types itself, then a ding when PRESS START first lights
+  for (let k = 0; k < 19; k++) note(FX, D12, 1050 + Math.floor(rnd(k, 31) * 4) * 90, T.url + k / 45, 0.018, { v: 3 });
+  note(P2, D12, hz('B6'), T.press, 0.06, { v: 5 });
+  note(P2, D12, hz('E7'), T.press + 0.06, 0.12, { v: 4, decay: 1 });
+}
+
+// ───────────────────────── boot ─────────────────────────
+const b64 = x => Uint8Array.from(atob(x), c => c.charCodeAt(0)).buffer;
+const ready = (async () => {
+  try {
+    const faces = [new FontFace('GZ2H Pixel', b64(FONTS.px)), new FontFace('Space Mono', b64(FONTS.sm4), { weight: '400' })];
+    for (const f of faces) { await f.load(); document.fonts.add(f); }
+  } catch (err) { /* the canvas never needs these; only the page chrome does */ }
+})();
+const RENDER = new URLSearchParams(location.search).has('render');
+if (RENDER) document.body.classList.add('render');
+setQuality(1);
+
+window.GZ = {
+  DUR, ready,
+  frame: t => render(t),
+  // pixel art: no motion blur by default (n = 1). n > 1 still averages sub-frames for anyone who wants it
+  capture(t, n = 1) {
+    if (n <= 1) { render(t); return out.toDataURL('image/png').split(',')[1]; }
+    if (!this.acc) { this.acc = document.createElement('canvas'); this.acc.width = CW; this.acc.height = CH; this.ax = this.acc.getContext('2d'); }
+    for (let i = 0; i < n; i++) { render(t + ((i + 0.5) / n - 0.5) / 120); this.ax.globalAlpha = 1 / (i + 1); this.ax.drawImage(out, 0, 0); }
+    return this.acc.toDataURL('image/png').split(',')[1];
+  },
+  async audio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * DUR), sr); buildAudio(oc, 0, 0); const b = await oc.startRendering(); return gzWavB64(b); },
+};
+if (RENDER) return;
+
+// ───────────────────────── player UI ─────────────────────────
+const stage = document.getElementById('stage');
+const big = document.getElementById('big'), bigLabel = document.getElementById('bigLabel');
+const playBtn = document.getElementById('play'), playLabel = document.getElementById('playLabel'), playIcon = document.getElementById('playIcon');
+const soundBtn = document.getElementById('sound'), soundLabel = document.getElementById('soundLabel');
+const scrub = document.getElementById('scrub'), tcNow = document.getElementById('tcNow');
+const scenesEl = document.getElementById('scenes'), ticks = document.getElementById('ticks');
+const SOUND_FILE = 'gz2h-levelup.mp3';
+const POSTER = 3.6;
+const ICON_PLAY = 'M3 1h3v2h2v2h2v2h2v2h-2v2H8v2H6v2H3z';
+const ICON_PAUSE = 'M3 2h4v12H3zM9 2h4v12H9z';
+
+SCENES.forEach((sc, i) => {
+  const b = document.createElement('button');
+  b.className = 'scene'; b.type = 'button'; b.id = 'scene-' + i;
+  b.innerHTML = `<span class="st">${String(i + 1).padStart(2, '0')} · ${sc.t.toFixed(2)} s</span><span class="sn">${sc.name}</span><span class="sd">${sc.desc}</span><span class="fill"></span>`;
+  b.addEventListener('click', () => play(sc.t));
+  scenesEl.appendChild(b);
+  if (i) { const tk = document.createElement('i'); tk.style.left = `calc(${(sc.t / DUR) * 100}% + ${6 - 12 * sc.t / DUR}px - 2px)`; ticks.appendChild(tk); }
+});
+
+let now = POSTER, playing = false, soundOn = true, ac = null, t0 = 0, perf0 = 0, raf = 0;
+function fitQuality() {
+  const want = clamp(stage.clientWidth * Math.min(2, window.devicePixelRatio || 1) / 1920, 0.17, 1);
+  const q = Math.min(1, Math.ceil(want * 6) / 6);
+  if (Math.abs(q - Q) > 0.01) setQuality(q);
+}
+function show(t) {
+  now = t; render(t);
+  scrub.value = t.toFixed(3); scrub.style.setProperty('--p', (t / DUR * 100) + '%');
+  tcNow.textContent = t.toFixed(2);
+  SCENES.forEach((sc, i) => {
+    const el = scenesEl.children[i], on = t >= sc.t && t < sc.end;
+    el.classList.toggle('on', on);
+    el.querySelector('.fill').style.width = (clamp((t - sc.t) / (sc.end - sc.t)) * 100) + '%';
+  });
+}
+// Sound comes from a pre-rendered soundtrack file played through an <audio> element, which the
+// iPhone silent switch does not mute (Web Audio is muted by it). Live synthesis is the fallback.
+const snd = new Audio(); snd.preload = 'auto'; snd.src = SOUND_FILE;
+let fileOK = true, mode = 'none', synthFrom = 0;
+snd.addEventListener('error', () => { fileOK = false; });
+snd.addEventListener('playing', () => { if (mode === 'file' && ac) { ac.close().catch(() => {}); ac = null; } });
+function stopAudio() { mode = 'none'; try { snd.pause(); } catch (err) {} if (ac) { ac.close().catch(() => {}); ac = null; } }
+function noSound() { mode = 'none'; soundLabel.textContent = 'No sound'; }
+function startSynth() {
+  if (!ac) return noSound();
+  try {
+    synthFrom = clamp((performance.now() - perf0) / 1000, 0, DUR);
+    if (ac.resume) ac.resume();
+    t0 = ac.currentTime + 0.15; buildAudio(ac, t0, synthFrom); mode = 'synth';
+  } catch (err) { noSound(); }
+}
+function setPlayingUI(p) {
+  playing = p;
+  playLabel.textContent = p ? 'Pause' : (now >= DUR - 0.01 ? 'Replay' : 'Play');
+  playIcon.firstElementChild.setAttribute('d', p ? ICON_PAUSE : ICON_PLAY);
+  big.hidden = p;
+}
+function play(from = 0) {
+  if (from >= DUR - 0.05) from = 0;
+  stopAudio(); cancelAnimationFrame(raf);
+  perf0 = performance.now() - from * 1000;
+  const startedAt = performance.now();
+  if (soundOn) {
+    soundLabel.textContent = 'Sound on';
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (err) {}
+    // unlock a context inside this tap, in case the file can't play and we fall back to synthesis
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.resume) ac.resume(); } catch (err) { ac = null; }
+    if (fileOK) {
+      mode = 'file';
+      try { snd.currentTime = from; } catch (err) {}
+      const p = snd.play();
+      if (p && p.catch) p.catch(() => { if (mode === 'file') startSynth(); });
+    } else startSynth();
+  }
+  setPlayingUI(true);
+  const tick = () => {
+    let t;
+    if (mode === 'file') {
+      if (snd.ended) t = DUR;
+      else if (!snd.paused && snd.readyState >= 3) { t = snd.currentTime; perf0 = performance.now() - t * 1000; }
+      else if (performance.now() - startedAt < 1500) { t = from; perf0 = performance.now() - from * 1000; }
+      else { startSynth(); t = (performance.now() - perf0) / 1000; }
+    } else if (mode === 'synth' && ac) t = ac.currentTime - t0 + synthFrom - (ac.outputLatency || 0);
+    else t = (performance.now() - perf0) / 1000;
+    show(clamp(t, 0, DUR));
+    if (t >= DUR) { setPlayingUI(false); show(7.0); now = DUR; playLabel.textContent = 'Replay'; bigLabel.textContent = 'Replay with sound'; big.hidden = false; stopAudio(); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+GZ.player = { snd, get mode() { return mode; } };
+function pause() { cancelAnimationFrame(raf); stopAudio(); setPlayingUI(false); }
+
+big.addEventListener('click', () => play(now >= DUR - 0.01 || now === POSTER ? 0 : now));
+playBtn.addEventListener('click', () => (playing ? pause() : play(now >= DUR - 0.01 ? 0 : now)));
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn)); soundLabel.textContent = soundOn ? 'Sound on' : 'Sound off';
+  bigLabel.textContent = soundOn ? 'Play with sound' : 'Play';
+  if (playing) play(now);
+});
+scrub.addEventListener('input', () => { if (playing) pause(); show(+scrub.value); });
+window.addEventListener('resize', () => { fitQuality(); if (!playing) show(now); });
+
+ready.then(() => { fitQuality(); show(now); });
+})();
+</script>
