@@ -143,14 +143,20 @@ const CUTS = [
     sound: 'A 180 BPM garage riff that starts on a tinny radio, print-shop foley for every action, and a turntable stop at the end.' },
   { k: 'levelup', group: 'new', name: 'Level Up', tag: '8-bit game', dur: '8.0 s', url: A('FAa8veEvWuHvg9gRASHpvp'),
     idea: 'True 320×180 pixel art. An LV 0 guitarist earns XP with every note and levels up faster and faster. At LV 99 he transforms, and the logo drops in block by block onto a title screen.',
-    sound: 'A 2A03-style chiptune with two pulse channels, stepped triangle bass and noise-channel drums.' },
+    sound: 'A 2A03-style chiptune with two pulse channels, stepped triangle bass and noise-channel drums.',
+    alts: { label: 'Cut', start: 1, list: [
+      { label: '8 s', k: 'levelup' },
+      { label: '32 s full run', k: 'levelup-run', url: A('6MRqhBbFq5f5cnReBFEu1L'), dur: '32.5 s',
+        idea: 'The whole climb in five worlds, from NOBODY in a bedroom to GUITAR GOD in a stadium. Missed notes and a year of practice, a first fan at an open mic, a tip jar at a dive bar, a boss called STAGE FRIGHT at the arena, and gear that fills his inventory on the way.',
+        sound: 'The chip band grows with him: one thin pulse in the bedroom, then bass, drums, the pedal’s crunch, the full band against the boss and a shred into the final fanfare.' },
+    ] } },
   { k: 'notebook', group: 'new', name: 'Lesson Notebook', tag: 'Pencil on grid paper', dur: '8.2 s', url: A('TPxdtkkr42exim7W6aeMZj'),
     idea: 'A guitar tab is ruled on grid paper and the riff climbs from open strings to the 12th fret, with each note circled in red as it plays. Then the tab lines sweep into the logo, which gets hatched in with marker, and a gold star sticker lands.',
     sound: 'Clean guitar in a room. The pencil and marker sounds are computed from the strokes on screen.' },
   { k: 'pedal', group: 'new', name: 'Pedalboard', tag: 'Gear ad', dur: '8.0 s', url: A('UbDifRruMwofpd8jvqGJ2A'),
     idea: 'A red GZ2H overdrive pedal and a tube amp in a dark studio. The gain knob clicks up to 10, a boot stomps the switch, the VU needle slams into the red, and the logo shows up as a chrome badge on the grille before the nameplate.',
     sound: 'Amp hum that rises with the gain, knob detents, the footswitch clack, driven chords and feedback.' },
-  { k: 'ztoh', group: 'new', name: 'Z to H', tag: 'Swiss kinetic type', dur: '8.5 s', url: A('7Yy5s9KCpT7x4SU3LVKTnn'), vertical: true,
+  { k: 'ztoh', group: 'new', name: 'Z to H', tag: 'Swiss kinetic type', dur: '8.5 s', url: A('7Yy5s9KCpT7x4SU3LVKTnn'), extra: ' · also 1080×1920', alts: { label: 'Aspect ratio', start: 0, list: [{ label: '16:9', k: 'ztoh' }, { label: '9:16', k: 'ztoh-vertical' }] },
     idea: 'Three colors, huge type and hard cuts. ZERO and HERO differ by one letter, so the Z turns into an N and the N’s diagonal swings flat into the crossbar of an H. Comes in a recomposed 9:16 cut for Reels, Shorts and TikTok.',
     sound: 'Every cut and wipe lands on a 120 BPM beat.' },
   { k: 'highway', group: 'new', name: 'Note Highway', tag: 'Rhythm game', dur: '8.4 s', url: A('Be92Gb9Su7oeE8vFGXjjen'),
@@ -213,20 +219,18 @@ if ('IntersectionObserver' in window) {
 const cards = [];
 function card(c) {
   const el = document.createElement('article'); el.className = 'cut'; el.id = c.k;
-  const link = c.url
-    ? `<a class="btn hot" href="${c.url}" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="${ICON_PLAY}"/></svg>Open the player with sound</a>`
-    : '<span class="pending">Player link coming</span>';
-  const seg = c.vertical ? `<div class="seg" role="group" aria-label="Aspect ratio"><button type="button" aria-pressed="true" data-v="0">16:9</button><button type="button" aria-pressed="false" data-v="1">9:16</button></div>` : '';
+  const playLink = url => `<a class="btn hot" href="${url}" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="${ICON_PLAY}"/></svg>Open the player with sound</a>`;
+  const seg = c.alts ? `<div class="seg" role="group" aria-label="${c.alts.label}">${c.alts.list.map((a, i) => `<button type="button" aria-pressed="${i === c.alts.start}" data-i="${i}">${a.label}</button>`).join('')}</div>` : '';
   el.innerHTML = `
     <div class="media" tabindex="0" role="button" aria-label="Play silent preview of ${c.name}">
       <video muted loop playsinline preload="none" poster="${poster(c.k)}" src="${src(c.k)}"></video>
       <span class="hint"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="${ICON_PLAY}"/></svg>Preview</span>
     </div>
     <div class="cut-h"><h3>${c.name}</h3><span class="tag">${c.tag}</span></div>
-    <div class="spec">${c.dur} · 1920×1080 · 60 fps · stereo${c.vertical ? ' · also 1080×1920' : ''}</div>
-    <p>${c.idea}</p>
-    <div class="sound"><b>Sound</b><span>${c.sound}</span></div>
-    <div class="acts">${link}${seg}</div>`;
+    <div class="spec"></div>
+    <p class="idea"></p>
+    <div class="sound"><b>Sound</b><span></span></div>
+    <div class="acts"><span class="link">${c.url ? playLink(c.url) : '<span class="pending">Player link coming</span>'}</span>${seg}</div>`;
   const box = el.querySelector('.media'), v = box.querySelector('video');
   const set = on => { box.classList.toggle('playing', on); box.setAttribute('aria-label', (on ? 'Pause' : 'Play') + ' silent preview of ' + c.name); };
   const play = () => { cards.forEach(o => { if (o !== v && !o.paused) o.pause(); }); const p = v.play(); if (p && p.catch) p.catch(() => set(false)); };
@@ -234,11 +238,22 @@ function card(c) {
   box.addEventListener('click', () => (v.paused ? play() : v.pause()));
   box.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); v.paused ? play() : v.pause(); } });
   if (canHover && !reduced) { box.addEventListener('mouseenter', play); box.addEventListener('mouseleave', () => v.pause()); }
-  if (c.vertical) el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
-    const vert = b.dataset.v === '1', k = vert ? c.k + '-vertical' : c.k, was = !v.paused;
-    el.querySelectorAll('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
-    v.poster = poster(k); v.src = src(k); if (was) play();
-  }));
+  // a variant (a longer cut, another aspect ratio) swaps the preview and whatever text it overrides
+  const show = (a, swap) => {
+    const m = { ...c, ...a };
+    el.querySelector('.spec').textContent = `${m.dur} · 1920×1080 · 60 fps · stereo${c.extra || ''}`;
+    el.querySelector('.idea').textContent = m.idea;
+    el.querySelector('.sound span').textContent = m.sound;
+    if (m.url) el.querySelector('.link').innerHTML = playLink(m.url);
+    if (swap) { const was = !v.paused; v.poster = poster(m.k); v.src = src(m.k); if (was) play(); }
+  };
+  if (c.alts) {
+    el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+      el.querySelectorAll('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+      show(c.alts.list[+b.dataset.i], true);
+    }));
+    show(c.alts.list[c.alts.start], c.alts.start !== 0);
+  } else show({}, false);
   cards.push(v);
   return el;
 }

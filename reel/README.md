@@ -6,6 +6,7 @@
 | --- | --- | --- | --- |
 | Gig Poster | Screen print, stop motion | `intro-poster/` | https://claude.ai/artifact/3sUTkpfEzWrYc4xetQRpE1 |
 | Level Up | 8-bit game | `intro-levelup/` | https://claude.ai/artifact/FAa8veEvWuHvg9gRASHpvp |
+| Level Up Run (32 s) | 8-bit game, five worlds | `intro-levelup-run/` | https://claude.ai/artifact/6MRqhBbFq5f5cnReBFEu1L |
 | Lesson Notebook | Pencil on grid paper | `intro-notebook/` | https://claude.ai/artifact/TPxdtkkr42exim7W6aeMZj |
 | Pedalboard | Gear ad | `intro-pedal/` | https://claude.ai/artifact/UbDifRruMwofpd8jvqGJ2A |
 | Z to H | Swiss kinetic type, 16:9 and 9:16 | `intro-ztoh/` | https://claude.ai/artifact/7Yy5s9KCpT7x4SU3LVKTnn |
