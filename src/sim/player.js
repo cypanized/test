@@ -13,6 +13,15 @@ function b64(s) {
   return out;
 }
 
+/**
+ * Predicted (quantised) value of the column between stored columns c and
+ * c + 1 in row i: the midpoint of a Catmull-Rom curve across the tie.
+ */
+export function midPrediction(st, i, c, k, ns) {
+  const c0 = Math.max(0, c - 1), c3 = Math.min(ns - 1, c + 2), b = i * ns;
+  return Math.round((-st[(b + c0) * 3 + k] + 9 * st[(b + c) * 3 + k] + 9 * st[(b + c + 1) * 3 + k] - st[(b + c3) * 3 + k]) / 16);
+}
+
 export class BakedKnot {
   constructor(meta, data) {
     this.meta = meta;
@@ -30,46 +39,40 @@ export class BakedKnot {
   chapter(c) {
     if (this.cache.has(c)) return this.cache.get(c);
     const { frames, offset, length } = this.meta.chapters[c];
-    const n = this.nStored, Q = this.meta.Q, bytes = this.bytes;
+    const { rows, cols, Q } = this.meta, S = this.stored, ns = S.length, nm = ns - 1, bytes = this.bytes;
+    const n = this.nStored, m = rows * nm * 3;
     const out = [];
-    const p1 = new Int32Array(n), p2 = new Int32Array(n);
+    const p1 = new Int32Array(n), p2 = new Int32Array(n), r1 = new Int32Array(m), st = new Int32Array(n);
     let p = offset;
     const end = offset + length;
+    const next = () => {
+      let z = 0, shift = 0, b;
+      do { b = bytes[p++]; z |= (b & 0x7f) << shift; shift += 7; } while (b & 0x80 && p <= end);
+      return (z >>> 1) ^ -(z & 1);
+    };
     for (let f = 0; f < frames; f++) {
-      const st = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        let z = 0, shift = 0, b;
-        do { b = bytes[p++]; z |= (b & 0x7f) << shift; shift += 7; } while (b & 0x80 && p <= end);
-        const d = (z >>> 1) ^ -(z & 1);
-        // residual against a constant-velocity prediction (see tools/bake.mjs)
-        const pred = f === 0 ? 0 : f === 1 ? p1[i] : 2 * p1[i] - p2[i];
-        const v = pred + d;
-        p2[i] = p1[i]; p1[i] = v;
-        st[i] = v / Q;
+      const fr = new Float32Array(rows * cols * 3);
+      // stored columns: residual against a constant-velocity prediction
+      for (let i = 0; i < rows; i++) for (let cc = 0; cc < ns; cc++) for (let k = 0; k < 3; k++) {
+        const a = (i * ns + cc) * 3 + k;
+        const pred = f === 0 ? 0 : f === 1 ? p1[a] : 2 * p1[a] - p2[a];
+        const v = pred + next();
+        p2[a] = p1[a]; p1[a] = v; st[a] = v;
+        fr[(i * cols + S[cc]) * 3 + k] = v / Q;
       }
-      out.push(this._expand(st));
-    }
-    this.cache.set(c, out);
-    return out;
-  }
-
-  // Rebuild the full grid from the stored columns: the missing ones lie on
-  // a smooth curve (Catmull-Rom midpoint) through their neighbours.
-  _expand(st) {
-    const { rows, cols } = this.meta, S = this.stored, ns = S.length;
-    if (ns === cols) return st;
-    const out = new Float32Array(rows * cols * 3);
-    for (let i = 0; i < rows; i++) {
-      for (let c = 0; c < ns; c++) for (let k = 0; k < 3; k++) out[(i * cols + S[c]) * 3 + k] = st[(i * ns + c) * 3 + k];
-      for (let c = 0; c < ns - 1; c++) {
-        const j = (S[c] + S[c + 1]) / 2; // the column between two stored ones
-        const c0 = Math.max(0, c - 1), c3 = Math.min(ns - 1, c + 2);
-        for (let k = 0; k < 3; k++) {
-          const p0 = st[(i * ns + c0) * 3 + k], p1 = st[(i * ns + c) * 3 + k], p2 = st[(i * ns + c + 1) * 3 + k], p3 = st[(i * ns + c3) * 3 + k];
-          out[(i * cols + j) * 3 + k] = (-p0 + 9 * p1 + 9 * p2 - p3) / 16;
+      // the columns between them: residual against a smooth curve through
+      // their neighbours, itself stored relative to the previous frame's
+      if (nm > 0 && ns < cols) {
+        for (let i = 0; i < rows; i++) for (let cc = 0; cc < nm; cc++) for (let k = 0; k < 3; k++) {
+          const a = (i * nm + cc) * 3 + k;
+          const r = r1[a] + (this.meta.midResiduals ? next() : 0);
+          r1[a] = r;
+          fr[(i * cols + (S[cc] + S[cc + 1]) / 2) * 3 + k] = (midPrediction(st, i, cc, k, ns) + r) / Q;
         }
       }
+      out.push(fr);
     }
+    this.cache.set(c, out);
     return out;
   }
 
@@ -138,6 +141,9 @@ export class Player {
     const f = this.frames, i = Math.floor(this.t), a = this.t - i;
     const A = f[i], B = f[Math.min(f.length - 1, i + 1)], o = this.out;
     if (a === 0) { o.set(A); return; }
+    // where the baker found that blending two frames would let layers touch,
+    // step from one to the other instead
+    if (this.knot.meta.noBlend?.[this.chapterIndex]?.includes(i)) { o.set(a < 0.5 ? A : B); return; }
     for (let k = 0; k < o.length; k++) o[k] = A[k] + (B[k] - A[k]) * a;
   }
 

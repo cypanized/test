@@ -12,7 +12,7 @@ import { KNOTS, statesFor } from '../src/knots.js';
 import { TieCloth, ROWS, COLS } from '../src/sim/cloth.js';
 import { planKnot, setRows } from '../src/sim/choreo.js';
 import { findIntersections } from '../src/sim/verify.js';
-import { BakedKnot } from '../src/sim/player.js';
+import { BakedKnot, midPrediction } from '../src/sim/player.js';
 
 const verifier = new TieCloth(); // only used for its mesh layout in findIntersections
 
@@ -77,43 +77,46 @@ function bakeKnot(knot) {
   return { chapters, report, routes, grips, narrowLen: knot.narrowLen };
 }
 
-// Quantise to 0.02 mm steps... (0.002 cm), delta-encode frame to frame, gzip.
+// Quantise to 0.2 mm, predict, and store the small residuals as zig-zag
+// varints, then gzip. Columns 0, 2 and 4 are predicted from the two previous
+// frames (constant velocity). Columns 1 and 3 are predicted from their
+// neighbours in the same frame (a smooth curve across the tie), and their
+// residuals from the previous frame's. Decoding (player.js) is exact.
 function encode(chapters) {
-  const Q = 50; // units per cm (0.2 mm)
+  const Q = 50; // units per cm
+  const S = STORED_COLS, ns = S.length, nm = ns - 1;
   const parts = [];
   const index = [];
   let offset = 0;
   for (const full of chapters) {
-    const frames = full.map((fr) => {
-      const o = new Float32Array(ROWS * STORED_COLS.length * 3);
-      for (let i = 0; i < ROWS; i++) STORED_COLS.forEach((j, c) => {
-        for (let k = 0; k < 3; k++) o[(i * STORED_COLS.length + c) * 3 + k] = fr[(i * COLS + j) * 3 + k];
-      });
-      return o;
-    });
-    const n = frames[0].length;
-    // residual against a constant-velocity prediction from the two previous frames
-    const buf = new Int32Array(frames.length * n);
-    const p1 = new Int32Array(n), p2 = new Int32Array(n);
-    frames.forEach((fr, f) => {
-      for (let i = 0; i < n; i++) {
-        const v = Math.round(fr[i] * Q);
-        const pred = f === 0 ? 0 : f === 1 ? p1[i] : 2 * p1[i] - p2[i];
-        buf[f * n + i] = v - pred;
-        p2[i] = p1[i]; p1[i] = v;
-      }
-    });
-    // zig-zag varint bytes
     const bytes = [];
-    for (let i = 0; i < buf.length; i++) {
-      let z = (buf[i] << 1) ^ (buf[i] >> 31);
-      z >>>= 0;
+    const put = (d) => {
+      let z = ((d << 1) ^ (d >> 31)) >>> 0;
       while (z >= 0x80) { bytes.push((z & 0x7f) | 0x80); z >>>= 7; }
       bytes.push(z);
-    }
+    };
+    const n = ROWS * ns * 3, m = ROWS * nm * 3;
+    const p1 = new Int32Array(n), p2 = new Int32Array(n), r1 = new Int32Array(m);
+    const st = new Int32Array(n);
+    full.forEach((fr, f) => {
+      for (let i = 0; i < ROWS; i++) for (let c = 0; c < ns; c++) for (let k = 0; k < 3; k++) {
+        const a = (i * ns + c) * 3 + k;
+        const v = Math.round(fr[(i * COLS + S[c]) * 3 + k] * Q);
+        const pred = f === 0 ? 0 : f === 1 ? p1[a] : 2 * p1[a] - p2[a];
+        put(v - pred);
+        p2[a] = p1[a]; p1[a] = v; st[a] = v;
+      }
+      for (let i = 0; i < ROWS; i++) for (let c = 0; c < nm; c++) for (let k = 0; k < 3; k++) {
+        const a = (i * nm + c) * 3 + k;
+        const v = Math.round(fr[(i * COLS + (S[c] + S[c + 1]) / 2) * 3 + k] * Q);
+        const r = v - midPrediction(st, i, c, k, ns);
+        put(r - r1[a]);
+        r1[a] = r;
+      }
+    });
     const raw = Uint8Array.from(bytes);
     parts.push(raw);
-    index.push({ frames: frames.length, offset, length: raw.length });
+    index.push({ frames: full.length, offset, length: raw.length });
     offset += raw.length;
   }
   const all = new Uint8Array(offset);
@@ -132,20 +135,42 @@ for (const knot of knots) {
   if (!dry) {
     const { data, index, Q } = encode(chapters);
     mkdirSync(outDir, { recursive: true });
-    const meta = { knot: knot.id, rows: ROWS, cols: COLS, storedCols: STORED_COLS, fps: FPS / REC_EVERY, Q, narrowLen, chapters: index, routes, grips, report };
+    const meta = { knot: knot.id, rows: ROWS, cols: COLS, storedCols: STORED_COLS, midResiduals: true, fps: FPS / REC_EVERY, Q, narrowLen, chapters: index, routes, grips, report };
     // check exactly what ships: decode it the way the browser does and test every frame
     if (!fast) {
       const shipped = new BakedKnot(meta, data.toString('base64'));
-      let bad = 0, frames = 0;
+      // every frame, and the halfway blend between neighbouring frames that
+      // the player shows when the display rate is higher than the bake's
+      let bad = 0, frames = 0, badBlend = 0;
+      const noBlend = {};
+      const mid = new Float32Array(shipped.n);
       for (let c = 0; c < shipped.chapterCount; c++) {
-        for (const fr of shipped.chapter(c)) {
+        const fs = shipped.chapter(c);
+        fs.forEach((fr, f) => {
           frames++;
+          if (debug) { let e = 0; const raw = chapters[c][f]; for (let k = 0; k < fr.length; k++) e = Math.max(e, Math.abs(fr[k] - raw[k])); if (e > 0.011) console.log(`  decode error chapter ${c} frame ${f}: ${e.toFixed(4)} cm`); }
           const h = findIntersections(verifier, fr, { limit: 3 });
-          if (h.length) { bad++; if (bad < 4) console.log(`  shipped chapter ${c}: intersection`, JSON.stringify(h[0])); }
-        }
+          if (h.length) { bad++; if (bad < 4) console.log(`  shipped chapter ${c} frame ${f}: intersection`, JSON.stringify(h[0])); }
+          if (f > 0) {
+            // blends at 1/4, 1/2 and 3/4; if any touches, the player steps
+            // from one frame to the next there instead of blending
+            const pr = fs[f - 1];
+            for (const a of [0.5, 0.25, 0.75]) {
+              for (let k = 0; k < mid.length; k++) mid[k] = pr[k] + (fr[k] - pr[k]) * a;
+              const hm = findIntersections(verifier, mid, { limit: 1 });
+              if (hm.length) {
+                badBlend++;
+                (noBlend[c] ||= []).push(f - 1);
+                if (badBlend < 4) console.log(`  shipped chapter ${c} between ${f - 1} and ${f} (at ${a}): intersection, will step`, JSON.stringify(hm[0]));
+                break;
+              }
+            }
+          }
+        });
       }
-      meta.verified = { frames, framesWithIntersections: bad };
-      console.log(`${knot.id}: verified ${frames} shipped frames, ${bad} with intersections`);
+      meta.verified = { frames, framesWithIntersections: bad, blendsChecked: frames - shipped.chapterCount, steppedBlends: badBlend };
+      meta.noBlend = noBlend;
+      console.log(`${knot.id}: verified ${frames} shipped frames, ${bad} with intersections; ${badBlend} frame pairs step instead of blending`);
     }
     writeFileSync(`${outDir}/${knot.id}.js`,
       `// Generated by tools/bake.mjs. Do not edit.\nexport const meta = ${JSON.stringify(meta)};\nexport const data = "${data.toString('base64')}";\n`);

@@ -6,21 +6,24 @@
 // no part of the tie can ever pass through another part, or through the
 // collar:
 //
-//   1. Conservative motion bounds. At the start of every sub-step, each
-//      particle finds its distance d to the nearest piece of fabric (or
-//      collar) that isn't its own immediate neighbourhood. Nothing is then
-//      allowed to move more than 0.45·d in that sub-step. Two things that
-//      are d apart can close by at most 0.9·d, so they can never cross.
-//      (This is the idea behind recent penetration-free solvers such as
-//      "Offset Geometric Contact".)
+//   1. Conservative motion bounds. Every two sub-steps, each particle finds
+//      its distance d to the nearest piece of fabric (or collar) that isn't
+//      its own immediate neighbourhood, measured point-to-face and
+//      edge-to-edge. Until the next measurement nothing may move more than
+//      0.45·(d - GAP) towards it. Two things d apart close by at most
+//      0.9·(d - GAP), so they never cross and never get closer than GAP.
+//      Moving away from the nearest thing may use the full 0.45·d, which
+//      still can't cross anything. (This is the idea behind recent
+//      penetration-free solvers such as "Offset Geometric Contact".)
 //   2. Contact offset. Surfaces closer than the fabric thickness are pushed
 //      apart along the contact normal, on the side they started on.
-//   3. Everything else is ordinary cloth: barely-stretching silk, soft
+//   3. Everything else is ordinary cloth: silk that hardly stretches, soft
 //      bending along the length, stiffer across the width, gravity, air
 //      drag, the shirt and neck as solid bodies.
 //
-// The simulation is run offline (tools/bake.mjs) and every recorded frame
-// is checked with an exact triangle-intersection test.
+// The simulation is run offline (tools/bake.mjs). Every frame that ships is
+// decoded and checked with an exact triangle-intersection test. GAP keeps
+// enough room that rounding positions for storage can't make layers cross.
 
 import { TIE_LENGTH, tieWidth } from '../engine/tie-engine.js';
 import { chestZFast as chestZ, NECK, COLLAR, collarLeafSurface } from '../engine/body.js';
@@ -30,6 +33,7 @@ export const COLS = 5;
 export const CONTACT = 0.42; // minimum distance between layers' mid-surfaces (cm)
 const SEARCH = 0.9; // neighbourhood used for motion bounds (cm)
 const GAMMA = 0.45; // fraction of the free distance a particle may move per bound interval
+const GAP = 0.08; // layers never come closer than this (cm), so stored frames keep a margin
 const BOUND_EVERY = 2; // sub-steps per bound measurement
 // Elements whose rows are within one row of each other are the same patch of
 // fabric (they share or neighbour vertices) and don't collide with each other.
@@ -37,7 +41,10 @@ const BOUND_EVERY = 2; // sub-steps per bound measurement
 // than the fabric is thick.
 
 const GRAVITY = -981; // cm/s^2
-const STRAIN = 0.01; // most a segment may stretch along the tie (silk hardly stretches)
+// Extra passes over the lengthwise links each sub-step, alternating direction:
+// a long blade hanging under its own weight otherwise sags several percent
+// longer than it is, and silk hardly stretches.
+const ALONG_PASSES = 6;
 
 // constraint stiffness per sub-step
 const K_STRETCH = 1.0;
@@ -57,6 +64,7 @@ export class TieCloth {
     this.pull = new Float32Array(n); // attraction to targets per sub-step
     this.invMass = new Float32Array(n).fill(1);
     this.bound = new Float32Array(n);
+    this.away = new Float32Array(n * 3); // unit direction away from whatever set the bound
     this.rowS = new Float32Array(R);
     this.rowW = new Float32Array(R);
     this.drag = 0.35; // fraction of speed kept after one second of free flight
@@ -91,12 +99,9 @@ export class TieCloth {
     };
     this.cons = pack(cons);
     this.stretch = pack(stretch);
-    // rest length to the next row down each column, for strain limiting
-    this.restNext = new Float32Array(n);
-    for (let i = 0; i + 1 < R; i++) for (let j = 0; j < C; j++) {
-      const p = i * C + j;
-      this.restNext[p] = Math.hypot(rx[p] - rx[p + C], ry[p] - ry[p + C]);
-    }
+    const along = [];
+    for (let i = 0; i + 1 < R; i++) for (let j = 0; j < C; j++) add(i * C + j, (i + 1) * C + j, 1, along);
+    this.along = pack(along);
 
     // cloth triangles
     const tris = [];
@@ -205,7 +210,7 @@ export class TieCloth {
     this._solve(this.stretch);
     this._solve(this.cons);
     this._solve(this.stretch);
-    this._strainLimit();
+    for (let k = 0; k < ALONG_PASSES; k++) this._solve(this.along, k & 1);
     this._body();
     this._contacts();
     this._edgeContacts();
@@ -213,9 +218,10 @@ export class TieCloth {
     prev.set(xs);
   }
 
-  _solve(c) {
+  _solve(c, reverse = 0) {
     const x = this.x, im = this.invMass, A = c.a, B = c.b, rest = c.rest, K = c.k;
-    for (let i = 0, m = A.length; i < m; i++) {
+    for (let ii = 0, m = A.length; ii < m; ii++) {
+      const i = reverse ? m - 1 - ii : ii;
       const a = A[i], b = B[i];
       const wa = im[a], wb = im[b], ws = wa + wb;
       if (ws === 0) continue;
@@ -226,32 +232,6 @@ export class TieCloth {
       const corr = ((d - rest[i]) / (d * ws)) * K[i];
       x[qa] += dx * corr * wa; x[qa + 1] += dy * corr * wa; x[qa + 2] += dz * corr * wa;
       x[qb] -= dx * corr * wb; x[qb + 1] -= dy * corr * wb; x[qb + 2] -= dz * corr * wb;
-    }
-  }
-
-  // A few Gauss-Seidel passes leave a long hanging chain stretchy: a blade
-  // hanging under its own weight would sag 10-40% longer than it is. Silk
-  // hardly stretches, so walk out from the held part of the tie (the neck
-  // loop) to both ends and limit every segment to STRAIN over its rest
-  // length. The weight of the hanging blades is then carried all the way up
-  // to the neck, the way it is on a real tie.
-  _strainLimit() {
-    const R = ROWS, C = COLS, x = this.x, im = this.invMass, rn = this.restNext;
-    let i0 = -1, i1 = -1;
-    for (let i = 0; i < R; i++) if (im[i * C + 2] === 0) { if (i0 < 0) i0 = i; i1 = i; }
-    if (i0 < 0) return;
-    const lim = 1 + STRAIN;
-    const limit = (a, b, r) => { // move b towards a until |b - a| <= r
-      const qa = a * 3, qb = b * 3;
-      const dx = x[qb] - x[qa], dy = x[qb + 1] - x[qa + 1], dz = x[qb + 2] - x[qa + 2];
-      const d2 = dx * dx + dy * dy + dz * dz;
-      if (d2 <= r * r || im[b] === 0) return;
-      const f = r / Math.sqrt(d2);
-      x[qb] = x[qa] + dx * f; x[qb + 1] = x[qa + 1] + dy * f; x[qb + 2] = x[qa + 2] + dz * f;
-    };
-    for (let j = 0; j < C; j++) {
-      for (let i = i1 + 1; i < R; i++) limit((i - 1) * C + j, i * C + j, rn[(i - 1) * C + j] * lim);
-      for (let i = i0 - 1; i >= 0; i--) limit((i + 1) * C + j, i * C + j, rn[i * C + j] * lim);
     }
   }
 
@@ -282,6 +262,8 @@ export class TieCloth {
     const C = COLS, xs = this.xb, tri = this.tri, nT = this.nTri, nO = this.nObs, op = this.obsPos, ot = this.obsTri;
     const bound = this.bound, im = this.invMass;
     bound.fill(SEARCH);
+    this.away.fill(0);
+    const aw = this.away, setBound = (i, d, ux, uy, uz) => { if (d < bound[i]) { bound[i] = d; aw[i * 3] = ux; aw[i * 3 + 1] = uy; aw[i * 3 + 2] = uz; } };
     const cs = this.cell, inv = 1 / cs, MASK = this.TABLE - 1;
     const head = this.head, stamp = this.stamp, ent = this.entTri, next = this.entNext, seen = this.seen;
     const now = ++this.now;
@@ -360,12 +342,9 @@ export class TieCloth {
           }
           const d = closestPointTriangle(px, py, pz, ax, ay, az, bx, by, bz, cx, cy, cz, out);
           if (d >= SEARCH) continue;
-          if (d < bound[p]) bound[p] = d;
-          if (va >= 0) {
-            if (d < bound[va]) bound[va] = d;
-            if (d < bound[vb]) bound[vb] = d;
-            if (d < bound[vc]) bound[vc] = d;
-          }
+          const ud = d > 1e-7 ? 1 / d : 0, ux = (px - out[0]) * ud, uy = (py - out[1]) * ud, uz = (pz - out[2]) * ud;
+          setBound(p, d, ux, uy, uz);
+          if (va >= 0) { setBound(va, d, -ux, -uy, -uz); setBound(vb, d, -ux, -uy, -uz); setBound(vc, d, -ux, -uy, -uz); }
           if (d < near && nc < cP.length) {
             // which side of the triangle's plane the particle is on, right now
             const e1x = bx - ax, e1y = by - ay, e1z = bz - az, e2x = cx - ax, e2y = cy - ay, e2z = cz - az;
@@ -392,11 +371,10 @@ export class TieCloth {
           if (k >= nT || seen[k] === tag) continue;
           seen[k] = tag;
           const va = tri[k * 3], vb = tri[k * 3 + 1], vc = tri[k * 3 + 2];
-          const d = closestPointTriangle(px, py, pz, xs[va * 3], xs[va * 3 + 1], xs[va * 3 + 2], xs[vb * 3], xs[vb * 3 + 1], xs[vb * 3 + 2], xs[vc * 3], xs[vc * 3 + 1], xs[vc * 3 + 2], null);
+          const d = closestPointTriangle(px, py, pz, xs[va * 3], xs[va * 3 + 1], xs[va * 3 + 2], xs[vb * 3], xs[vb * 3 + 1], xs[vb * 3 + 2], xs[vc * 3], xs[vc * 3 + 1], xs[vc * 3 + 2], out);
           if (d >= SEARCH) continue;
-          if (d < bound[va]) bound[va] = d;
-          if (d < bound[vb]) bound[vb] = d;
-          if (d < bound[vc]) bound[vc] = d;
+          const ud = d > 1e-7 ? 1 / d : 0, ux = (out[0] - px) * ud, uy = (out[1] - py) * ud, uz = (out[2] - pz) * ud;
+          setBound(va, d, ux, uy, uz); setBound(vb, d, ux, uy, uz); setBound(vc, d, ux, uy, uz);
         }
       }
     }
@@ -408,6 +386,7 @@ export class TieCloth {
   // their endpoints are bounded by the edge-edge distance as well.
   _edgeBounds() {
     const xs = this.xb, E = this.edge, nE = this.nEdge, bound = this.bound, im = this.invMass;
+    const aw = this.away, setBound = (i, d, ux, uy, uz) => { if (d < bound[i]) { bound[i] = d; aw[i * 3] = ux; aw[i * 3 + 1] = uy; aw[i * 3 + 2] = uz; } };
     const cs = this.cell, inv = 1 / cs, MASK = this.TABLE_E - 1;
     const head = this.eHead, stamp = this.eStamp, ent = this.eEnt, next = this.eNext, seen = this.eSeen;
     const now = this.now;
@@ -476,8 +455,8 @@ export class TieCloth {
               nee++;
             }
             if (dist < SEARCH) {
-              if (dist < bound[i0]) bound[i0] = dist;
-              if (dist < bound[i1]) bound[i1] = dist;
+              const ud = dist > 1e-7 ? 1 / dist : 0, ux = (cp[0] - cp[3]) * ud, uy = (cp[1] - cp[4]) * ud, uz = (cp[2] - cp[5]) * ud;
+              setBound(i0, dist, ux, uy, uz); setBound(i1, dist, ux, uy, uz);
             }
             continue;
           }
@@ -499,10 +478,11 @@ export class TieCloth {
             eeN[nee * 3] = (cp[0] - cp[3]) / dist; eeN[nee * 3 + 1] = (cp[1] - cp[4]) / dist; eeN[nee * 3 + 2] = (cp[2] - cp[5]) / dist;
             nee++;
           }
-          if (dist < bound[i0]) bound[i0] = dist;
-          if (dist < bound[i1]) bound[i1] = dist;
-          if (dist < bound[j0]) bound[j0] = dist;
-          if (dist < bound[j1]) bound[j1] = dist;
+          {
+            const ud = dist > 1e-7 ? 1 / dist : 0, ux = (cp[0] - cp[3]) * ud, uy = (cp[1] - cp[4]) * ud, uz = (cp[2] - cp[5]) * ud;
+            setBound(i0, dist, ux, uy, uz); setBound(i1, dist, ux, uy, uz);
+            setBound(j0, dist, -ux, -uy, -uz); setBound(j1, dist, -ux, -uy, -uz);
+          }
         }
       }
     }
@@ -598,14 +578,19 @@ export class TieCloth {
 
   // The guarantee: no particle moves further than GAMMA x its free distance.
   _clamp() {
-    const n = this.n, x = this.x, xs = this.xb, bound = this.bound, im = this.invMass;
+    const n = this.n, x = this.x, xs = this.xb, bound = this.bound, aw = this.away;
     let clamped = 0;
     // (pinned points too: when a pin moves, it must not jump through anything either)
     for (let i = 0; i < n; i++) {
       const q = i * 3;
       const dx = x[q] - xs[q], dy = x[q + 1] - xs[q + 1], dz = x[q + 2] - xs[q + 2];
       const L = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const maxL = GAMMA * bound[i];
+      // Moving GAMMA * (d - GAP) towards anything keeps every pair GAP apart
+      // (both sides move at most 0.45 of it); moving away from the nearest
+      // thing may use the full GAMMA * d, which still can't cross anything.
+      const b = bound[i];
+      let maxL = GAMMA * Math.max(0, b - GAP);
+      if (L > maxL && dx * aw[q] + dy * aw[q + 1] + dz * aw[q + 2] >= 0 && (aw[q] || aw[q + 1] || aw[q + 2])) maxL = GAMMA * b;
       if (L > maxL) {
         const f = maxL / L;
         x[q] = xs[q] + dx * f; x[q + 1] = xs[q + 1] + dy * f; x[q + 2] = xs[q + 2] + dz * f;
