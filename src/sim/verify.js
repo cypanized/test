@@ -87,3 +87,46 @@ function segTri(px, py, pz, qx, qy, qz, a, b, c) {
   const t = f * (e2x * qx2 + e2y * qy2 + e2z * qz2);
   return t > 0 && t < 1;
 }
+
+/**
+ * Layer order: does the knot have the designed structure? For points along
+ * a stretch of the tie (rows r0..r1), cast a ray straight through the knot
+ * (along z) and note which other parts of the tie lie in front of the point
+ * and which behind. Compare the result (x) with the design (d). A pass in
+ * front of the narrow blade that should have gone behind it shows up here
+ * even when the shapes are otherwise close.
+ */
+export function layerOrder(cloth, x, d, r0, r1) {
+  const C = COLS, tri = cloth.tri, nT = cloth.nTri, triRow = cloth.triRow;
+  const zAt = (X, k, px, py) => {
+    const a = tri[k * 3] * 3, b = tri[k * 3 + 1] * 3, c = tri[k * 3 + 2] * 3;
+    const x1 = X[a], y1 = X[a + 1], x2 = X[b], y2 = X[b + 1], x3 = X[c], y3 = X[c + 1];
+    const den = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+    if (Math.abs(den) < 1e-9) return null;
+    const l1 = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / den, l2 = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / den, l3 = 1 - l1 - l2;
+    if (l1 < 0 || l2 < 0 || l3 < 0) return null;
+    return l1 * X[a + 2] + l2 * X[b + 2] + l3 * X[c + 2];
+  };
+  const sides = (X, j, col) => {
+    const q = (j * C + col) * 3, px = X[q], py = X[q + 1], pz = X[q + 2];
+    const out = new Map();
+    for (let k = 0; k < nT; k++) {
+      if (Math.abs(triRow[k] - j) < 14) continue;
+      const z = zAt(X, k, px, py);
+      if (z !== null) out.set(Math.round(triRow[k] / 6), z > pz ? 1 : -1);
+    }
+    return out;
+  };
+  let same = 0, differ = 0;
+  const where = [];
+  for (let j = r0; j <= r1; j++) for (const col of [0, 2, 4]) {
+    const D = sides(d, j, col), S = sides(x, j, col);
+    for (const [key, sd] of D) {
+      const ss = S.get(key) ?? S.get(key - 1) ?? S.get(key + 1);
+      if (ss === undefined) continue;
+      if (ss === sd) same++;
+      else { differ++; if (where.length < 4) where.push([j, key * 6]); }
+    }
+  }
+  return { same, differ, where };
+}

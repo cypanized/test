@@ -5,13 +5,14 @@
 //   node tools/bake.mjs four-in-hand    -> one knot
 //   node tools/bake.mjs four-in-hand --dry   (no output, just the report)
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { solveNarrowLength, SAMPLES } from '../src/engine/tie-engine.js';
 import { TIP_TARGET_Y } from '../src/engine/body.js';
 import { KNOTS, statesFor } from '../src/knots.js';
 import { TieCloth, ROWS, COLS } from '../src/sim/cloth.js';
 import { planKnot, setRows } from '../src/sim/choreo.js';
-import { findIntersections } from '../src/sim/verify.js';
+import { findIntersections, layerOrder } from '../src/sim/verify.js';
 import { BakedKnot, midPrediction } from '../src/sim/player.js';
 
 const verifier = new TieCloth(); // only used for its mesh layout in findIntersections
@@ -22,6 +23,10 @@ const only = args.filter((a) => !a.startsWith('--'));
 const outDir = args.find((a) => a.startsWith('--out='))?.split('=')[1] || 'src/baked';
 const maxCh = +(args.find((a) => a.startsWith('--chapters='))?.split('=')[1] || 99);
 const fast = args.includes('--fast');
+// --from=N --base=file.js: keep chapters 0..N of an earlier bake and carry on from there
+const fromCh = +(args.find((a) => a.startsWith('--from='))?.split('=')[1] || 0);
+const baseFile = args.find((a) => a.startsWith('--base='))?.split('=')[1];
+const base = fromCh && baseFile ? await import(resolve(baseFile)) : null;
 const debug = args.includes('--debug'); // verify raw frames as they are simulated // quick preview: fewer sub-steps, no per-frame verification
 const FPS = 60, SUB = fast ? 4 : 8, REC_EVERY = 3; // simulate at 60 Hz x 8 sub-steps, record 20 fps
 const STORED_COLS = [0, 2, 4]; // the middle columns are rebuilt on playback (see player.js)
@@ -37,25 +42,38 @@ function bakeKnot(knot) {
   const chapters = [[cloth.x.slice()]];
   const report = [];
   const routes = [null], grips = [null];
+  if (base) {
+    const prev = new BakedKnot(base.meta, base.data);
+    chapters.length = 0;
+    for (let c = 0; c <= fromCh; c++) chapters.push(prev.chapter(c).map((f) => f.slice()));
+    report.push(...base.meta.report.slice(0, fromCh));
+    routes.length = 0; routes.push(...base.meta.routes.slice(0, fromCh + 1));
+    grips.length = 0; grips.push(...base.meta.grips.slice(0, fromCh + 1));
+    cloth.place(prev.last(fromCh));
+  }
   plan.chapters.forEach((ch, ci) => {
-    if (ci >= maxCh) return;
+    if (ci >= maxCh || ci < fromCh) return;
     const t0 = Date.now();
     ch.start(cloth);
     const frames = [];
-    const nF = Math.ceil(ch.duration * FPS);
+    // moves run until the hand has finished (it waits for the cloth); the
+    // other chapters have a fixed length
+    const nF = Math.ceil(ch.duration * FPS), maxF = ch.done === undefined ? nF : nF * 4;
     let maxClamp = 0, hits = 0, firstHit = null;
     const hands = [];
-    for (let f = 1; f <= nF; f++) {
+    for (let f = 1; f <= maxF; f++) {
       ch.apply(cloth, f / FPS);
       cloth.step(1 / FPS, SUB);
       maxClamp = Math.max(maxClamp, cloth.stats.clamped);
-      if (f % REC_EVERY === 0 || f === nF) {
+      const end = ch.done === undefined ? f === nF : ch.done || f === maxF;
+      if (f % REC_EVERY === 0 || end) {
         const fr = cloth.x.slice();
         frames.push(fr);
         hands.push(ch.hand ?? -1);
-        const h = (debug || f === nF) ? findIntersections(cloth, fr, { limit: 5 }) : [];
+        const h = (debug || end) ? findIntersections(cloth, fr, { limit: 5 }) : [];
         if (h.length) { hits += h.length; if (!firstHit) firstHit = { frame: frames.length - 1, ...h[0] }; }
       }
+      if (end) break;
     }
     // how close did the knot get to the step's designed shape?
     const B = plan.targets[ci + 1], roles = plan.poses[ci + 1].roles;
@@ -68,10 +86,27 @@ function bakeKnot(knot) {
       if (e > err) { err = e; errAt = s; }
     }
     err = err.toFixed(2) + ' @s=' + errAt.toFixed(0) + ' (core ' + roles.narrowEnd.toFixed(0) + '..' + roles.coreEnd.toFixed(0) + ')';
+    // and is every layer of the knot on the side the design puts it?
+    const r0 = Math.round((plan.poses[ci].roles.coreEnd / cloth.rowS[ROWS - 1]) * (ROWS - 1));
+    const r1 = Math.round((Math.min(roles.coreEnd + 4, cloth.rowS[ROWS - 1]) / cloth.rowS[ROWS - 1]) * (ROWS - 1));
+    const layers = /^[LCRT]/.test(ch.move) ? layerOrder(cloth, cloth.x, B, r0, r1) : null;
+    // the tuck must go under the front band (the wrap made two moves earlier)
+    let tuck = null;
+    if (ch.move === 'T') {
+      const rr = (s) => Math.round((s / cloth.rowS[ROWS - 1]) * (ROWS - 1));
+      const b0 = rr(plan.poses[ci - 2].roles.coreEnd), b1 = rr(plan.poses[ci - 1].roles.coreEnd);
+      tuck = { under: 0, over: 0 };
+      for (let i = b0; i <= b1; i++) for (let j = r0; j <= r1; j++) for (const c of [0, 2, 4]) {
+        const qi = (i * COLS + c) * 3, qj = (j * COLS + c) * 3;
+        if (Math.hypot(B[qi] - B[qj], B[qi + 1] - B[qj + 1]) > 1 || B[qi + 2] - B[qj + 2] < 0.3) continue; // band in front, by design
+        if (Math.hypot(cloth.x[qi] - cloth.x[qj], cloth.x[qi + 1] - cloth.x[qj + 1]) > 1.5) continue;
+        if (cloth.x[qi + 2] > cloth.x[qj + 2]) tuck.under++; else tuck.over++;
+      }
+    }
     chapters.push(frames);
     grips.push(hands);
     routes.push(ch.routePoints ? ch.routePoints.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]) : null);
-    report.push({ chapter: ci + 1, move: ch.move, frames: frames.length, secs: ((Date.now() - t0) / 1000).toFixed(1), knotErr: err, intersections: hits, firstHit, maxClamped: maxClamp });
+    report.push({ chapter: ci + 1, move: ch.move, frames: frames.length, secs: ((Date.now() - t0) / 1000).toFixed(1), knotErr: err, layers: layers && { asDesigned: layers.same, wrongSide: layers.differ }, tuck, intersections: hits, firstHit, maxClamped: maxClamp });
     console.log(knot.id, JSON.stringify(report[report.length - 1]));
   });
   return { chapters, report, routes, grips, narrowLen: knot.narrowLen };

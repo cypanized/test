@@ -500,21 +500,25 @@ export function buildPose(knot, state, narrowLen = knot.narrowLen, { partial = 1
     return pose;
   }
 
-  const tight = state.kind === 'tight' || state.kind === 'finish';
-  const P = scaled(tight ? TIGHT : LOOSE, knot.size, knot);
+  // how far it has been slid up and snugged: 0 while tying, 1 when tight;
+  // in between (state.w) for the frames of the tightening itself
+  const w = state.kind === 'finish' ? 1 : state.kind === 'tight' ? (state.w ?? 1) : 0;
+  const tight = w > 0;
+  const P = w === 0 ? scaled(LOOSE, knot.size, knot) : w === 1 ? scaled(TIGHT, knot.size, knot)
+    : blendParams(scaled(LOOSE, knot.size, knot), scaled(TIGHT, knot.size, knot), w);
   const k = tight ? knot.moves.length : state.k;
   const st = knotWaypoints(knot.moves, k, P);
   const { exit, tail } = exitAndTail(st, P, knot.flop?.[k] ?? 1);
   const K = P.K;
 
   // narrow blade: from just below the knot, up the left strand to the collar
-  const below = V(0, K.y - (tight ? 1.6 : 2.6), K.z - (tight ? 0.35 : 0.15));
+  const below = V(0, K.y - lerp(2.6, 1.6, w), K.z - lerp(0.15, 0.35, w));
   const narrowSide = [
     { p: below, n: V(0, 0, 1) },
     { p: K.clone(), n: V(0, 0, 1) },
-    { p: K.clone().lerp(CL, 0.5).add(V(-0.1, 0, tight ? 0 : -0.35)), n: V(-0.1, 0.1, 1) },
+    { p: K.clone().lerp(CL, 0.5).add(V(-0.1, 0, lerp(-0.35, 0, w))), n: V(-0.1, 0.1, 1) },
     // leaves the collar along the shirt, under the collar point
-    ...(tight ? [] : [{ p: hugShirt(K.clone().lerp(CL, 0.8)), n: V(-0.15, 0.1, 1) }]),
+    ...(w < 1 ? [{ p: hugShirt(K.clone().lerp(CL, 0.8)).lerp(K.clone().lerp(CL, 0.8), w), n: V(-0.15, 0.1, 1) }] : []),
   ];
   const loop = neckLoop();
   const rightStrand = [];
@@ -544,8 +548,20 @@ export function buildPose(knot, state, narrowLen = knot.narrowLen, { partial = 1
   pose.meta = { st, P, k };
   // A snug knot is pulled into a tapered shape (wide under the collar, narrow
   // where the blade comes out). The renderer applies this as a gentle pinch.
-  pose.pinch = tight ? [K.y + 2.4, K.y - 2.1, knot.pinch ?? 0.3] : [K.y + 2.4, K.y - 2.1, 0];
+  pose.pinch = [K.y + 2.4, K.y - 2.1, (knot.pinch ?? 0.3) * w];
   return pose;
+}
+
+// Hub parameters part of the way from one set to another.
+function blendParams(A, B, w) {
+  const out = {};
+  for (const key of new Set([...Object.keys(A), ...Object.keys(B)])) {
+    const a = A[key], b = B[key];
+    if (typeof a === 'number' && typeof b === 'number') out[key] = a + (b - a) * w;
+    else if (a && a.isVector3 && b && b.isVector3) out[key] = a.clone().lerp(b, w);
+    else out[key] = w < 0.5 ? a : b;
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

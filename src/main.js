@@ -3,7 +3,7 @@ import { Stage } from './scene/stage.js';
 import { KNOTS, statesFor, viewFor } from './knots.js';
 import { buildPose, arrowPath } from './engine/tie-engine.js';
 import { KnotMap } from './ui/knotmap.js';
-import { BakedKnot } from './sim/player.js';
+import { BakedKnot, playSeconds } from './sim/player.js';
 import * as bakedFourInHand from './baked/four-in-hand.js';
 import * as bakedHalfWindsor from './baked/half-windsor.js';
 import * as bakedWindsor from './baked/windsor.js';
@@ -59,7 +59,7 @@ function arrowFor(ki, step) {
 function chapterSeconds(ki, step) {
   const m = BAKED[KNOTS[ki].id].meta;
   const c = m.chapters[step];
-  return c ? (c.frames - 1) / m.fps : 0;
+  return c ? playSeconds(c.frames, m.fps) : 0;
 }
 
 function pose(ki, si) {

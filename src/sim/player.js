@@ -80,6 +80,16 @@ export class BakedKnot {
   last(c) { const ch = this.chapter(c); return ch[ch.length - 1]; }
 }
 
+// Longer moves are played faster so none takes more than this (seconds).
+// (The baked hand moves only as fast as the cloth can safely follow, which
+// for the tight passes through the neck loop is slow.)
+export const MAX_MOVE_SECONDS = 8;
+
+/** Seconds a chapter of `frames` frames takes to play. */
+export function playSeconds(frames, fps) {
+  return Math.min((frames - 1) / fps, MAX_MOVE_SECONDS);
+}
+
 /**
  * Plays chapters forwards or backwards, interpolating between baked frames
  * so playback is smooth at any display rate.
@@ -113,16 +123,17 @@ export class Player {
     this.frames = this.knot.chapter(step);
     this.dir = reverse ? -1 : 1;
     this.t = reverse ? this.frames.length - 1 : 0;
+    this.speed = (this.frames.length - 1) / this.knot.fps / playSeconds(this.frames.length, this.knot.fps);
     this.playing = true;
     this._sample();
   }
 
-  get duration() { return this.frames ? (this.frames.length - 1) / this.knot.fps : 0; }
+  get duration() { return this.frames ? playSeconds(this.frames.length, this.knot.fps) : 0; }
 
   /** Advance by dt seconds; returns true while playing. */
   update(dt) {
     if (!this.playing) return false;
-    this.t += this.dir * dt * this.knot.fps;
+    this.t += this.dir * dt * this.knot.fps * (this.speed || 1);
     const last = this.frames.length - 1;
     if (this.t >= last) { this.t = last; this.playing = false; }
     if (this.t <= 0) { this.t = 0; this.playing = false; }
