@@ -16,7 +16,7 @@ const MOVE_TEXT = {
 const app = {
   knot: 0,
   step: 0,
-  mirror: true,
+  mode: 'mirror', // 'mirror' | 'pov' (your own eyes) | 'front' (someone facing you)
   arrows: true,
   playing: false,
   started: false,
@@ -145,7 +145,7 @@ function updateStepUI() {
     c.classList.toggle('done', i < app.step - 1 || (app.step > knot.moves.length));
     c.classList.toggle('current', i === app.step - 1);
   });
-  app.map.render(knot, app.step, app.mirror);
+  app.map.render(knot, app.step, app.mode !== 'front');
   if (app.started) {
     try { history.replaceState(null, '', `#${knot.id}-${app.step + 1}`); } catch { /* sandboxed */ }
   }
@@ -170,14 +170,16 @@ function goTo(step, { user = false, animate = true, replay = false } = {}) {
   if (animate && adjacent) {
     const forward = step > prev || replay;
     const k = forward ? step : prev; // the state whose move is being made or undone
-    const mv = statesFor(knot)[k].kind === 'moves' ? knot.moves[k - 1] : null;
+    const kind = statesFor(knot)[k].kind;
+    const mv = kind === 'moves' ? knot.moves[k - 1] : null;
     if (mv) swing = mv === 'T' || mv[1] === 'i' ? 'front' : 'back';
+    else swing = 'slide';
   }
   if (replay) {
     app.stage.showPose(pose(app.knot, step - 1), { animate: false });
   }
   const dur = reduceMotion ? 0.01 : st.kind === 'finish' ? 1.2 : st.kind === 'tight' ? 1.8 : 1.9;
-  app.stage.showPose(target, { animate: animate && !reduceMotion, swing, duration: dur });
+  app.stage.showPose(target, { animate: animate && !reduceMotion, swing, duration: dur, glow: swing !== 'slide' });
   app.stage.setArrow(app.arrows ? arrowPath(knot, st) : null);
   app.stage.setView(viewFor(st), !reduceMotion);
 }
@@ -221,15 +223,23 @@ function stopPlay() {
   if (s) s.textContent = 'Play';
 }
 
-function setMirror(mirror) {
-  app.mirror = mirror;
-  $$('.segmented button').forEach((b) => b.setAttribute('aria-checked', String((b.dataset.view === 'mirror') === mirror)));
-  document.body.classList.toggle('front-view', !mirror);
+const MODES = ['mirror', 'pov', 'front'];
+const HINTS = {
+  mirror: 'Drag to look behind the knot · scroll to zoom',
+  front: 'Drag to look behind the knot · scroll to zoom',
+  pov: 'Drag to glance around · scroll to lean in',
+};
+
+function setMode(mode) {
+  app.mode = mode;
+  $$('.segmented button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.view === mode)));
+  for (const m of MODES) document.body.classList.toggle('view-' + m, m === mode);
+  $('#dragHintText').textContent = HINTS[mode];
   if (app.stage) {
-    app.stage.setMirror(mirror);
-    app.stage.setView(viewFor(states()[app.step]), !reduceMotion);
+    app.stage.viewName = viewFor(states()[app.step]);
+    app.stage.setMode(mode);
   }
-  app.map.render(knotObj(), app.step, mirror);
+  app.map.render(knotObj(), app.step, mode !== 'front');
 }
 
 function start(knotIndex) {
@@ -306,6 +316,7 @@ function renderMathsTable() {
 
 function boot() {
   app.map = new KnotMap($('#knotMap'));
+  document.body.classList.add('view-mirror');
 
   // deep link: #windsor-4
   const m = location.hash.match(/^#(four-in-hand|half-windsor|windsor)-(\d+)$/);
@@ -357,7 +368,7 @@ function boot() {
   $('#nextBtn').addEventListener('click', () => goTo(app.step + 1, { user: true }));
   $('#replayBtn').addEventListener('click', () => { stopPlay(); goTo(app.step, { replay: true }); });
   $('#playBtn').addEventListener('click', () => (app.playing ? stopPlay() : play()));
-  $$('.segmented button').forEach((b) => b.addEventListener('click', () => setMirror(b.dataset.view === 'mirror')));
+  $$('.segmented button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.view)));
   $('#arrowsBtn').addEventListener('click', (e) => {
     app.arrows = !app.arrows;
     e.currentTarget.setAttribute('aria-pressed', String(app.arrows));
@@ -372,7 +383,8 @@ function boot() {
     if (e.key === 'ArrowRight') { goTo(app.step + 1, { user: true }); e.preventDefault(); }
     else if (e.key === 'ArrowLeft') { goTo(app.step - 1, { user: true }); e.preventDefault(); }
     else if (e.key === ' ' && e.target === document.body) { app.playing ? stopPlay() : play(); e.preventDefault(); }
-    else if (e.key === 'm' || e.key === 'M') setMirror(!app.mirror);
+    else if (e.key === 'v' || e.key === 'V') setMode(MODES[(MODES.indexOf(app.mode) + 1) % MODES.length]);
+    else if (e.key === 'm' || e.key === 'M') setMode(app.mode === 'mirror' ? 'front' : 'mirror');
   });
 
   // fade the drag hint once someone has used it

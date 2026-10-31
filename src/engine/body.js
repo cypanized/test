@@ -80,6 +80,26 @@ export function chestZ(x, y) {
   return zc + b * Math.pow(1 - Math.pow(r, SUPER_P), 1 / SUPER_P);
 }
 
+// Fast table lookup of chestZ for the cloth simulation (bilinear, 0.25 cm grid).
+const GX0 = -26, GX1 = 26, GY0 = -104, GY1 = 1.5, GS = 0.25;
+const GW = Math.round((GX1 - GX0) / GS) + 1, GH = Math.round((GY1 - GY0) / GS) + 1;
+let grid = null;
+export function chestZFast(x, y) {
+  if (x <= GX0 || x >= GX1 || y <= GY0 || y >= GY1) return chestZ(x, y);
+  if (!grid) {
+    grid = new Float32Array(GW * GH);
+    for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) {
+      const z = chestZ(GX0 + i * GS, GY0 + j * GS);
+      grid[j * GW + i] = Number.isFinite(z) ? z : -1e4;
+    }
+  }
+  const fx = (x - GX0) / GS, fy = (y - GY0) / GS;
+  const i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j;
+  const a = grid[j * GW + i], b = grid[j * GW + i + 1], c = grid[(j + 1) * GW + i], d = grid[(j + 1) * GW + i + 1];
+  if (a < -1e3 || b < -1e3 || c < -1e3 || d < -1e3) return chestZ(x, y);
+  return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
+}
+
 // Conservative "don't go behind this" surface used to keep hanging tie ends
 // resting on the shirt, collar and neck rather than sinking into them.
 export function bodyClearZ(x, y) {

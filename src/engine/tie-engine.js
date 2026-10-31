@@ -140,7 +140,7 @@ function genTail(p0, d0, sign, length, opt = {}) {
     const step = Math.min(ds, length - s);
     let target;
     if (phase === 0) {
-      target = V(0, 1, opt.lean ?? 0.3).normalize();
+      target = V((opt.side || 0) * 0.45, 1, opt.lean ?? 0.3).normalize();
       if (opt.upLen && s > opt.upLen) phase = 1;
     } else if (phase === 1) {
       target = V(opt.side ?? 1, -0.25, 0.25).normalize();
@@ -179,7 +179,7 @@ function genTail(p0, d0, sign, length, opt = {}) {
 // Hub parameters. LOOSE is how the knot looks while you build it; TIGHT is
 // after it has been slid up to the collar. `size` widens bigger knots.
 export const LOOSE = {
-  K: V(0, -7.8, 1.6), gf: 0.8, gb: 0.62, dyP: 0.75, ra: 2.0, dra: 0.5, flat: 1.9,
+  K: V(0, -7.8, 1.6), gf: 0.9, gb: 0.7, dyP: 0.75, ra: 2.0, dra: 0.5, flat: 1.9,
   Rt: 3.0, dRt: 0.35, apex: 4.9, dApex: 0.35, apexT: 5.5, bandDrop: 0.45, loose: true, oldScale: 0.62,
 };
 export const TIGHT = {
@@ -348,7 +348,9 @@ function exitAndTail(state, P, knotSide) {
   }
   if (region === 'C') {
     const dy = P.dApex * count.C * sc;
-    const tail = { d0: V(0, 1, 0.45), sign: last.side, mode: 'up', lean: 0.32, clear: 0.6 };
+    // you hold the wide end up a hand-span above the knot; the rest flops over your hand
+    const tail = { d0: V(0.25 * knotSide, 1, 0.5), sign: last.side, mode: 'up', lean: 0.5, clear: 0.6,
+      upLen: 6, side: knotSide, flopRadius: 2.2, xTarget: knotSide * 9 };
     if (last.side < 0) {
       // up behind the strands and out through the loop, seam side towards you
       const apex = apexPoint(K, P, sc, 0, dy);
@@ -392,7 +394,25 @@ function assemble(narrowLen, narrowStart, core, wideTailOpt, coreCup) {
   const pts = [...nPts, ...dc.pts, ...wt.pts];
   const nrm = [...nN, ...dc.nrm, ...wt.nrm];
   const cup = [...nPts.map(() => 0), ...dc.cup, ...wt.pts.map(() => 0)];
-  return resample(pts, nrm, cup, coreCup);
+  const pose = resample(pts, nrm, cup, coreCup);
+  // Which parts of the tie are shaped by the knot and which hang freely.
+  // The cloth simulation holds the former to the pose and lets gravity,
+  // collisions and fabric stiffness decide the latter.
+  let iCR = iCL, bestR = Infinity;
+  for (let i = iCL; i < dc.pts.length; i++) {
+    const d = dc.pts[i].distanceTo(CR);
+    if (d < bestR) { bestR = d; iCR = i; }
+  }
+  const scale = TIE_LENGTH / pose.length; // path length -> material length
+  pose.roles = {
+    narrowEnd: nLen * scale,
+    loopStart: (nLen + coreToCL) * scale,
+    loopEnd: (nLen + polyLength(dc.pts.slice(0, iCR + 1))) * scale,
+    coreEnd: (nLen + coreLen) * scale,
+    hold: wideTailOpt.mode === 'up' ? (nLen + coreLen + (wideTailOpt.upLen || 8)) * scale : null,
+    free: wideTailOpt.mode,
+  };
+  return pose;
 }
 
 function resample(pts, nrm, cup, coreCup) {

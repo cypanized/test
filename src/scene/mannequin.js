@@ -247,5 +247,22 @@ export function buildMannequin() {
   leaf.castShadow = true; leaf.receiveShadow = true;
   group.add(leaf);
 
+  // floor far below: only really seen in "your view", when you look down
+  const fc = document.createElement('canvas');
+  fc.width = fc.height = 256;
+  const fg = fc.getContext('2d');
+  const grad = fg.createRadialGradient(128, 128, 10, 128, 128, 128);
+  grad.addColorStop(0, 'rgba(58,46,38,1)');
+  grad.addColorStop(0.55, 'rgba(34,28,26,0.9)');
+  grad.addColorStop(1, 'rgba(11,13,18,0)');
+  fg.fillStyle = grad;
+  fg.fillRect(0, 0, 256, 256);
+  const floorTex = new THREE.CanvasTexture(fc);
+  floorTex.colorSpace = THREE.SRGBColorSpace;
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(150, 64), new THREE.MeshBasicMaterial({ map: floorTex, transparent: true, depthWrite: false }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(0, -125, 10);
+  group.add(floor);
+
   return { group, leaf, band };
 }

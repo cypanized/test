@@ -6,12 +6,13 @@ A step-by-step guide to the three classic tie knots (**Four-in-Hand**, **Half Wi
 
 ## What makes it different
 
-- **A real, continuous tie.** The tie is simulated as one 150 cm ribbon with a real width profile: a narrow blade, a 3 cm neck section and an 8.5 cm wide blade with pointed tips. Over-and-under crossings, the seam side showing after a pass underneath, and how much length each knot uses all come out of the geometry. They aren't drawn in by hand.
+- **Simulated silk, not a rigid ribbon.** The tie is cloth: 264 × 5 particles cut to a real tie's width profile and solved with position-based dynamics. It barely stretches, bends softly along its length, stays flat-ish across its width, and collides with the shirt, collar and neck. Each step's knot shape is computed from the move sequence and the cloth is held to it, while gravity, inertia and fabric stiffness decide how the free ends drape, swing and settle.
+- **No layers passing through each other.** The cloth collides with itself, with real thickness. Which side a layer belongs on comes from the knot geometry, so layers that should be over stay over. The blade your hand is carrying passes round the knot during a move; collisions take over again the moment it's let go.
+- **Three points of view.** *Mirror*, the default, is how you see yourself while tying. *Your view* is first person, looking down at your own chest: drag to glance around, scroll to lean in. *Facing you* is for tying someone else's tie.
 - **Lengths that add up.** For each knot, the guide works out where the narrow end has to start so that the finished tip lands on the belt buckle. That's why the Windsor's drape step starts so much higher than the Four-in-Hand's.
-- **Mirror view by default.** Every step is shown the way you see yourself in a mirror. One click switches to *Facing you*, for tying someone else's tie.
 - **The path of the wide end.** A live map traces each move through the three regions (Left, Centre, Right), solid for over the front and dashed for underneath. It uses the notation from Fink & Mao's *The 85 Ways to Tie a Tie*.
-- **Animated moves.** The wide end swings into each new position and the part that moved glows briefly. Gold guide arrows show the motion; any part of an arrow hidden behind the tie still shows faintly.
-- **Spin it round.** Drag to look behind the knot, scroll to zoom. Use ← / → for steps, Space to play, M to flip the view.
+- **Guides.** The part that moved glows briefly, and gold arrows show the motion. Any part of an arrow hidden behind the tie still shows faintly.
+- **Controls:** ← / → for steps, Space to play, V to cycle points of view, M to flip between mirror and facing views.
 - Also on the page: a knot chooser, set-up tips, finishing touches (dimple, length, collar), troubleshooting, and a short section on the maths of tie knots.
 
 ## Knot sequences (Fink–Mao notation, mirror view)
@@ -34,9 +35,11 @@ npm run dev     # rebuild on change, serve on http://localhost:8080
 
 | Path | Contents |
 | --- | --- |
-| `src/engine/tie-engine.js` | Turns a move sequence into a tie pose: knot geometry, free ends that drape under gravity, length solving, guide arrows |
+| `src/engine/tie-engine.js` | Turns a move sequence into a tie pose (the shape each step aims for): knot geometry, free ends, length solving, guide arrows |
+| `src/sim/cloth.js` | The silk: position-based cloth with stretch/shear/bending, tethers, body and self-collision |
+| `src/sim/animator.js` | Sweeps the target pose between steps and drives the cloth: the moving blade is carried by hand, then let go |
 | `src/engine/body.js` | Shared measurements for the dress form (torso, collar, belt) |
-| `src/scene/` | three.js stage, dress form, the ribbon mesh and fabric textures |
+| `src/scene/` | three.js stage and cameras (mirror / your view / facing you), dress form, the smoothed thick-silk mesh, fabric textures |
 | `src/ui/knotmap.js` | The "path of the wide end" diagram |
 | `src/knots.js` | Knot definitions and all step copy |
 
