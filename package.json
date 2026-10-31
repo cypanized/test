@@ -1,0 +1,15 @@
+{
+  "name": "how-to-tie-a-tie",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An interactive, step-by-step 3D guide to tying a tie (Four-in-Hand, Half Windsor, Windsor).",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --serve"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "three": "0.187.0"
+  }
+}
