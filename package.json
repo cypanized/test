@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "node build.mjs --serve"
+    "dev": "node build.mjs --serve",
+    "bake": "node tools/bake.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
+    "fflate": "^0.8.3",
     "three": "0.187.0"
   }
 }

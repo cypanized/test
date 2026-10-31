@@ -100,19 +100,14 @@ export function chestZFast(x, y) {
   return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
 }
 
-// Conservative "don't go behind this" surface used to keep hanging tie ends
-// resting on the shirt, collar and neck rather than sinking into them.
+// "Don't go behind this" surface used to keep hanging tie ends resting on
+// the shirt and neck. (Near the collar they lie on the shirt, under the
+// collar points, like a real tie.)
 export function bodyClearZ(x, y) {
   let z = chestZ(x, y);
   // neck
   if (y > -1 && Math.abs(x) < NECK.r) {
     z = Math.max(z, NECK.z + Math.sqrt(NECK.r * NECK.r - x * x));
-  }
-  // collar leaf / points: a smooth envelope that falls away from the neck
-  if (y > -10 && y < 7) {
-    const ax = Math.abs(x);
-    const env = -2.45 - 0.07 * Math.max(0, ax - 5) ** 2 - 0.25 * Math.max(0, -5.5 - y) ** 2;
-    z = Math.max(z, env);
   }
   return z;
 }
@@ -126,4 +121,67 @@ export function chestNormal(x, y) {
   const dx = (zx1 - zx0) / (2 * e), dy = (zy1 - zy0) / (2 * e);
   const l = Math.hypot(dx, dy, 1);
   return [-dx / l, -dy / l, 1 / l];
+}
+
+// The folded collar leaf as a plain triangle surface (cols around the neck,
+// rows from the fold down to the edge/points). The mannequin draws it and
+// the cloth simulation uses a coarse copy as a solid obstacle.
+export function collarLeafSurface(cols = 150, rows = 26) {
+  const TAU = Math.PI * 2;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
+  const th0 = COLLAR.frontAngle;
+  const pos = new Float32Array((cols + 1) * (rows + 1) * 3);
+  const uv = new Float32Array((cols + 1) * (rows + 1) * 2);
+  const bandTop = (th) => 3.45 + 1.6 * (1 - Math.cos(th)) / 2;
+  let o = 0, u = 0;
+  for (let c = 0; c <= cols; c++) {
+    const th = lerp(th0, TAU - th0, c / cols);
+    const side = th < Math.PI ? 1 : -1; // +1 = wearer's right half
+    const d = Math.min(th - th0, TAU - th0 - th);
+    const f = smooth(1 - d / 1.05);
+    const sn = Math.sin(th), cs = Math.cos(th);
+    const yT = bandTop(th) + 0.05;
+    // lower edge: around the back, sweeping down into the collar point at the front
+    const rB = 8.7;
+    const bx = rB * sn, by = -0.25 + 1.5 * (1 - cs) / 2, bz = NECK.z + rB * cs;
+    const px = side * COLLAR.pointX, py = COLLAR.pointY, pz = chestZ(px, py) + 0.95;
+    const ex = lerp(bx, px, f), ey = lerp(by, py, f), ez = lerp(bz, pz, f);
+    for (let r = 0; r <= rows; r++) {
+      const v = r / rows;
+      let x, y, z;
+      if (v < 0.14) {
+        // the rolled fold over the band
+        const a = (v / 0.14) * Math.PI * 0.62;
+        const rad = COLLAR.bandR + 0.42 * Math.sin(a) + 0.08;
+        x = rad * sn; y = yT + 0.32 * Math.sin(a * 0.9); z = NECK.z + rad * cs;
+      } else {
+        const t = (v - 0.14) / 0.86;
+        const sr = COLLAR.bandR + 0.5;
+        x = lerp(sr * sn, ex, t); y = lerp(yT + 0.1, ey, t); z = lerp(NECK.z + sr * cs, ez, t);
+        // billow outwards so the leaf clears the tie running beneath it
+        const out = 0.75 * Math.sin(t * Math.PI) * (1 - 0.5 * f);
+        x += sn * out; z += cs * out;
+        z += 0.55 * Math.sin(t * Math.PI) * f;
+        const zMin = chestZ(x, y) + 0.85;
+        if (Number.isFinite(zMin) && y < 0.5 && z < zMin) z = zMin;
+        // stay clear of the tie running round the collar band beneath
+        if (y > -2.5) {
+          const rx = x, rz = z - NECK.z, rr = Math.hypot(rx, rz);
+          const rMin = COLLAR.tieR + 0.75;
+          if (rr < rMin) { x = rx * rMin / rr; z = NECK.z + rz * rMin / rr; }
+        }
+      }
+      pos[o++] = x; pos[o++] = y; pos[o++] = z;
+      uv[u++] = (c / cols) * 12; uv[u++] = v;
+    }
+  }
+  const H = rows + 1;
+  const idx = new Uint32Array(cols * rows * 6);
+  let k = 0;
+  for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
+    const a = c * H + r, b = a + 1, d = a + H, e = d + 1;
+    idx[k++] = a; idx[k++] = b; idx[k++] = d; idx[k++] = b; idx[k++] = e; idx[k++] = d;
+  }
+  return { pos, uv, idx };
 }

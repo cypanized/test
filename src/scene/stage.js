@@ -4,7 +4,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { buildMannequin } from './mannequin.js';
 import { TieMesh } from './tie-mesh.js';
-import { TieAnimator, ease } from '../sim/animator.js';
+import { Player } from '../sim/player.js';
+import { SAMPLES } from '../engine/tie-engine.js';
+
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 import { stripeTexture, liningTexture, dashTexture } from './textures.js';
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -88,7 +91,12 @@ export class Stage {
     const edge = new THREE.MeshStandardMaterial({ color: 0x1a2747, roughness: 0.5 });
     this.tie = new TieMesh({ silk, lining, edge });
     this.root.add(this.tie.mesh);
-    this.anim = new TieAnimator();
+    this.player = new Player();
+    // per-pose extras the cloth doesn't simulate: knot taper and dimple
+    this.look2 = { C: new Float32Array(SAMPLES), pinch: [0, -4, 0] };
+    this.glow = new Float32Array(SAMPLES);
+    this.glowTarget = new Float32Array(SAMPLES);
+    this.highlight = true;
 
     // guide arrows (a visible pass + an x-ray pass for parts hidden behind the tie)
     this.dash = dashTexture();
@@ -97,6 +105,12 @@ export class Stage {
     this.arrowXray = new THREE.MeshBasicMaterial({ color: 0xffd99a, transparent: true, opacity: 0, alphaMap: this.dash, depthWrite: false, depthFunc: THREE.GreaterDepth });
     this.headMat = new THREE.MeshBasicMaterial({ color: 0xffc766, transparent: true, opacity: 0, depthWrite: false });
     this.headXray = new THREE.MeshBasicMaterial({ color: 0xffd99a, transparent: true, opacity: 0, depthWrite: false, depthFunc: THREE.GreaterDepth });
+    // a soft ring showing where the (invisible) hand is feeding the blade
+    this.hand = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.45, 40),
+      new THREE.MeshBasicMaterial({ color: 0xffd28a, transparent: true, opacity: 0, depthTest: false, depthWrite: false }));
+    this.hand.renderOrder = 20;
+    this.root.add(this.hand);
+    this.handOpacity = 0;
     this.arrowGroup = new THREE.Group();
     this.arrowGroup.renderOrder = 10;
     this.root.add(this.arrowGroup);
@@ -237,15 +251,52 @@ export class Stage {
     this.controls.target.copy(eye).addScaledVector(dir, len);
   }
 
-  /** Show a pose, instantly or as an animated move (see TieAnimator.show). */
-  showPose(pose, opts = {}) {
-    this.anim.show(pose, opts);
+  /** Use a knot's baked cloth animation (BakedKnot). */
+  setBaked(baked) {
+    this.player.setKnot(baked);
+  }
+
+  /**
+   * Show the tie at a step: jump there, or play the baked move into it
+   * (reverse = play the move into `chapter` backwards, i.e. undo it).
+   * `pose` supplies the knot taper and dimple for the destination.
+   */
+  showStep(chapter, { play = false, reverse = false, pose = null, glow = true } = {}) {
+    const p = this.player;
+    if (play) p.play(chapter, { reverse }); else p.show(chapter);
+    this._fromLook = { C: this.look2.C.slice(), pinch: this.look2.pinch.slice() };
+    this._toLook = pose ? { C: pose.C, pinch: pose.pinch } : this._fromLook;
+    if (!play) this._setLook(1);
+    // glow on whatever moved during this chapter
+    this.glowTarget.fill(0);
+    if (play && glow) {
+      const f = p.knot.chapter(chapter), A = f[0], B = f[f.length - 1];
+      const rows = p.knot.meta.rows, cols = p.knot.meta.cols;
+      let maxD = 0;
+      const d = new Float32Array(rows);
+      for (let i = 0; i < rows; i++) {
+        const q = (i * cols + 2) * 3;
+        d[i] = Math.hypot(B[q] - A[q], B[q + 1] - A[q + 1], B[q + 2] - A[q + 2]);
+        maxD = Math.max(maxD, d[i]);
+      }
+      for (let s = 0; s < SAMPLES; s++) {
+        const i = Math.round((s / (SAMPLES - 1)) * (rows - 1));
+        this.glowTarget[s] = maxD > 0.5 ? clamp((d[i] / maxD - 0.15) * 1.6, 0, 1) : 0;
+      }
+    } else this.glow.fill(0);
     this._apply();
   }
 
-  /** Fast-forward the cloth (used for screenshots and tests). */
-  settleNow(seconds = 1.2) {
-    this.anim.finish(seconds);
+  _setLook(k) {
+    const A = this._fromLook, B = this._toLook, L = this.look2;
+    for (let i = 0; i < SAMPLES; i++) L.C[i] = A.C[i] + (B.C[i] - A.C[i]) * k;
+    for (let i = 0; i < 3; i++) L.pinch[i] = A.pinch[i] + (B.pinch[i] - A.pinch[i]) * k;
+  }
+
+  /** Fast-forward the current move (used for screenshots and tests). */
+  settleNow() {
+    this.player.finish();
+    this._setLook(1);
     this._apply();
   }
 
@@ -274,11 +325,10 @@ export class Stage {
     this.arrowOpacity = 0;
   }
 
-  set highlight(v) { this.anim.highlight = v; }
 
   _apply() {
-    const a = this.anim;
-    this.tie.update(a.cloth.x, a.cur.C, a.glow, a.cur.pinch);
+    if (!this.player.out) return;
+    this.tie.update(this.player.out, this.look2.C, this.glow, this.look2.pinch);
   }
 
   _loop() {
@@ -288,9 +338,29 @@ export class Stage {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     this.time += dt;
 
-    if (this.anim.update(dt)) this._apply();
+    let changed = this.player.update(dt);
+    if (changed && this._toLook) this._setLook(ease(this.player.progress));
+    for (let i = 0; i < SAMPLES; i++) {
+      const target = this.highlight ? this.glowTarget[i] : 0;
+      const g = this.glow[i] + (target - this.glow[i]) * Math.min(1, dt * 4);
+      if (Math.abs(g - this.glow[i]) > 1e-4) changed = true;
+      this.glow[i] = g;
+    }
+    if (changed) this._apply();
+    // the hand marker follows the gripped row while a move plays
+    const row = this.player.handRow;
+    const wantHand = row >= 0 && this.highlight ? 0.75 : 0;
+    this.handOpacity += (wantHand - this.handOpacity) * Math.min(1, dt * 6);
+    this.hand.material.opacity = this.handOpacity * (0.75 + 0.25 * Math.sin(this.time * 6));
+    this.hand.visible = this.handOpacity > 0.02;
+    if (row >= 0 && this.player.out) {
+      const cols = this.player.knot.meta.cols, q = (row * cols + Math.floor(cols / 2)) * 3, o = this.player.out;
+      this.hand.position.set(o[q], o[q + 1], o[q + 2]);
+      this.hand.quaternion.copy(this.camera.quaternion);
+      if (this.root.scale.x < 0) this.hand.scale.set(-1, 1, 1); else this.hand.scale.set(1, 1, 1);
+    }
     // the part that just moved breathes softly
-    this.tie.uniforms.uGlow.value = 0.09 * (this.anim.moving ? 1 : 0.5 + 0.3 * Math.sin(this.time * 2.4));
+    this.tie.uniforms.uGlow.value = 0.09 * (this.player.playing ? 1 : 0.5 + 0.3 * Math.sin(this.time * 2.4));
 
     // arrows: fade in, dashes flow along the path
     const want = this.arrowPoints && this.showArrows !== false ? 1 : 0;
@@ -318,12 +388,11 @@ export class Stage {
     if (this.onFrame) this.onFrame(dt);
   }
 
-  get isAnimating() { return this.anim.moving || !!this.camTween; }
+  get isAnimating() { return this.player.playing || !!this.camTween; }
 
   /** Jump to the end of any running move or camera glide. */
   finishAnimations() {
-    this.anim.finish(1.2);
-    this._apply();
+    this.settleNow();
     if (this.camTween) this.camTween.t = 0.9999;
   }
 }

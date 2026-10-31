@@ -6,8 +6,8 @@ A step-by-step guide to the three classic tie knots (**Four-in-Hand**, **Half Wi
 
 ## What makes it different
 
-- **Simulated silk, not a rigid ribbon.** The tie is cloth: 264 × 5 particles cut to a real tie's width profile and solved with position-based dynamics. It barely stretches, bends softly along its length, stays flat-ish across its width, and collides with the shirt, collar and neck. Each step's knot shape is computed from the move sequence and the cloth is held to it, while gravity, inertia and fabric stiffness decide how the free ends drape, swing and settle.
-- **No layers passing through each other.** The cloth collides with itself, with real thickness. Which side a layer belongs on comes from the knot geometry, so layers that should be over stay over. The blade your hand is carrying passes round the knot during a move; collisions take over again the moment it's let go.
+- **Physically tied, never self-intersecting.** Every move is performed the way a person ties a tie. One hand holds the knot. The other grips the wide blade and carries it along a real path: in front of the narrow blade, behind it, up through the neck loop, down through the front band. The cloth follows on its own. The solver gives a hard guarantee that fabric never passes through fabric (or the collar): each sub-step, every point may move at most 45% of its distance to the nearest other piece of cloth, measured point-to-face and edge-to-edge. That's the idea behind recent penetration-free cloth solvers. The animation is baked offline (`tools/bake.mjs`), and every recorded frame is checked with an exact segment–triangle intersection test before it's written.
+- **Real cloth behaviour.** 264 × 5 particles cut to a real tie's width profile: silk that stretches at most 1% (strain-limited outward from the neck, so the hanging blades' weight is carried to the collar instead of sagging), soft bending along the length, stiffer across the width, real thickness, gravity and air drag, the shirt, neck and collar as solid bodies.
 - **Three points of view.** *Mirror*, the default, is how you see yourself while tying. *Your view* is first person, looking down at your own chest: drag to glance around, scroll to lean in. *Facing you* is for tying someone else's tie.
 - **Lengths that add up.** For each knot, the guide works out where the narrow end has to start so that the finished tip lands on the belt buckle. That's why the Windsor's drape step starts so much higher than the Four-in-Hand's.
 - **The path of the wide end.** A live map traces each move through the three regions (Left, Centre, Right), solid for over the front and dashed for underneath. It uses the notation from Fink & Mao's *The 85 Ways to Tie a Tie*.
@@ -29,15 +29,19 @@ A step-by-step guide to the three classic tie knots (**Four-in-Hand**, **Half Wi
 
 ```bash
 npm install
-npm run build   # -> dist/index.html (three.js + app bundled and inlined)
+node tools/bake.mjs   # re-simulate and verify the cloth (several minutes)
+npm run build   # -> dist/index.html (three.js + app + baked cloth, all inlined)
 npm run dev     # rebuild on change, serve on http://localhost:8080
 ```
 
 | Path | Contents |
 | --- | --- |
 | `src/engine/tie-engine.js` | Turns a move sequence into a tie pose (the shape each step aims for): knot geometry, free ends, length solving, guide arrows |
-| `src/sim/cloth.js` | The silk: position-based cloth with stretch/shear/bending, tethers, body and self-collision |
-| `src/sim/animator.js` | Sweeps the target pose between steps and drives the cloth: the moving blade is carried by hand, then let go |
+| `src/sim/cloth.js` | Penetration-free cloth solver: stretch/shear/bending, contact offset, conservative motion bounds (point–face, edge–edge, collar) |
+| `src/sim/choreo.js` | The hands: for each move, a grip and a path round the correct side of the knot, then the step's pose to settle into |
+| `src/sim/verify.js` | Exact intersection check used on every baked frame |
+| `tools/bake.mjs` | Runs the simulation offline, verifies it, and writes compressed playback data to `src/baked/` |
+| `src/sim/player.js` | Decodes and plays the baked frames in the browser |
 | `src/engine/body.js` | Shared measurements for the dress form (torso, collar, belt) |
 | `src/scene/` | three.js stage and cameras (mirror / your view / facing you), dress form, the smoothed thick-silk mesh, fabric textures |
 | `src/ui/knotmap.js` | The "path of the wide end" diagram |

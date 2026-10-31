@@ -1,7 +1,7 @@
 // Dress form wearing a shirt, collar, belt and trousers. Built from the same
 // measurements the tie engine uses (engine/body.js), so the tie rests on it.
 import * as THREE from 'three';
-import { NECK, COLLAR, BELT, BUTTONS_Y, torsoSection, chestZ, SUPER_P } from '../engine/body.js';
+import { NECK, COLLAR, BELT, BUTTONS_Y, torsoSection, chestZ, SUPER_P, collarLeafSurface } from '../engine/body.js';
 import { oxfordTexture, linenTexture } from './textures.js';
 
 const TAU = Math.PI * 2;
@@ -97,55 +97,11 @@ function bandGeometry() {
 
 // Collar leaf: folds over the top of the band, covers the tie, ends in two points.
 function leafGeometry() {
-  const th0 = COLLAR.frontAngle;
-  const cols = 150, rows = 26;
-  const pos = [], idx = [], uv = [];
-  const bandTop = (th) => 3.45 + 1.6 * (1 - Math.cos(th)) / 2;
-  for (let c = 0; c <= cols; c++) {
-    const th = lerp(th0, TAU - th0, c / cols);
-    const side = th < Math.PI ? 1 : -1; // +1 = wearer's right half
-    const d = Math.min(th - th0, TAU - th0 - th);
-    const f = smooth(1 - d / 1.05);
-    const sn = Math.sin(th), cs = Math.cos(th);
-    const yT = bandTop(th) + 0.05;
-    // lower edge: around the back, sweeping down into the collar point at the front
-    const rB = 8.7;
-    const back = new THREE.Vector3(rB * sn, -0.25 + 1.5 * (1 - cs) / 2, NECK.z + rB * cs);
-    const px = side * COLLAR.pointX, py = COLLAR.pointY;
-    const point = new THREE.Vector3(px, py, chestZ(px, py) + 0.95);
-    const E = back.clone().lerp(point, f);
-    for (let r = 0; r <= rows; r++) {
-      const v = r / rows;
-      let p;
-      if (v < 0.14) {
-        // the rolled fold over the band
-        const a = (v / 0.14) * Math.PI * 0.62;
-        const rad = COLLAR.bandR + 0.42 * Math.sin(a) + 0.08;
-        p = new THREE.Vector3(rad * sn, yT + 0.32 * Math.sin(a * 0.9), NECK.z + rad * cs);
-      } else {
-        const t = (v - 0.14) / 0.86;
-        const start = new THREE.Vector3((COLLAR.bandR + 0.5) * sn, yT + 0.1, NECK.z + (COLLAR.bandR + 0.5) * cs);
-        p = start.lerp(E, t);
-        // billow outwards so the leaf clears the tie running beneath it
-        const out = new THREE.Vector3(sn, 0, cs).multiplyScalar(0.75 * Math.sin(t * Math.PI) * (1 - 0.5 * f));
-        p.add(out);
-        p.z += 0.55 * Math.sin(t * Math.PI) * f;
-        const zMin = chestZ(p.x, p.y) + 0.85;
-        if (Number.isFinite(zMin) && p.y < 0.5 && p.z < zMin) p.z = zMin;
-      }
-      pos.push(p.x, p.y, p.z);
-      uv.push(c / cols * 12, v);
-    }
-  }
-  const H = rows + 1;
-  for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
-    const a = c * H + r, b = a + 1, d = a + H, e = d + 1;
-    idx.push(a, b, d, b, e, d);
-  }
+  const { pos, uv, idx } = collarLeafSurface(150, 26);
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.setIndex(idx);
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
   g.computeVertexNormals();
   return g;
 }

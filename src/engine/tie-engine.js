@@ -13,7 +13,7 @@
 // Coordinates: see body.js (mirror view, +x = wearer's right, +z = towards you).
 
 import { Vector3 } from 'three';
-import { NECK, COLLAR, bodyClearZ, chestNormal } from './body.js';
+import { NECK, COLLAR, bodyClearZ, chestNormal, chestZ } from './body.js';
 
 export const TIE_LENGTH = 150;
 export const SAMPLES = 560;
@@ -206,6 +206,14 @@ function scaled(P, size, knot = {}) {
   return { ...P, ra: P.ra * size, Rt: P.Rt * size, dRt: P.dRt * size, apex: P.apex * (0.85 + 0.15 * size), bandLean: knot.bandLean || 0 };
 }
 
+// Pull a point back onto the shirt (just above its surface), so a strand
+// leaving the collar stays tucked under the collar point.
+function hugShirt(p) {
+  const z = chestZ(p.x, p.y);
+  if (Number.isFinite(z)) p.z = Math.min(p.z, z + 0.45);
+  return p;
+}
+
 // Point on a neck strand at height y (straight line from the hub to the collar).
 function strandAt(K, side, y) {
   const C = side < 0 ? CL : CR;
@@ -254,7 +262,9 @@ function knotWaypoints(moves, k, P) {
     });
   }
 
+  const moveStart = [];
   for (let i = 0; i < k; i++) {
+    moveStart[i] = wps.length;
     const m = moves[i];
     // While tying, earlier wraps get snugged down as later ones go on, so
     // older passes sit closer to the hub and the newest one stays open.
@@ -298,7 +308,8 @@ function knotWaypoints(moves, k, P) {
 
     // how the blade gets from the previous crossing to this one
     if (i === 0) {
-      // first crossing: straight down off the right strand
+      // first crossing: out from under the collar along the shirt, then down off the right strand
+      if (P.loose) wps.push({ p: hugShirt(CR.clone().lerp(X, 0.2)), n: V(0.15, 0.1, 1) });
       wps.push({ p: CR.clone().lerp(X, 0.55).add(V(0.15, 0, 0.25)), n: V(0.05, 0.25, 1) });
     } else {
       const prev = passes[passes.length - 1];
@@ -335,7 +346,7 @@ function knotWaypoints(moves, k, P) {
     count[axis]++;
     region = to;
   }
-  return { wps, passes, region, count, tInfo, strandL, strandR, sc: lastSc };
+  return { wps, passes, region, count, tInfo, strandL, strandR, sc: lastSc, moveStart };
 }
 
 /** Where the free end leaves the knot when the state is displayed. */
@@ -372,9 +383,10 @@ function exitAndTail(state, P, knotSide) {
 // ---------------------------------------------------------------------------
 // Pose assembly
 
-function assemble(narrowLen, narrowStart, core, wideTailOpt, coreCup) {
+function assemble(narrowLen, narrowStart, core, wideTailOpt, coreCup, cut = null) {
   // 1. core polyline (narrow start -> ... -> last knot waypoint)
   const dc = densify(core);
+  if (cut) cutDense(dc, core, cut, wideTailOpt);
   // length of core from its start up to the left collar exit CL (part of the narrow side)
   let iCL = 0, best = Infinity;
   for (let i = 0; i < dc.pts.length; i++) {
@@ -415,6 +427,31 @@ function assemble(narrowLen, narrowStart, core, wideTailOpt, coreCup) {
   return pose;
 }
 
+// Progressive wrap: keep the core only up to a fraction `u` of the way
+// through the last move's waypoints (from waypoint index `from`); the free
+// end then trails from the cut point, continuing in the direction of travel.
+function cutDense(dc, core, { from, u }, tail) {
+  // arc length at each dense point, and at the waypoint `from`
+  const n = dc.pts.length;
+  const cum = [0];
+  for (let i = 1; i < n; i++) cum.push(cum[i - 1] + dc.pts[i].distanceTo(dc.pts[i - 1]));
+  const target = core[Math.min(from, core.length - 1)].p;
+  let iFrom = 0, best = Infinity;
+  for (let i = 0; i < n; i++) { const d = dc.pts[i].distanceTo(target); if (d < best) { best = d; iFrom = i; } }
+  const L = cum[iFrom] + (cum[n - 1] - cum[iFrom]) * u;
+  let j = iFrom;
+  while (j < n - 2 && cum[j + 1] < L) j++;
+  const a = clamp((L - cum[j]) / Math.max(cum[j + 1] - cum[j], 1e-9), 0, 1);
+  const pEnd = dc.pts[j].clone().lerp(dc.pts[j + 1], a);
+  const nEnd = dc.nrm[j].clone().lerp(dc.nrm[j + 1], a).normalize();
+  const dir = dc.pts[j + 1].clone().sub(dc.pts[j]).normalize();
+  dc.pts.length = j + 1; dc.nrm.length = j + 1; dc.cup.length = j + 1;
+  dc.pts.push(pEnd); dc.nrm.push(nEnd); dc.cup.push(0);
+  // the free end leaves the cut point the way the fabric was heading, then hangs
+  tail.d0 = dir; tail.sign = nEnd.z >= 0 ? 1 : -1; tail.mode = 'hang';
+  tail.xTarget = pEnd.x + dir.x * 4; tail.clear = 0.75; tail.radius = 4;
+}
+
 function resample(pts, nrm, cup, coreCup) {
   const n = pts.length;
   const cum = new Float64Array(n);
@@ -448,7 +485,7 @@ function resample(pts, nrm, cup, coreCup) {
  * @param knot   knot definition (moves, size, narrowLen)
  * @param state  { kind: 'drape' } | { kind: 'moves', k } | { kind: 'tight' } | { kind: 'finish' }
  */
-export function buildPose(knot, state, narrowLen = knot.narrowLen) {
+export function buildPose(knot, state, narrowLen = knot.narrowLen, { partial = 1 } = {}) {
   if (state.kind === 'drape') {
     const loop = neckLoop();
     const core = [
@@ -476,6 +513,8 @@ export function buildPose(knot, state, narrowLen = knot.narrowLen) {
     { p: below, n: V(0, 0, 1) },
     { p: K.clone(), n: V(0, 0, 1) },
     { p: K.clone().lerp(CL, 0.5).add(V(-0.1, 0, tight ? 0 : -0.35)), n: V(-0.1, 0.1, 1) },
+    // leaves the collar along the shirt, under the collar point
+    ...(tight ? [] : [{ p: hugShirt(K.clone().lerp(CL, 0.8)), n: V(-0.15, 0.1, 1) }]),
   ];
   const loop = neckLoop();
   const rightStrand = [];
@@ -494,7 +533,14 @@ export function buildPose(knot, state, narrowLen = knot.narrowLen) {
       }
     };
   }
-  const pose = assemble(narrowLen, narrowStart, core, tail, coreCup);
+  let cut = null;
+  if (partial < 1 && state.kind === 'moves') {
+    // only part of the way through the last move (and no exit points yet)
+    const offset = narrowSide.length + loop.length + rightStrand.length;
+    cut = { from: offset + Math.max(0, st.moveStart[k - 1] - 1), u: Math.max(0.001, partial) };
+    core.length = offset + st.wps.length; // drop exit waypoints
+  }
+  const pose = assemble(narrowLen, narrowStart, core, tail, coreCup, cut);
   pose.meta = { st, P, k };
   // A snug knot is pulled into a tapered shape (wide under the collar, narrow
   // where the blade comes out). The renderer applies this as a gentle pinch.

@@ -1,8 +1,15 @@
+import { Vector3 } from 'three';
 import { Stage } from './scene/stage.js';
 import { KNOTS, statesFor, viewFor } from './knots.js';
-import { buildPose, solveNarrowLength, arrowPath } from './engine/tie-engine.js';
-import { TIP_TARGET_Y } from './engine/body.js';
+import { buildPose, arrowPath } from './engine/tie-engine.js';
 import { KnotMap } from './ui/knotmap.js';
+import { BakedKnot } from './sim/player.js';
+import * as bakedFourInHand from './baked/four-in-hand.js';
+import * as bakedHalfWindsor from './baked/half-windsor.js';
+import * as bakedWindsor from './baked/windsor.js';
+
+// Pre-simulated (and intersection-checked) cloth for every step of every knot.
+const BAKED = { 'four-in-hand': bakedFourInHand, 'half-windsor': bakedHalfWindsor, windsor: bakedWindsor };
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -30,8 +37,29 @@ const app = {
 function knotObj(i = app.knot) { return KNOTS[i]; }
 function states(i = app.knot) { return statesFor(KNOTS[i]); }
 
+const bakedCache = new Map();
+function baked(ki = app.knot) {
+  const id = KNOTS[ki].id;
+  if (!bakedCache.has(id)) bakedCache.set(id, new BakedKnot(BAKED[id].meta, BAKED[id].data));
+  return bakedCache.get(id);
+}
+
 function ensureLength(knot) {
-  if (!knot.narrowLen) knot.narrowLen = solveNarrowLength(knot, TIP_TARGET_Y);
+  if (!knot.narrowLen) knot.narrowLen = BAKED[knot.id].meta.narrowLen;
+}
+
+// The guide arrow is the path the hand actually took in the simulation.
+function arrowFor(ki, step) {
+  const route = BAKED[KNOTS[ki].id].meta.routes?.[step];
+  if (route) return route.map(([x, y, z]) => new Vector3(x, y, z));
+  const st = statesFor(KNOTS[ki])[step];
+  return st.kind === 'tight' ? arrowPath(KNOTS[ki], st) : null;
+}
+
+function chapterSeconds(ki, step) {
+  const m = BAKED[KNOTS[ki].id].meta;
+  const c = m.chapters[step];
+  return c ? (c.frames - 1) / m.fps : 0;
 }
 
 function pose(ki, si) {
@@ -166,21 +194,14 @@ function goTo(step, { user = false, animate = true, replay = false } = {}) {
   const st = states()[step];
   const target = pose(app.knot, step);
   const adjacent = Math.abs(step - prev) === 1 || replay;
-  let swing = null;
-  if (animate && adjacent) {
-    const forward = step > prev || replay;
-    const k = forward ? step : prev; // the state whose move is being made or undone
-    const kind = statesFor(knot)[k].kind;
-    const mv = kind === 'moves' ? knot.moves[k - 1] : null;
-    if (mv) swing = mv === 'T' || mv[1] === 'i' ? 'front' : 'back';
-    else swing = 'slide';
+  const glow = st.kind === 'moves';
+  if (animate && adjacent && !reduceMotion && (replay || step !== prev)) {
+    if (replay || step > prev) app.stage.showStep(step, { play: true, pose: target, glow }); // tie the move
+    else app.stage.showStep(prev, { play: true, reverse: true, pose: target, glow: false }); // undo it
+  } else {
+    app.stage.showStep(step, { pose: target });
   }
-  if (replay) {
-    app.stage.showPose(pose(app.knot, step - 1), { animate: false });
-  }
-  const dur = reduceMotion ? 0.01 : st.kind === 'finish' ? 1.2 : st.kind === 'tight' ? 1.8 : 1.9;
-  app.stage.showPose(target, { animate: animate && !reduceMotion, swing, duration: dur, glow: swing !== 'slide' });
-  app.stage.setArrow(app.arrows ? arrowPath(knot, st) : null);
+  app.stage.setArrow(app.arrows ? arrowFor(app.knot, step) : null);
   app.stage.setView(viewFor(st), !reduceMotion);
 }
 
@@ -194,8 +215,9 @@ function selectKnot(i, step = 0, { force = false } = {}) {
   app.step = step;
   updateStepUI();
   if (app.stage) {
-    app.stage.showPose(pose(i, step), { animate: false });
-    app.stage.setArrow(app.arrows ? arrowPath(knotObj(), states()[step]) : null);
+    app.stage.setBaked(baked(i));
+    app.stage.showStep(step, { pose: pose(i, step) });
+    app.stage.setArrow(app.arrows ? arrowFor(i, step) : null);
     app.stage.setView(viewFor(states()[step]), !reduceMotion);
   }
 }
@@ -210,7 +232,7 @@ function play() {
     const total = knotObj().steps.length;
     if (app.step >= total - 1) { stopPlay(); return; }
     goTo(app.step + 1);
-    playTimer = setTimeout(tick, reduceMotion ? 3500 : 4200);
+    playTimer = setTimeout(tick, reduceMotion ? 3500 : chapterSeconds(app.knot, app.step) * 1000 + 1400);
   };
   if (app.step >= knotObj().steps.length - 1) { goTo(0); playTimer = setTimeout(tick, 2500); }
   else tick();
@@ -344,13 +366,15 @@ function boot() {
 
   if (app.stage) {
     if (app.started) {
-      app.stage.showPose(pose(app.knot, app.step), { animate: false });
-      app.stage.setArrow(app.arrows ? arrowPath(knotObj(), states()[app.step]) : null);
+      app.stage.setBaked(baked(app.knot));
+      app.stage.showStep(app.step, { pose: pose(app.knot, app.step) });
+      app.stage.setArrow(app.arrows ? arrowFor(app.knot, app.step) : null);
       app.stage.setView(viewFor(states()[app.step]), false);
     } else {
       // intro: the finished Four-in-Hand, seen whole
       const last = KNOTS[0].steps.length - 1;
-      app.stage.showPose(pose(0, last), { animate: false });
+      app.stage.setBaked(baked(0));
+      app.stage.showStep(last, { pose: pose(0, last) });
       app.stage.setView('finish', false);
       app.stage.camera.position.add({ x: 30, y: 10, z: 40 });
       app.stage.setView('hero', !reduceMotion);
@@ -372,7 +396,7 @@ function boot() {
   $('#arrowsBtn').addEventListener('click', (e) => {
     app.arrows = !app.arrows;
     e.currentTarget.setAttribute('aria-pressed', String(app.arrows));
-    if (app.stage) app.stage.setArrow(app.arrows ? arrowPath(knotObj(), states()[app.step]) : null);
+    if (app.stage) app.stage.setArrow(app.arrows ? arrowFor(app.knot, app.step) : null);
   });
   $('#resetBtn').addEventListener('click', () => app.stage && app.stage.setView(viewFor(states()[app.step]), true));
   $('#mapInfo').addEventListener('click', () => $('#maths').scrollIntoView({ behavior: 'smooth' }));
