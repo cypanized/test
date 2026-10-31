@@ -7,14 +7,15 @@
 // collar:
 //
 //   1. Conservative motion bounds. Every two sub-steps, each particle finds
-//      its distance d to the nearest piece of fabric (or collar) that isn't
-//      its own immediate neighbourhood, measured point-to-face and
-//      edge-to-edge. Until the next measurement nothing may move more than
-//      0.45·(d - GAP) towards it. Two things d apart close by at most
-//      0.9·(d - GAP), so they never cross and never get closer than GAP.
-//      Moving away from the nearest thing may use the full 0.45·d, which
-//      still can't cross anything. (This is the idea behind recent
-//      penetration-free solvers such as "Offset Geometric Contact".)
+//      everything within SEARCH that isn't its own immediate neighbourhood
+//      (point-to-face and edge-to-edge, fabric and collar): its distance d
+//      and the plane that separates the two. Until the next measurement it
+//      may move towards each of them by at most 0.45·(d - GAP) across that
+//      plane, and freely along or away from it. Both sides together close
+//      at most 0.9·(d - GAP), so no two pieces ever cross or get closer
+//      than GAP, while fabric still slides freely over fabric. (This is the
+//      idea behind recent penetration-free solvers such as "Offset
+//      Geometric Contact".)
 //   2. Contact offset. Surfaces closer than the fabric thickness are pushed
 //      apart along the contact normal, on the side they started on.
 //   3. Everything else is ordinary cloth: silk that hardly stretches, soft
@@ -64,7 +65,14 @@ export class TieCloth {
     this.pull = new Float32Array(n); // attraction to targets per sub-step
     this.invMass = new Float32Array(n).fill(1);
     this.bound = new Float32Array(n);
-    this.away = new Float32Array(n * 3); // unit direction away from whatever set the bound
+    // separating planes found at the last bound measurement: per particle, a
+    // linked list of (distance d, unit direction a pointing at the particle)
+    this.hsHead = new Int32Array(n).fill(-1);
+    this.hsNext = new Int32Array(1 << 17);
+    this.hsD = new Float32Array(1 << 17);
+    this.hsA = new Float32Array(3 << 17);
+    this.hsN = 0;
+    this.iso = new Uint8Array(n); // particles with a contact too close to give a direction
     this.rowS = new Float32Array(R);
     this.rowW = new Float32Array(R);
     this.drag = 0.35; // fraction of speed kept after one second of free flight
@@ -262,8 +270,7 @@ export class TieCloth {
     const C = COLS, xs = this.xb, tri = this.tri, nT = this.nTri, nO = this.nObs, op = this.obsPos, ot = this.obsTri;
     const bound = this.bound, im = this.invMass;
     bound.fill(SEARCH);
-    this.away.fill(0);
-    const aw = this.away, setBound = (i, d, ux, uy, uz) => { if (d < bound[i]) { bound[i] = d; aw[i * 3] = ux; aw[i * 3 + 1] = uy; aw[i * 3 + 2] = uz; } };
+    this.hsHead.fill(-1); this.hsN = 0; this.iso.fill(0);
     const cs = this.cell, inv = 1 / cs, MASK = this.TABLE - 1;
     const head = this.head, stamp = this.stamp, ent = this.entTri, next = this.entNext, seen = this.seen;
     const now = ++this.now;
@@ -342,9 +349,11 @@ export class TieCloth {
           }
           const d = closestPointTriangle(px, py, pz, ax, ay, az, bx, by, bz, cx, cy, cz, out);
           if (d >= SEARCH) continue;
-          const ud = d > 1e-7 ? 1 / d : 0, ux = (px - out[0]) * ud, uy = (py - out[1]) * ud, uz = (pz - out[2]) * ud;
-          setBound(p, d, ux, uy, uz);
-          if (va >= 0) { setBound(va, d, -ux, -uy, -uz); setBound(vb, d, -ux, -uy, -uz); setBound(vc, d, -ux, -uy, -uz); }
+          {
+            const ud = d > 1e-6 ? 1 / d : 0, ux = (px - out[0]) * ud, uy = (py - out[1]) * ud, uz = (pz - out[2]) * ud;
+            this._plane(p, d, ux, uy, uz);
+            if (va >= 0) { this._plane(va, d, -ux, -uy, -uz); this._plane(vb, d, -ux, -uy, -uz); this._plane(vc, d, -ux, -uy, -uz); }
+          }
           if (d < near && nc < cP.length) {
             // which side of the triangle's plane the particle is on, right now
             const e1x = bx - ax, e1y = by - ay, e1z = bz - az, e2x = cx - ax, e2y = cy - ay, e2z = cz - az;
@@ -373,8 +382,8 @@ export class TieCloth {
           const va = tri[k * 3], vb = tri[k * 3 + 1], vc = tri[k * 3 + 2];
           const d = closestPointTriangle(px, py, pz, xs[va * 3], xs[va * 3 + 1], xs[va * 3 + 2], xs[vb * 3], xs[vb * 3 + 1], xs[vb * 3 + 2], xs[vc * 3], xs[vc * 3 + 1], xs[vc * 3 + 2], out);
           if (d >= SEARCH) continue;
-          const ud = d > 1e-7 ? 1 / d : 0, ux = (out[0] - px) * ud, uy = (out[1] - py) * ud, uz = (out[2] - pz) * ud;
-          setBound(va, d, ux, uy, uz); setBound(vb, d, ux, uy, uz); setBound(vc, d, ux, uy, uz);
+          const ud = d > 1e-6 ? 1 / d : 0, ux = (out[0] - px) * ud, uy = (out[1] - py) * ud, uz = (out[2] - pz) * ud;
+          this._plane(va, d, ux, uy, uz); this._plane(vb, d, ux, uy, uz); this._plane(vc, d, ux, uy, uz);
         }
       }
     }
@@ -386,7 +395,6 @@ export class TieCloth {
   // their endpoints are bounded by the edge-edge distance as well.
   _edgeBounds() {
     const xs = this.xb, E = this.edge, nE = this.nEdge, bound = this.bound, im = this.invMass;
-    const aw = this.away, setBound = (i, d, ux, uy, uz) => { if (d < bound[i]) { bound[i] = d; aw[i * 3] = ux; aw[i * 3 + 1] = uy; aw[i * 3 + 2] = uz; } };
     const cs = this.cell, inv = 1 / cs, MASK = this.TABLE_E - 1;
     const head = this.eHead, stamp = this.eStamp, ent = this.eEnt, next = this.eNext, seen = this.eSeen;
     const now = this.now;
@@ -455,8 +463,8 @@ export class TieCloth {
               nee++;
             }
             if (dist < SEARCH) {
-              const ud = dist > 1e-7 ? 1 / dist : 0, ux = (cp[0] - cp[3]) * ud, uy = (cp[1] - cp[4]) * ud, uz = (cp[2] - cp[5]) * ud;
-              setBound(i0, dist, ux, uy, uz); setBound(i1, dist, ux, uy, uz);
+              const ud = dist > 1e-6 ? 1 / dist : 0, ux = (cp[0] - cp[3]) * ud, uy = (cp[1] - cp[4]) * ud, uz = (cp[2] - cp[5]) * ud;
+              this._plane(i0, dist, ux, uy, uz); this._plane(i1, dist, ux, uy, uz);
             }
             continue;
           }
@@ -479,9 +487,9 @@ export class TieCloth {
             nee++;
           }
           {
-            const ud = dist > 1e-7 ? 1 / dist : 0, ux = (cp[0] - cp[3]) * ud, uy = (cp[1] - cp[4]) * ud, uz = (cp[2] - cp[5]) * ud;
-            setBound(i0, dist, ux, uy, uz); setBound(i1, dist, ux, uy, uz);
-            setBound(j0, dist, -ux, -uy, -uz); setBound(j1, dist, -ux, -uy, -uz);
+            const ud = dist > 1e-6 ? 1 / dist : 0, ux = (cp[0] - cp[3]) * ud, uy = (cp[1] - cp[4]) * ud, uz = (cp[2] - cp[5]) * ud;
+            this._plane(i0, dist, ux, uy, uz); this._plane(i1, dist, ux, uy, uz);
+            this._plane(j0, dist, -ux, -uy, -uz); this._plane(j1, dist, -ux, -uy, -uz);
           }
         }
       }
@@ -577,28 +585,66 @@ export class TieCloth {
   }
 
   // The guarantee: no particle moves further than GAMMA x its free distance.
+  // Particle i is d from something that lies entirely beyond the plane
+  // through the closest point with normal a (a unit vector pointing at i).
+  // Both sides of a pair keep their motion towards each other across that
+  // plane under GAMMA * (d - GAP), so the pair stays at least GAP apart.
+  _plane(i, d, ax, ay, az) {
+    if (d < this.bound[i]) this.bound[i] = d;
+    if (!(d > 1e-6)) { this.iso[i] = 1; return; }
+    if (this.hsN >= this.hsD.length) {
+      const grow = (A, k = 1) => { const B = new A.constructor(A.length * 2); B.set(A); return B; };
+      this.hsNext = grow(this.hsNext); this.hsD = grow(this.hsD); this.hsA = grow(this.hsA);
+    }
+    const k = this.hsN++;
+    this.hsD[k] = d; this.hsA[k * 3] = ax; this.hsA[k * 3 + 1] = ay; this.hsA[k * 3 + 2] = az;
+    this.hsNext[k] = this.hsHead[i]; this.hsHead[i] = k;
+  }
+
+  // Limit each particle's motion since the bound measurement. Towards each
+  // nearby thing it may move at most GAMMA * (d - GAP) (measured across the
+  // separating plane); sideways and away it moves freely, so fabric can
+  // slide over fabric without sticking. Nothing it hasn't measured is
+  // within SEARCH, so its total motion stays under GAMMA * (SEARCH - GAP).
   _clamp() {
-    const n = this.n, x = this.x, xs = this.xb, bound = this.bound, aw = this.away;
+    const n = this.n, x = this.x, xs = this.xb, bound = this.bound, iso = this.iso;
+    const head = this.hsHead, next = this.hsNext, A = this.hsA, D = this.hsD;
+    const far = GAMMA * (SEARCH - GAP);
     let clamped = 0;
     // (pinned points too: when a pin moves, it must not jump through anything either)
     for (let i = 0; i < n; i++) {
       const q = i * 3;
-      const dx = x[q] - xs[q], dy = x[q + 1] - xs[q + 1], dz = x[q + 2] - xs[q + 2];
+      let dx = x[q] - xs[q], dy = x[q + 1] - xs[q + 1], dz = x[q + 2] - xs[q + 2];
+      if (dx === 0 && dy === 0 && dz === 0) continue;
+      let changed = false;
       const L = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      // Moving GAMMA * (d - GAP) towards anything keeps every pair GAP apart
-      // (both sides move at most 0.45 of it); moving away from the nearest
-      // thing may use the full GAMMA * d, which still can't cross anything.
-      const b = bound[i];
-      let maxL = GAMMA * Math.max(0, b - GAP);
-      if (L > maxL && dx * aw[q] + dy * aw[q + 1] + dz * aw[q + 2] >= 0 && (aw[q] || aw[q + 1] || aw[q + 2])) maxL = GAMMA * b;
-      if (L > maxL) {
-        const f = maxL / L;
-        x[q] = xs[q] + dx * f; x[q + 1] = xs[q + 1] + dy * f; x[q + 2] = xs[q + 2] + dz * f;
+      const maxL = iso[i] ? Math.min(far, GAMMA * Math.max(0, bound[i] - GAP)) : far;
+      if (L > maxL) { const f = maxL / L; dx *= f; dy *= f; dz *= f; changed = true; }
+      if (head[i] >= 0) {
+        // slide along any plane it would get too close to...
+        for (let pass = 0; pass < 2; pass++) {
+          for (let k = head[i]; k !== -1; k = next[k]) {
+            const ax = A[k * 3], ay = A[k * 3 + 1], az = A[k * 3 + 2];
+            const lim = -GAMMA * Math.max(0, D[k] - GAP), v = dx * ax + dy * ay + dz * az;
+            if (v < lim) { const s = lim - v; dx += s * ax; dy += s * ay; dz += s * az; changed = true; }
+          }
+        }
+        // ...then scale back until every plane is respected
+        let t = 1;
+        for (let k = head[i]; k !== -1; k = next[k]) {
+          const lim = -GAMMA * Math.max(0, D[k] - GAP), v = dx * A[k * 3] + dy * A[k * 3 + 1] + dz * A[k * 3 + 2];
+          if (v < lim) t = Math.min(t, lim / v);
+        }
+        if (t < 1) { dx *= t; dy *= t; dz *= t; changed = true; }
+      }
+      if (changed) {
+        x[q] = xs[q] + dx; x[q + 1] = xs[q + 1] + dy; x[q + 2] = xs[q + 2] + dz;
         clamped++;
       }
     }
     this.stats.clamped = clamped;
   }
+
 }
 
 // Distance between segments p1-q1 and p2-q2 (Ericson, Real-Time Collision Detection).
