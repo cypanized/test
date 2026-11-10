@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--HEAD-->
+<title>How to Tie a Tie</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a dressing mirror (arched stage) with a step rail beside it, then a tailor's reference sheet below. */
+:root{
+  --bg:#E8ECF2; --pin:rgba(27,42,92,.045); --paper:#F8FAFD; --ink:#131C33; --muted:#535E78; --line:#C3CCDB;
+  --tie:#9B1C31; --tie-deep:#5C1020; --tie-stripe:#1B2A5C; --tie-gold:#DDAA4A; --tie-ink:#2A060D; --tie-seam:#C9808C;
+  --brass:#8E6208; --stage:#D5DDE8; --stage-2:#EEF2F7; --shirt:#FFFFFF; --shirt-line:#BCC6D6; --leaf:#F3F6FA;
+  --neck:#C6CEDB; --trouser:#252E48; --belt:#3B2B1F; --buckle:#C9A24B; --shade:#000; --s-ink:#131C33; --s-halo:#FFFFFF; --rm-back:#5C1020;
+  --font-display:'Bodoni Moda','Didot','Bodoni 72','Playfair Display',Georgia,serif;
+  --font-body:'Hanken Grotesk','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1422; --pin:rgba(200,214,255,.035); --paper:#151E32; --ink:#E9EDF6; --muted:#9BA6BD; --line:#2C3853;
+    --tie:#C22C46; --tie-deep:#6F1527; --tie-stripe:#22356F; --tie-gold:#E8BC62; --tie-ink:#1C0308; --tie-seam:#E09AA6;
+    --brass:#E3B659; --stage:#1B263C; --stage-2:#26334D; --shirt:#E6EBF3; --shirt-line:#A9B4C7; --leaf:#D6DDE8;
+    --neck:#46536E; --trouser:#080C16; --belt:#2C2018; --buckle:#C9A24B; --shade:#000; --s-ink:#131C33; --s-halo:#F2F5FA; --rm-back:#E08496;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1422; --pin:rgba(200,214,255,.035); --paper:#151E32; --ink:#E9EDF6; --muted:#9BA6BD; --line:#2C3853;
+  --tie:#C22C46; --tie-deep:#6F1527; --tie-stripe:#22356F; --tie-gold:#E8BC62; --tie-ink:#1C0308; --tie-seam:#E09AA6;
+  --brass:#E3B659; --stage:#1B263C; --stage-2:#26334D; --shirt:#E6EBF3; --shirt-line:#A9B4C7; --leaf:#D6DDE8;
+  --neck:#46536E; --trouser:#080C16; --belt:#2C2018; --buckle:#C9A24B; --shade:#000; --s-ink:#131C33; --s-halo:#F2F5FA; --rm-back:#E08496;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);background-image:repeating-linear-gradient(90deg,transparent 0 13px,var(--pin) 13px 14px);color:var(--ink);font:400 1rem/1.55 var(--font-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-block:clamp(24px,4vw,52px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:clamp(30px,5vw,60px)}
+h1,h2,h3,p,ul,ol,figure{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* masthead */
+.mast{display:flex;flex-direction:column;gap:14px}
+.over{font:500 .78rem/1 var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+h1{font:600 clamp(2.9rem,9vw,6rem)/.92 var(--font-display);font-variation-settings:'opsz' 22;letter-spacing:-.02em;text-wrap:balance}
+h1 em{font-style:italic;color:var(--tie)}
+.lede{max-width:60ch;font-size:1.1rem;color:var(--muted)}
+.repp{height:12px;border-radius:2px;background:repeating-linear-gradient(-45deg,var(--tie) 0 16px,var(--tie-stripe) 16px 25px,var(--tie-gold) 25px 27px,var(--tie-stripe) 27px 30px)}
+
+/* knot picker */
+.knots{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.knot{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border:1.5px solid var(--line);border-radius:14px;background:transparent;text-align:left;min-width:0;transition:border-color .15s,background .15s}
+.knot:hover{border-color:var(--muted)}
+.knot[aria-pressed="true"]{border-color:var(--ink);background:var(--paper)}
+.knot svg{width:52px;height:52px;flex:none;border-radius:10px;background:var(--stage)}
+.knot b{display:block;font:600 .98rem/1.15 var(--font-body)}
+.knot span{display:block;font:500 .72rem/1.3 var(--font-mono);color:var(--muted);letter-spacing:.02em}
+
+/* studio */
+.studio{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:start}
+.stagecol{display:flex;flex-direction:column;gap:14px;min-width:0}
+.mirror{position:relative;width:100%;max-width:560px;margin-inline:auto;aspect-ratio:4/5;border-radius:50% 50% 18px 18px / 31% 31% 18px 18px;overflow:hidden;background:linear-gradient(160deg,var(--stage-2),var(--stage) 55%);box-shadow:0 0 0 1.5px var(--ink),0 0 0 9px var(--paper),0 0 0 10.5px var(--line)}
+.mirror svg{display:block;width:100%;height:100%}
+.viewtag{position:absolute;left:14px;bottom:12px;font:500 .7rem/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:var(--paper);padding:6px 9px;border-radius:999px;border:1px solid var(--line)}
+.transport{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.btn{padding:10px 18px;border:1.5px solid var(--ink);border-radius:999px;background:transparent;font-weight:600;line-height:1.2}
+.btn:hover{background:var(--paper)}
+.btn.main{background:var(--ink);color:var(--bg);min-width:112px}
+.btn.main:hover{background:var(--tie);border-color:var(--tie);color:#fff}
+.btn:disabled{opacity:.35;cursor:default}
+.scrubrow{display:flex;flex-direction:column;gap:6px;max-width:560px;width:100%;margin-inline:auto}
+#scrub{width:100%;accent-color:var(--tie);margin:0}
+.dots{display:flex;justify-content:space-between;gap:2px}
+.dot{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:transparent;font:500 .72rem/1 var(--font-mono);padding:0;color:var(--muted)}
+.dot.done{border-color:var(--muted);color:var(--ink)}
+.dot.cur{background:var(--tie);border-color:var(--tie);color:#fff}
+.opts{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:6px 13px;border-radius:999px;font:500 .85rem/1.2 var(--font-body);color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+.rail{display:flex;flex-direction:column;gap:22px;min-width:0}
+.khead{display:flex;flex-direction:column;gap:8px}
+.khead h2{font:600 clamp(1.9rem,4.2vw,2.7rem)/1 var(--font-display);font-variation-settings:'opsz' 16;letter-spacing:-.01em}
+.khead h2 small{font:500 .78rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:.6em;white-space:nowrap}
+.khead p{color:var(--muted);max-width:52ch}
+.meters{display:flex;flex-wrap:wrap;gap:6px 18px;font:500 .74rem/1.2 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.meter{display:inline-flex;align-items:center;gap:7px}
+.pips{display:inline-flex;gap:3px}
+.pips i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted)}
+.pips i.on{background:var(--tie);border-color:var(--tie)}
+
+.step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 18px;padding:20px 22px;background:var(--paper);border:1.5px solid var(--ink);border-radius:18px;min-height:228px;align-content:start}
+.step .num{grid-row:1 / span 3;font:italic 600 clamp(3.4rem,8vw,5rem)/.8 var(--font-display);font-variation-settings:'opsz' 20;color:var(--tie);font-variant-numeric:lining-nums;min-width:1.1ch;text-align:center;padding-top:.08em}
+.step .of{font:500 .72rem/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);align-self:end}
+.step h3{font:600 1.45rem/1.15 var(--font-body);letter-spacing:-.01em}
+.step .txt{grid-column:2;font-size:1.04rem;max-width:46ch}
+.step .chk{grid-column:1 / -1;display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:12px;border-top:1px dashed var(--line);font-size:.93rem;color:var(--muted)}
+.sw{flex:none;width:30px;height:16px;border-radius:3px;border:1px solid var(--tie-ink)}
+.sw.front{background:repeating-linear-gradient(-45deg,var(--tie) 0 6px,var(--tie-stripe) 6px 10px,var(--tie-gold) 10px 11px)}
+.sw.back{background:var(--tie-deep);position:relative}
+.sw.back::after{content:"";position:absolute;left:3px;right:3px;top:50%;border-top:1px dashed var(--tie-seam)}
+
+.code{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:8px 18px;align-items:center}
+.code svg{width:100%;height:auto;display:block}
+.code h3{font:500 .74rem/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px 5px 8px;border:1.5px solid var(--line);border-radius:8px;background:transparent;font:600 .9rem/1 var(--font-mono);color:var(--muted)}
+.chip svg{width:13px;height:13px}
+.chip.done{border-color:var(--muted);color:var(--ink)}
+.chip.cur{background:var(--tie);border-color:var(--tie);color:#fff}
+.legend{margin-top:12px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend svg{width:26px;height:10px;flex:none}
+.legend svg.sym{width:13px;height:13px}
+
+/* reference sheet */
+.sheet{display:flex;flex-direction:column;gap:22px}
+.sheet>header{display:flex;flex-direction:column;gap:8px;max-width:64ch}
+.sheet h2{font:600 clamp(1.8rem,4vw,2.5rem)/1.05 var(--font-display);font-variation-settings:'opsz' 16;letter-spacing:-.01em;text-wrap:balance}
+.sheet>header p{color:var(--muted)}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fig{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px}
+.anat svg{display:block;min-width:660px;width:100%;height:auto}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px 28px}
+.facts div{min-width:0}
+.facts b{display:block;font-weight:600}
+.facts p,.facts span{color:var(--muted);font-size:.95rem}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.trio figure{display:flex;flex-direction:column;gap:8px;min-width:0}
+.trio svg{display:block;width:100%;height:auto;border-radius:12px;background:linear-gradient(160deg,var(--stage-2),var(--stage))}
+.trio figcaption{font-size:.9rem;color:var(--muted)}
+.trio figcaption b{display:block;color:var(--ink);font-weight:600}
+.trio .ok figcaption b{color:var(--tie)}
+.two{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(18px,3vw,36px);align-items:start}
+.prose{display:flex;flex-direction:column;gap:14px;min-width:0;max-width:60ch}
+.prose h3{font:600 1.12rem/1.2 var(--font-body)}
+.prose p{color:var(--muted)}
+.prose p b{color:var(--ink);font-weight:600}
+.collars{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.collar{display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.collar svg{width:100%;max-width:150px;height:auto;align-self:center}
+.collar b{font-weight:600}
+.collar span{font-size:.9rem;color:var(--muted)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.93rem}
+th{font:500 .7rem/1.2 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1.5px solid var(--ink);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.kc{font:500 .82rem/1.3 var(--font-mono);white-space:nowrap}
+td b{font-weight:600}
+td .lnk{border:0;background:none;padding:0;font-weight:600;text-decoration:underline;text-decoration-color:var(--tie);text-underline-offset:3px}
+.fixes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 32px}
+.fix{padding:14px 0;border-top:1px solid var(--line);min-width:0}
+.fix b{display:block;font-weight:600}
+.fix span{color:var(--muted);font-size:.95rem}
+.prints{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.prints figure{display:flex;flex-direction:column;gap:4px;min-width:0;padding:10px 10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.prints svg{display:block;width:100%;height:auto}
+.prints b{font-weight:600}
+.prints code{font:500 .72rem/1.35 var(--font-mono);color:var(--muted)}
+.morelab{color:var(--muted)}
+.more{display:flex;flex-wrap:wrap;gap:8px}
+.more button{padding:7px 12px;border:1.5px solid var(--line);border-radius:999px;background:transparent;font-size:.9rem;font-weight:500}
+.more button:hover{border-color:var(--ink)}
+.more button code{font:500 .74rem/1 var(--font-mono);color:var(--muted);margin-left:6px}
+footer{font-size:.85rem;color:var(--muted);max-width:76ch}
+
+/* svg parts */
+.t-base{fill:var(--tie)} .t-s1{stroke:var(--tie-stripe);fill:none} .t-s2{stroke:var(--tie-gold);fill:none}
+.tb{fill:var(--tie-deep)} .ol{fill:none;stroke:var(--tie-ink);stroke-width:.9;stroke-linejoin:round;stroke-linecap:round}
+.seam{fill:none;stroke:var(--tie-seam);stroke-width:.8;stroke-dasharray:3 2.6;opacity:.8}
+.shade{fill:var(--shade)} .dimple{fill:var(--tie-ink)}
+.bd .neck{fill:var(--neck)} .bd .shirt{fill:var(--shirt);stroke:var(--shirt-line);stroke-width:1}
+.bd .plk{fill:none;stroke:var(--shirt-line);stroke-width:.9} .bd .btn0{fill:var(--shirt);stroke:var(--shirt-line);stroke-width:.9}
+.bd .trs{fill:var(--trouser)} .bd .blt{fill:var(--belt)} .bd .bkl{fill:none;stroke:var(--buckle);stroke-width:2.4}
+.leaf{fill:var(--leaf);stroke:var(--shirt-line);stroke-width:1;stroke-linejoin:round}
+.ghost{fill:none;stroke:var(--s-ink);stroke-width:1.1;stroke-dasharray:4 3.5;opacity:.45}
+.arr-h{fill:none;stroke:var(--s-halo);stroke-width:6;stroke-linecap:round;opacity:.9}
+.arr{fill:none;stroke:var(--s-ink);stroke-width:2.3;stroke-linecap:round}
+.arr-t{fill:var(--s-ink);stroke:var(--s-halo);stroke-width:1.2;stroke-linejoin:round}
+.lab{font:600 9.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;fill:var(--s-ink);paint-order:stroke;stroke:var(--s-halo);stroke-width:3.5px;stroke-linejoin:round}
+.lead{stroke:var(--s-ink);stroke-width:.9;fill:none}
+.lens{fill:none;stroke:var(--s-ink);stroke-width:1.6} .lens-bg{fill:var(--stage)}
+.rm-arm{stroke:var(--muted);stroke-width:5;stroke-linecap:round;fill:none}
+.rm-f{stroke:var(--tie);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.rm-b{stroke:var(--rm-back);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:1 5;fill:none}
+.rm-fut{opacity:.16} .rm-halo{stroke:var(--tie-gold);stroke-width:8.5;stroke-linecap:round;fill:none;opacity:.75}
+.rm-l{font:600 17px/1 var(--font-display);font-variation-settings:'opsz' 14;font-style:italic;fill:var(--muted);text-anchor:middle}
+.rm-s{font:500 7.5px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;fill:var(--muted);text-anchor:middle}
+.a-l{font:500 11px/1.2 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;fill:var(--ink)}
+.a-s{font:400 11px/1.2 var(--font-body);fill:var(--muted)}
+.a-ln{stroke:var(--muted);stroke-width:1;fill:none}
+.cl-knot{fill:var(--tie);stroke:var(--tie-ink);stroke-width:.8;stroke-linejoin:round}
+.cl-shirt{fill:var(--shirt);stroke:var(--shirt-line);stroke-width:1}
+
+@media (max-width:900px){
+  .studio{grid-template-columns:minmax(0,1fr);gap:16px}
+  .stagecol,.rail{display:contents}
+  .khead{order:0}.mirror{order:1}.transport{order:2;margin-top:0}.step{order:3}.scrubrow{order:4}.opts{order:5}.code{order:6;margin-top:8px}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .step{min-height:0}
+}
+@media (max-width:520px){
+  .code{grid-template-columns:minmax(0,1fr)}
+  .code svg{max-width:240px;margin-inline:auto}
+  .dot{width:22px;height:22px;font-size:.66rem}
+  .step{padding:16px}
+  .trio{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<!--/HEAD-->
+</head>
+<body>
+<!--BODY-->
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="tieSh" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx=".5" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity=".3"/>
+    </filter>
+    <linearGradient id="tieSheen"><stop offset="0" stop-color="#000" stop-opacity=".24"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity=".13"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient>
+    <g id="tieTile">
+      <rect width="26" height="26" class="t-base"/>
+      <path class="t-s1" stroke-width="6.5" d="M-26,26L26,-26M0,26L26,0M0,52L52,0"/>
+      <path class="t-s2" stroke-width="1.3" d="M-13,26L26,-13M0,39L39,0"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="over">A fold-by-fold guide</p>
+    <h1>How to tie a <em>tie</em></h1>
+    <p class="lede">Each knot is shown as one strip of cloth, folded a crease at a time. Pick a knot, watch it once, then step through it in front of a mirror.</p>
+  </header>
+  <div class="repp" aria-hidden="true"></div>
+
+  <nav class="knots" id="knots" aria-label="Choose a knot"></nav>
+
+  <section class="studio" id="studio" aria-label="Step-by-step knot studio">
+    <div class="stagecol">
+      <div class="mirror">
+        <svg id="stage" role="img" aria-label="Animated diagram of the tie being folded" preserveAspectRatio="xMidYMid slice"></svg>
+        <div class="viewtag" id="viewtag">Mirror view</div>
+      </div>
+      <div class="transport">
+        <button class="btn" id="bPrev" type="button">Back</button>
+        <button class="btn main" id="bPlay" type="button">Play</button>
+        <button class="btn" id="bNext" type="button">Next</button>
+      </div>
+      <div class="scrubrow">
+        <input type="range" id="scrub" min="0" max="6" step="0.005" value="0" aria-label="Scrub through the folds">
+        <div class="dots" id="dots"></div>
+      </div>
+      <div class="opts">
+        <div class="seg" role="group" aria-label="Point of view">
+          <button type="button" id="vMirror" aria-pressed="true">Mirror view</button>
+          <button type="button" id="vFacing" aria-pressed="false">Facing view</button>
+        </div>
+        <div class="seg" role="group" aria-label="Speed">
+          <button type="button" id="sSlow" aria-pressed="false">Slow</button>
+          <button type="button" id="sNorm" aria-pressed="true">Normal</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="khead">
+        <h2 id="kName"></h2>
+        <p id="kBlurb"></p>
+        <div class="meters" id="kMeters"></div>
+      </div>
+      <div class="step" aria-live="polite">
+        <div class="num" id="sNum">1</div>
+        <div class="of" id="sOf"></div>
+        <h3 id="sTitle"></h3>
+        <p class="txt" id="sText"></p>
+        <div class="chk"><i class="sw front" id="sSw"></i><span id="sChk"></span></div>
+      </div>
+      <div class="code">
+        <svg id="route" viewBox="0 0 220 210" role="img" aria-label="Route map of the wide end around the three regions"></svg>
+        <div>
+          <h3>The knot's code</h3>
+          <div class="chips" id="chips"></div>
+          <div class="legend">
+            <span><svg viewBox="0 0 26 10"><path class="rm-f" d="M2,5H24"/></svg>in front</span>
+            <span><svg viewBox="0 0 26 10"><path class="rm-b" d="M2,5H24"/></svg>behind</span>
+            <span><svg class="sym" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.6,3.6L10.4,10.4M10.4,3.6L3.6,10.4" stroke="currentColor" stroke-width="1.4"/></svg>heading in</span>
+            <span><svg class="sym" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="7" r="1.9" fill="currentColor"/></svg>coming out</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="prep">
+    <header>
+      <h2>Know the cloth before you fold it</h2>
+      <p>A tie has two ends and two sides. The diagrams above use the same names and the same colours.</p>
+    </header>
+    <div class="fig anat scrollx" id="anat"></div>
+    <div class="facts">
+      <div><b>Blade</b><span>The wide end. It does all the moving and ends up in front.</span></div>
+      <div><b>Tail</b><span>The narrow end. Hold it still while you tie. It finishes hidden behind the blade.</span></div>
+      <div><b>Seam side</b><span>The back of the tie, drawn in the darker colour. It should never show on a finished knot.</span></div>
+      <div><b>Keeper loop</b><span>The small loop on the back of the blade. Slip the tail through it when you are done.</span></div>
+      <div><b>Standard size</b><span>About 147 cm (58 in) long and 8 cm (3¼ in) wide. If you are over 190 cm (6 ft 3 in) tall, look for a long tie of about 160 cm (63 in).</span></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="finish">
+    <header>
+      <h2>The finish: length and dimple</h2>
+      <p>Two details separate a tied tie from a well-tied one.</p>
+    </header>
+    <div class="two">
+      <div class="trio" id="trio"></div>
+      <div class="prose">
+        <h3>The tip touches the buckle</h3>
+        <p>The point of the blade should land on your belt buckle. <b>A knot uses the same amount of tie every time</b>, so the fix is exact: if the tip ends 5 cm too high, untie it and start with the wide end 5 cm lower.</p>
+        <h3>Set the dimple while you tighten</h3>
+        <p>The dimple is the small hollow under the knot. Press a fingertip into the middle of the blade just below the knot, pinch the edges around it, and keep the pinch while you slide the knot up.</p>
+        <h3>Tuck the tail</h3>
+        <p>Slip the tail through the keeper loop so it stays behind the blade.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="choose">
+    <header>
+      <h2>Match the knot to the collar</h2>
+      <p>The knot should fill the gap between the collar points without pushing them apart. Wide collars want wide knots. Thick ties tie bigger, so pair them with smaller knots.</p>
+    </header>
+    <div class="collars" id="collars"></div>
+    <div class="scrollx"><table id="cmp"></table></div>
+  </section>
+
+  <section class="sheet" id="fix">
+    <header><h2>When it goes wrong</h2></header>
+    <div class="fixes">
+      <div class="fix"><b>The tail hangs below the blade</b><span>The wide end started too high. Untie and start with it lower by the amount the tail overshoots.</span></div>
+      <div class="fix"><b>The blade stops above the belt</b><span>Same cause. Lower the wide end at the start by the missing length, or switch to a smaller knot.</span></div>
+      <div class="fix"><b>The knot leans to one side</b><span>A Four-in-Hand leans on purpose. If you want it square, use a Half Windsor or a Pratt.</span></div>
+      <div class="fix"><b>The seam shows on the front</b><span>The first cross went the wrong way. Check whether your knot starts over or under, and with the seam in or out.</span></div>
+      <div class="fix"><b>There is a gap under the collar</b><span>Hold the tail and push the knot up until it covers the top button. The button must be done up.</span></div>
+      <div class="fix"><b>The knot looks bulky or strangled</b><span>Too many wraps for the cloth. Thick wool or knit ties suit an Oriental or Four-in-Hand. Keep the Windsor for thin silk.</span></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="code">
+    <header>
+      <h2>Every knot is a short code</h2>
+      <p>In 1999 two Cambridge physicists, Thomas Fink and Yong Mao, showed that a tie knot is a walk between three regions. The two ends of the tie split the space in front of you into left (L), right (R) and centre (C), the inside of the neck loop. Each move carries the wide end into a different region, heading in toward your shirt or out toward the mirror. The walk ends with T, a tuck through the front band.</p>
+      <p>They counted 85 knots that a normal tie can make in nine moves or fewer. The diagrams on this page are folded by a small program straight from that code. Drawn as a route around the three regions, each knot has its own fingerprint.</p>
+    </header>
+    <div class="prints" id="prints"></div>
+    <p class="morelab">Load a few more of the 85 into the studio:</p>
+    <div class="more" id="more"></div>
+  </section>
+
+  <div class="repp" aria-hidden="true"></div>
+  <footer>Knot codes follow Fink and Mao, "Designing tie knots by random walks", Nature 398 (1999), and their book The 85 Ways to Tie a Tie. Starting lengths are a first guess. Adjust them for your height, your neck and the tie in your hand.</footer>
+</div>
+
+<script>
+(()=>{
+'use strict';
+/* ================= vectors ================= */
+const v=(x,y)=>({x,y}),add=(a,b)=>v(a.x+b.x,a.y+b.y),sub=(a,b)=>v(a.x-b.x,a.y-b.y),mul=(a,k)=>v(a.x*k,a.y*k);
+const dot=(a,b)=>a.x*b.x+a.y*b.y,crs=(a,b)=>a.x*b.y-a.y*b.x,len=a=>Math.hypot(a.x,a.y),dist=(a,b)=>len(sub(a,b));
+const unit=a=>{const l=len(a)||1;return v(a.x/l,a.y/l)},perp=a=>v(-a.y,a.x);
+const lerp=(a,b,t)=>a+(b-a)*t,lerpV=(a,b,t)=>v(lerp(a.x,b.x,t),lerp(a.y,b.y,t));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),rad=d=>d*Math.PI/180,PI=Math.PI;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
+const f1=n=>Math.round(n*10)/10,P=p=>f1(p.x)+','+f1(p.y);
+const creaseDir=(d1,d2)=>{const s=add(d1,d2);return len(s)>1e-3?unit(s):perp(d1)};
+const reflectPt=(p,F,c)=>{const r=sub(p,F);return add(F,sub(mul(c,2*dot(r,c)),r))};
+const foldPt=(p,F,c,cos)=>{const nn=perp(c);return sub(p,mul(nn,(1-cos)*dot(sub(p,F),nn)))};
+
+/* ================= the cloth ================= */
+const wWide=u=>Math.min(2*u,Math.max(18,54-.085*Math.max(0,u-27)));wWide.tip=27;
+const wTail=u=>Math.min(2*u,17);wTail.tip=8.5;
+const GEO={CL:v(-31,-74),CR:v(31,-74),belt:205,tightY:-72,px:24,pdx:3,py:14,pdy:3,cy:-29,cdy:1.5,cyT:-8,cxo:7,cyF:-33};
+const TA=.5,ASPECT=.8;
+
+/* ================= knots ================= */
+const KNOT_DATA=[
+ {id:'four-in-hand',name:'Four-in-Hand',seq:'Li Ro Li Co',size:2,sym:2,ease:5,start:'30 cm (12 in)',shape:'Narrow, leans slightly',collar:'Point, button-down',cloth:'Any, best with thick ties',
+  blurb:'The everyday knot. Four moves, narrow, and a little lopsided on purpose.'},
+ {id:'half-windsor',name:'Half Windsor',seq:'Li Ro Ci Lo Ri Co',size:3,sym:4,ease:3,start:'35 cm (14 in)',shape:'Medium triangle',collar:'Point, semi-spread',cloth:'Light to medium ties',
+  blurb:'A tidy medium triangle. One wrap through the neck loop gives it a shoulder the Four-in-Hand lacks.'},
+ {id:'windsor',name:'Full Windsor',seq:'Li Co Li Ro Ci Ro Li Co',size:5,sym:5,ease:2,start:'40 cm (16 in)',shape:'Wide, even triangle',collar:'Spread, cutaway',cloth:'Thin silk, long ties',
+  blurb:'Wide, even and formal. It wraps both sides of the neck loop before the front band goes on, so it uses a lot of tie.'},
+ {id:'pratt',name:'Pratt',aka:'Shelby',seq:'Lo Ci Lo Ri Co',size:3,sym:4,ease:3,start:'25 cm (10 in)',shape:'Medium, even',collar:'Point, semi-spread',cloth:'Medium ties, shorter ties',
+  blurb:'Starts inside out and finishes neat and even, using less tie than a Half Windsor.'},
+ {id:'kelvin',name:'Kelvin',seq:'Lo Ri Lo Ri Co',size:2,sym:3,ease:4,start:'30 cm (12 in)',shape:'Small, firm',collar:'Point, button-down',cloth:'Thin or soft ties',
+  blurb:'A Four-in-Hand with one extra wrap, started inside out. Small, firm and slightly fuller.'},
+ {id:'oriental',name:'Oriental',aka:'the Small knot or Kent',seq:'Lo Ri Co',size:1,sym:2,ease:5,start:'20 cm (8 in)',shape:'Smallest, leans slightly',collar:'Narrow point',cloth:'Thick wool and knit ties',
+  blurb:'The smallest knot there is. Three moves, started inside out. Good for thick ties and tall people.'}
+];
+const MORE_DATA=[
+ {id:'victoria',name:'Victoria',seq:'Li Ro Li Ro Li Co',size:3,sym:2,ease:4,start:'33 cm (13 in)',shape:'Narrow, fuller',collar:'Point',cloth:'Thin ties',blurb:'A Four-in-Hand with a second turn around the tail for a fuller knot.'},
+ {id:'nicky',name:'Nicky',seq:'Lo Ci Ro Li Co',size:2,sym:4,ease:3,start:'25 cm (10 in)',shape:'Medium, even',collar:'Point, semi-spread',cloth:'Medium ties',blurb:'A close cousin of the Pratt that unties cleanly when you pull the tail out.'},
+ {id:'st-andrew',name:'St Andrew',seq:'Lo Ri Lo Ci Ro Li Co',size:4,sym:4,ease:2,start:'35 cm (14 in)',shape:'Medium-large',collar:'Semi-spread, spread',cloth:'Light to medium ties',blurb:'An inside-out start, a full turn and one pass through the loop. Sits between the Half and Full Windsor.'},
+ {id:'plattsburgh',name:'Plattsburgh',seq:'Lo Ci Ro Ci Lo Ri Co',size:4,sym:5,ease:2,start:'38 cm (15 in)',shape:'Wide cone',collar:'Spread',cloth:'Thin ties',blurb:'Two passes through the neck loop from an inside-out start give a broad, even cone.'}
+];
+function prep(d){
+  const K=Object.assign({},d);
+  K.moves=d.seq.split(' ').map(s=>({r:s[0],d:s[1]}));
+  const n=K.n=K.moves.length;K.last=n+2;K.inside=K.moves[0].d==='o';
+  let f=0,b=0;K.meta=K.moves.map(m=>m.d==='i'?{z:++f,face:1}:{z:-(++b),face:0});
+  K.metaT={z:K.meta[n-2].z-.5,face:1};
+  K.tight=.47+.024*n;K.tail=150-7*(n-3);
+  K.L0=layout(K,0);K.L1=layout(K,1);K.C1=chainLen(K.L1);K.Bf=GEO.belt+5-K.L1.PC.y;
+  K.B0=K.Bf-.5*(chainLen(K.L0)-K.C1);
+  K.steps=makeSteps(K);
+  return K;
+}
+function chainLen(L){const c=[...L.pts,L.H,L.PC];let s=0;for(let i=0;i<c.length-1;i++)s+=dist(c[i],c[i+1]);return s}
+
+/* Where each fold sits. tau 0 = loose while tying, 1 = pulled tight at the collar. */
+function layout(K,tau){
+  const mv=K.moves,n=K.n,sp=lerp(1,K.tight,tau),X=v(0,lerp(0,GEO.tightY,tau)),sx=r=>r==='L'?-1:r==='R'?1:0;
+  const cnt={L:0,R:0,C:0},pts=[];
+  for(let j=0;j<n-1;j++){
+    const m=mv[j],i=cnt[m.r]++;let p;
+    if(m.r==='C'){const cx=GEO.cxo*(sx(mv[j-1].r)+sx(mv[j+1].r))/2;p=v(cx,lerp(GEO.cy-GEO.cdy*i,cx?-1:GEO.cyT,tau))}
+    else p=v(sx(m.r)*(GEO.px+lerp(GEO.pdx,1,tau)*i),GEO.py+lerp(GEO.pdy,0,tau)*i);
+    pts.push(add(X,mul(p,sp)));
+  }
+  const CR=GEO.CR,CL=GEO.CL,far=pts[n-2],st=n>=3?pts[n-3]:CR,pre=n>=4?pts[n-4]:CR;
+  const dPre=unit(sub(st,pre)),dBand=unit(sub(far,st)),c0=creaseDir(dPre,dBand);
+  const lean0=Math.atan2(Math.abs(c0.x),Math.abs(c0.y)),beta=clamp(lean0,rad(10),rad(26));
+  const bandY=(far.y+st.y)/2;
+  const H=v(X.x,lerp(far.y-Math.abs(far.x-X.x)*Math.tan(2*beta),bandY,tau));
+  const PC=v(X.x,lerp(X.y+GEO.cyF,bandY-9,tau));
+  let phys=creaseDir(dBand,unit(sub(H,far)));if(phys.y>0)phys=mul(phys,-1);
+  const s=Math.sign(far.x-X.x)||-1,leanF=clamp(lean0*.8,rad(9),rad(27)),leanS=clamp(lean0,rad(14),rad(30));
+  const farCut=unit(lerpV(phys,v(s*Math.sin(leanF),-Math.cos(leanF)),tau));
+  const phys0=c0.y>0?mul(c0,-1):c0,stCut=n>=3?unit(lerpV(phys0,v(-s*Math.sin(leanS),-Math.cos(leanS)),tau)):null;
+  return {X,pts,H,PC,CL,CR,J:v(X.x,X.y-6*sp),tail:v(X.x,lerp(K.tail,K.tail+42,tau)),farCut,stCut,dBand,bandY,tau};
+}
+
+/* A ribbon is a chain of nodes joined by flat folds or in-plane bends, ending in a free blade. */
+function ribbon(nodes,bd,bl,metas,wfn,h0,pinch){
+  const N=nodes.length,dirs=[],cum=[0];
+  for(let i=0;i<N-1;i++){dirs.push(unit(sub(nodes[i+1].p,nodes[i].p)));cum.push(cum[i]+dist(nodes[i].p,nodes[i+1].p))}
+  dirs.push(bd);
+  const total=cum[N-1]+bl,u=cum.map(c=>total-c),hand=[h0];
+  for(let i=1;i<N;i++)hand.push(nodes[i].join==='fold'?-hand[i-1]:hand[i-1]);
+  const cuts=nodes.map((nd,i)=>{
+    const din=i?dirs[i-1]:dirs[0];let c;
+    if(nd.cut)c=nd.cut;else if(i===0)c=perp(dirs[0]);
+    else if(nd.join==='fold')c=creaseDir(dirs[i-1],dirs[i]);
+    else c=unit(add(perp(dirs[i-1]),perp(dirs[i])));
+    const k=(wfn(u[i])*(nd.ws||1)/2)/Math.max(.3,Math.abs(crs(din,c)));
+    return {a:add(nd.p,mul(c,k)),b:sub(nd.p,mul(c,k))};
+  });
+  const strips=[];
+  for(let i=0;i<N;i++){
+    const d=dirs[i],m=mul(perp(d),hand[i]),A=nodes[i].p;
+    const pick=(ct,O)=>dot(sub(ct.a,O),m)>=0?[ct.a,ct.b]:[ct.b,ct.a];
+    const [l0,r0]=pick(cuts[i],A),left=[l0],right=[r0];
+    const s={i,d,m,A,u0:u[i],z:metas[i].z,face:metas[i].face,left,right,blade:i===N-1,j0:nodes[i].join,j1:i<N-1?nodes[i+1].join:null};
+    if(i<N-1){const [l1,r1]=pick(cuts[i+1],nodes[i+1].p);left.push(l1);right.push(r1);s.B=nodes[i+1].p}
+    else{
+      const ss=[];if(pinch)for(let q=4;q<Math.min(bl-wfn.tip-2,pinch.end);q+=4)ss.push(q);
+      ss.push(Math.max(1,bl-wfn.tip));
+      for(const q of ss){const c=add(A,mul(d,q)),w=wfn(u[i]-q)*(pinch?pinch.f(q):1)/2;left.push(add(c,mul(m,w)));right.push(sub(c,mul(m,w)))}
+      s.tip=s.B=add(A,mul(d,bl));
+    }
+    strips.push(s);
+  }
+  return strips;
+}
+
+/* Build the whole picture at a fractional step. */
+function buildScene(K,pos,o){
+  o=o||{};const n=K.n,last=K.last,mv=K.moves;pos=clamp(pos,0,last);
+  let k=Math.floor(pos+1e-9),t=pos-k;if(k>=last){k=last;t=0}if(t<1e-4)t=0;
+  const e=ease(t),tau=k>=last?1:k===n+1?e:0;
+  const L=tau===0?K.L0:tau===1?K.L1:layout(K,tau),ch=[...L.pts,L.H,L.PC];
+  const B=K.Bf-.5*(chainLen(L)-K.C1)+(o.bladeDelta||0);
+  const rem=i=>{let s=B;for(let q=i;q<n;q++)s+=dist(ch[q],ch[q+1]);return s};
+  const nodes=[{p:L.CR,join:'start'}],metas=[];
+  const port=i=>({p:ch[i],join:'fold',cut:i===n-2?L.farCut:i===n-3&&tau>0?L.stCut:null,ws:mv[i].r==='C'?lerp(1,.5,tau):1});
+  const hNode=()=>({p:L.H,join:'miter',ws:lerp(1,.5,tau)});
+  const addPorts=c=>{for(let i=0;i<c;i++){nodes.push(port(i));metas.push(K.meta[i])}};
+  const lastP=()=>nodes[nodes.length-1].p,UP=v(0,-1),DN=v(0,1);
+  let bd,bl,fold=null,pinch=null,dimple=null;
+  if(k===0){
+    const d1=unit(sub(ch[0],L.CR)),a=lerp(PI/2,Math.atan2(d1.y,d1.x),e);
+    bd=v(Math.cos(a),Math.sin(a));bl=dist(L.CR,ch[0])+rem(0);metas.push(K.meta[0]);
+  }else if(k<=n-1){
+    addPorts(k-1);
+    const F=ch[k-1],dOld=unit(sub(F,lastP()));
+    if(t===0){bd=dOld;bl=dist(lastP(),F)+rem(k-1);metas.push(K.meta[k-1])}
+    else if(k<n-1||t<TA){
+      const tt=k<n-1?e:ease(t/TA),c=k===n-1?L.farCut:creaseDir(dOld,unit(sub(ch[k],F)));
+      nodes.push({p:F,join:'pend',cut:c});metas.push(K.meta[k-1]);
+      bd=dOld;bl=rem(k-1);metas.push(K.meta[k-1]);fold={F,c,th:PI*tt,to:K.meta[k]};
+    }else{
+      nodes.push(port(k-1));metas.push(K.meta[k-1]);
+      nodes.push(hNode());metas.push(K.meta[k]);
+      const dH=unit(sub(L.H,F)),a0=Math.atan2(dH.y,dH.x);let da=-PI/2-a0;while(da>PI)da-=2*PI;while(da<-PI)da+=2*PI;
+      const a=a0+da*ease((t-TA)/(1-TA));bd=v(Math.cos(a),Math.sin(a));bl=rem(n-1);metas.push(K.meta[k]);
+    }
+  }else{
+    addPorts(n-1);nodes.push(hNode());metas.push(K.meta[n-1]);
+    if(k===n&&t===0){bd=UP;bl=rem(n-1);metas.push(K.meta[n-1])}
+    else if(k===n){nodes.push({p:L.PC,join:'pend',cut:v(1,0)});metas.push(K.meta[n-1]);bd=UP;bl=B;metas.push(K.meta[n-1]);fold={F:L.PC,c:v(1,0),th:PI*e,to:K.metaT}}
+    else{nodes.push({p:L.PC,join:'fold',cut:v(1,0)});metas.push(K.meta[n-1]);bd=DN;bl=B;metas.push(K.metaT)}
+  }
+  const h0=K.meta[0].face?1:-1;
+  let act=ribbon(nodes,bd,bl,metas,wWide,h0);
+  if(k>=n+1&&tau>0){ // gather the blade where it leaves the knot, and set the dimple
+    const band=act[n-2],eA=[band.left[0],band.left[1]],eB=[band.right[0],band.right[1]];
+    const yA=(eA[0].y+eA[1].y)/2,yB=(eB[0].y+eB[1].y)/2,bot=yA>yB?eA:eB,top=yA>yB?eB:eA;
+    const by=Math.max(yA,yB),s0=Math.max(2,by-L.PC.y);
+    const fT=clamp(dist(top[0],top[1])*.9/wWide(B),.5,1),f0=clamp(dist(bot[0],bot[1])*.92/wWide(B-s0),.45,1);
+    pinch={end:s0+58,f:s=>lerp(1,s<s0?lerp(fT,f0,s/s0):f0+(1-f0)*smooth((s-s0)/52),tau)};
+    nodes[nodes.length-1].ws=pinch.f(0);
+    act=ribbon(nodes,bd,bl,metas,wWide,h0,pinch);
+    dimple={x:L.PC.x,y:by+2.5,o:tau};
+  }
+  const blade=act[act.length-1];
+  if(fold){blade.fold={F:fold.F,c:fold.c,cos:Math.cos(fold.th)};blade.shade=Math.sin(fold.th)*.34;if(fold.th>PI/2){blade.z=fold.to.z;blade.face=fold.to.face}}
+  // the tail: narrow end, stays put
+  let J=L.J,T=L.tail;
+  if(k===0){const J0=v(L.CL.x,L.CL.y+dist(L.CL,L.J)),T0=v(L.CL.x,J0.y+(L.tail.y-L.J.y));J=lerpV(J0,L.J,e);T=lerpV(T0,L.tail,e)}
+  const pf=K.inside?0:1,pm={z:0,face:pf};
+  const pas=ribbon([{p:L.CL,join:'start'},{p:J,join:'miter'}],unit(sub(T,J)),dist(J,T),[pm,pm],wTail,pf?1:-1);
+  // what just happened: ghost of the blade's last position plus an arrow
+  let hint=null;
+  if(o.hints&&t===0&&k>=1){
+    const bp=s=>[...s.left,s.tip,...s.right.slice().reverse()];
+    const mkGhost=(F,d,l)=>bp(ribbon([{p:F,join:'start'}],d,l,[{z:0,face:1}],wWide,1)[0]);
+    const lq=78;let g,Q0,Q1,F,lab;
+    if(k===1){F=L.CR;g=mkGhost(F,DN,bl);Q0=add(F,mul(DN,120));Q1=add(F,mul(bd,120));lab=mv[0].d==='i'?'over':'under'}
+    else if(k<=n-1){F=ch[k-2];const c=creaseDir(unit(sub(F,k>=3?ch[k-3]:L.CR)),bd);g=bp(blade).map(p=>reflectPt(p,F,c));Q1=add(F,mul(bd,lq));Q0=reflectPt(Q1,F,c);lab=mv[k-1].d==='i'?(mv[k-1].r==='C'?'up the front':mv[k-2].r==='C'?'down the front':'over the front'):(mv[k-2].r==='C'?'down through the loop':mv[k-1].r==='C'?'up behind':'behind')}
+    else if(k===n){F=ch[n-2];g=mkGhost(F,L.dBand,rem(n-2));Q0=add(F,mul(L.dBand,62));Q1=add(L.H,mul(UP,88));lab='up behind'}
+    else if(k===n+1){F=L.PC;g=bp(blade).map(p=>reflectPt(p,F,v(1,0)));Q0=add(F,mul(UP,70));Q1=add(F,mul(DN,112));lab='through the band'}
+    else{F=v(0,-20);Q0=v(-52,6);Q1=v(-52,-46);lab='slide up'}
+    hint={g,Q0,Q1,F,lab};
+  }
+  return {K,k,t,tau,L,act,pas,dimple,hint,bladeLen:bl,face:blade.face};
+}
+
+/* ================= drawing ================= */
+const poly=pts=>'M'+pts.map(P).join('L')+'Z',mat=(a,b,c,d,e,f)=>`matrix(${a.toFixed(4)} ${b.toFixed(4)} ${c.toFixed(4)} ${d.toFixed(4)} ${f1(e)} ${f1(f)})`;
+function emitRibbon(strips,uid,clip,out,defs){
+  let cur=null;const pieces=[];
+  strips.forEach((s,i)=>{if(!cur||s.j0==='fold'||s.j0==='pend'){cur={z:s.z,ss:[]};pieces.push(cur)}cur.ss.push(s);cur.z=s.z;if(i===0)cur.clip=clip});
+  for(const pc of pieces){
+    let h='',ol='';
+    for(const s of pc.ss){
+      const tr=s.fold?p=>foldPt(p,s.fold.F,s.fold.c,s.fold.cos):p=>p;
+      const Lp=s.left.map(tr),Rp=s.right.map(tr),tip=s.tip?tr(s.tip):null;
+      const pts=tip?[...Lp,tip,...Rp.slice().reverse()]:[...Lp,...Rp.slice().reverse()],d=poly(pts);
+      if(s.face){
+        const id=uid+'p'+s.i;let a=s.d.x,b=s.d.y,c=s.m.x,dd=s.m.y,ex=s.A.x+s.d.x*s.u0,ey=s.A.y+s.d.y*s.u0;
+        if(s.fold){const O=v(0,0),t0=tr(O),tx=sub(tr(v(1,0)),t0),ty=sub(tr(v(0,1)),t0);
+          const na=tx.x*a+ty.x*b,nb=tx.y*a+ty.y*b,nc=tx.x*c+ty.x*dd,nd=tx.y*c+ty.y*dd,ne=tx.x*ex+ty.x*ey+t0.x,nf=tx.y*ex+ty.y*ey+t0.y;a=na;b=nb;c=nc;dd=nd;ex=ne;ey=nf}
+        defs.push(`<pattern id="${id}" patternUnits="userSpaceOnUse" width="26" height="26" patternTransform="${mat(a,b,c,dd,ex,ey)}"><use href="#tieTile"/></pattern>`);
+        h+=`<path d="${d}" fill="url(#${id})"/>`;
+      }else h+=`<path d="${d}" class="tb"/><path class="seam" d="M${P(tr(s.A))}L${P(tr(s.B))}"/>`;
+      {const hw=Math.abs(dot(sub(s.left[0],s.A),s.m)),hw2=s.blade?hw:Math.abs(dot(sub(s.left[1],s.B),s.m)),g=Math.max(hw,hw2),O=v(0,0),t0=tr(O),tx=sub(tr(v(1,0)),t0),ty=sub(tr(v(0,1)),t0);
+        const a=tx.x*s.d.x+ty.x*s.d.y,b=tx.y*s.d.x+ty.y*s.d.y,c=tx.x*s.m.x+ty.x*s.m.y,dd=tx.y*s.m.x+ty.y*s.m.y,o2=tr(s.A);
+        defs.push(`<linearGradient id="${uid}g${s.i}" href="#tieSheen" gradientUnits="userSpaceOnUse" x1="0" y1="${f1(-g)}" x2="0" y2="${f1(g)}" gradientTransform="${mat(a,b,c,dd,o2.x,o2.y)}"/>`);
+        h+=`<path d="${d}" fill="url(#${uid}g${s.i})"/>`}
+      if(s.shade)h+=`<path d="${d}" class="shade" opacity="${s.shade.toFixed(2)}"/>`;
+      if(tip)ol+='M'+[...Lp,tip,...Rp.slice().reverse()].map(P).join('L');
+      else ol+='M'+Lp.map(P).join('L')+'M'+Rp.map(P).join('L');
+      if(s.j0==='fold'||s.j0==='pend')ol+=`M${P(Lp[0])}L${P(Rp[0])}`;
+      if(s.j1==='fold'||s.j1==='pend')ol+=`M${P(Lp[1])}L${P(Rp[1])}`;
+    }
+    out.push({z:pc.z,h:`<g filter="url(#tieSh)"${pc.clip?` clip-path="url(#${uid}clip)"`:''}>${h}<path class="ol" d="${ol}"/></g>`});
+  }
+}
+const LEAF_L='M0,-82 L-36,-106 L-55,-88 L-34,-34 Z',LEAF_R='M0,-82 L36,-106 L55,-88 L34,-34 Z';
+function backdrop(){
+  const b=GEO.belt;
+  return `<g class="bd"><path class="neck" d="M-27,-260V-98Q0,-86 27,-98V-260Z"/>
+<path class="shirt" d="M-36,-104C-70,-90 -128,-80 -152,-44L-170,900H170L152,-44C128,-80 70,-90 36,-104Q0,-86 -36,-104Z"/>
+<path class="plk" d="M-10,-78V${b}M10,-78V${b}"/>
+<path class="trs" d="M-156.6,${b}H156.6L170,900H-170Z"/><path class="blt" d="M-156.6,${b}h313.2l.3,15h-313.8z"/><rect class="bkl" x="-14" y="${b-2.5}" width="28" height="20" rx="2.5"/>
+<path class="leaf" d="${LEAF_L}"/><path class="leaf" d="${LEAF_R}"/><circle class="btn0" cx="0" cy="-72" r="2.4"/></g>`;
+}
+function arrow(Q0,Q1,F){
+  const ch=sub(Q1,Q0),l=len(ch),mid=lerpV(Q0,Q1,.5);let nn=perp(unit(ch));
+  const sgn=dot(nn,sub(mid,F));if(Math.abs(sgn)<3){if(dot(nn,v(.3,1))<0)nn=mul(nn,-1)}else if(sgn<0)nn=mul(nn,-1);
+  const C=add(mid,mul(nn,clamp(l*.34,16,58))),dir=unit(sub(Q1,C)),pn=perp(dir),base=sub(Q1,mul(dir,10));
+  const d=`M${P(Q0)}Q${P(C)} ${P(base)}`;
+  return {h:`<path class="arr-h" d="${d}"/><path class="arr" d="${d}"/><path class="arr-t" d="M${P(add(Q1,mul(dir,1.5)))}L${P(add(base,mul(pn,5.2)))}L${P(sub(base,mul(pn,5.2)))}Z"/>`,C:add(lerpV(mid,C,.5),mul(nn,13))};
+}
+function camAt(K,k){
+  const top=-150;let bot;
+  if(k===0)bot=GEO.CR.y+dist(GEO.CR,K.L0.pts[0])+chainLen(K.L0)+K.B0+26;
+  else if(k<=K.n)bot=160;else if(k===K.n+1)bot=Math.max(170,K.L0.PC.y+K.B0+30);else bot=GEO.belt+56;
+  return {top,h:bot-top};
+}
+function sceneSVG(K,pos,o){
+  o=o||{};const sc=buildScene(K,pos,o),uid=o.uid||'s',out=[],defs=[];
+  emitRibbon(sc.pas,uid+'t',true,out,defs);emitRibbon(sc.act,uid+'a',true,out,defs);
+  out.sort((a,b)=>a.z-b.z);
+  defs.push(`<clipPath id="${uid}tclip"><path clip-rule="evenodd" d="M-900,-900H900V1500H-900Z${LEAF_L}${LEAF_R}"/></clipPath>`);
+  defs.push(`<clipPath id="${uid}aclip"><path clip-rule="evenodd" d="M-900,-900H900V1500H-900Z${LEAF_L}${LEAF_R}"/></clipPath>`);
+  let h=backdrop()+out.map(x=>x.h).join('');
+  if(sc.dimple){const d=sc.dimple;h+=`<path class="dimple" opacity="${(d.o*.5).toFixed(2)}" d="M${f1(d.x)},${f1(d.y)}q2.6,9 0,29q-2.6,-20 0,-29Z"/>`}
+  const core=h;
+  let cam=o.cam;
+  if(!cam){const a=camAt(K,sc.k),b=camAt(K,Math.min(K.last,sc.k+1)),e=ease(sc.t);cam={top:lerp(a.top,b.top,e),h:lerp(a.h,b.h,e)}}
+  const w=cam.w||cam.h*ASPECT,x0=cam.x!==undefined?cam.x:-w/2;
+  let labs='';const fx=o.flip?-1:1,fs=f1(clamp(cam.h*.026,7.5,o.flip===undefined?15:10.2)),lab=(x,y,txt,anchor)=>{
+    let X=x*fx;const a=anchor==='middle'?'middle':(anchor==='start')===(fx>0)?'start':'end';
+    if(a==='middle'){const half=txt.length*fs*.35+7;X=clamp(X,x0+half,x0+w-half)}
+    labs+=`<text class="lab" style="font-size:${fs}px" x="${f1(X)}" y="${f1(y)}" text-anchor="${a}">${txt}</text>`};
+  if(sc.hint){const g=sc.hint;if(g.g)h+=`<path class="ghost" d="${poly(g.g)}"/>`;const a=arrow(g.Q0,g.Q1,g.F);h+=a.h;lab(a.C.x,a.C.y,g.lab,'middle')}
+  if(o.hints&&sc.t===0){
+    if(sc.k===0){const wy=140,ty=70;h+=`<path class="lead" d="M${GEO.CR.x+22},${wy}h20M${GEO.CL.x-9},${ty}h-20"/>`;lab(GEO.CR.x+46,wy+3.5,'wide end','start');lab(GEO.CL.x-33,ty+3.5,'narrow end','end')}
+    if(sc.k===K.last){
+      const kc=v(0,sc.L.bandY+7),R=58,c=v(96,30),z=2.2,dy=c.y+z*(sc.dimple.y+16-kc.y);
+      defs.push(`<clipPath id="${uid}lens"><circle cx="${c.x}" cy="${c.y}" r="${R}"/></clipPath>`);
+      h+=`<path class="lead" d="M19,${f1(kc.y)}L${f1(c.x-R*.8)},${f1(c.y-R*.6)}M17,${GEO.belt-12}h25"/><g clip-path="url(#${uid}lens)"><rect class="lens-bg" x="${c.x-R}" y="${c.y-R}" width="${2*R}" height="${2*R}"/><g transform="translate(${c.x},${c.y}) scale(${z}) translate(0,${f1(-kc.y)})">${core}</g></g><circle class="lens" cx="${c.x}" cy="${c.y}" r="${R}"/><path class="lead" d="M${c.x},${f1(dy)}V${c.y+R+5}"/>`;
+      lab(46,GEO.belt-8.5,'tip on buckle','start');lab(c.x,c.y+R+17,'dimple','middle')}
+  }
+  return {vb:`${f1(x0)} ${f1(cam.top)} ${f1(w)} ${f1(cam.h)}`,html:`<defs>${defs.join('')}</defs><g${o.flip?' transform="scale(-1,1)"':''}>${h}</g>${labs}`,face:sc.face,k:sc.k,t:sc.t};
+}
+
+/* ================= route map ================= */
+const SYM={i:'<circle cx="0" cy="0" r="4.3" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"/><path d="M-2.4,-2.4L2.4,2.4M2.4,-2.4L-2.4,2.4" stroke="currentColor" stroke-width="1.2"/>',
+           o:'<circle cx="0" cy="0" r="4.3" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"/><circle cx="0" cy="0" r="1.5" fill="currentColor"/>'};
+function routeSVG(K,step){
+  const O=v(110,104),ang={R:30,L:150,C:270},pt=(a,r)=>v(O.x+r*Math.cos(rad(a)),O.y+r*Math.sin(rad(a)));
+  const n=K.n,mv=K.moves,dr=Math.min(8.5,50/n),R=j=>20+dr*j,segs=[];
+  segs.push({j:1,d:mv[0].d,p:`M${P(pt(330,92))}L${P(pt(ang.L,R(1)))}`,end:pt(ang.L,R(1))});
+  for(let j=2;j<=n;j++){
+    const a0=ang[mv[j-2].r],a1=ang[mv[j-1].r];let da=a1-a0;while(da>180)da-=360;while(da<-180)da+=360;
+    const ps=[];for(let q=0;q<=20;q++){const f=q/20;ps.push(pt(a0+da*f,lerp(R(j-1),R(j),f)))}
+    segs.push({j,d:mv[j-1].d,p:'M'+ps.map(P).join('L'),end:ps[20]});
+  }
+  const tP=`M${P(pt(270,R(n)))}L${P(pt(90,90))}`;
+  const cls=s=>(s.d==='i'?'rm-f':'rm-b')+(step<s.j?' rm-fut':'');
+  const tx=(a,r,t,c,dx,dy)=>{const q=pt(a,r);return `<text class="${c}" x="${f1(q.x+(dx||0))}" y="${f1(q.y+(dy||0))}">${t}</text>`};
+  let h=tx(150,84,'L','rm-l',-4,12)+tx(30,84,'R','rm-l',4,12)+tx(270,88,'C','rm-l',0,0);
+  h+=tx(90,96,'narrow end','rm-s',0,8)+tx(210,96,'neck','rm-s',0,-3)+tx(330,96,'neck','rm-s',0,-3);
+  const curSeg=segs.find(s=>s.j===step);
+  if(curSeg)h+=`<path class="rm-halo" d="${curSeg.p}"/>`;
+  if(step===n+1)h+=`<path class="rm-halo" d="${tP}"/>`;
+  h+=segs.filter(s=>s.d==='o').map(s=>`<path class="${cls(s)}" d="${s.p}"/>`).join('');
+  h+=`<path class="rm-arm" d="M${P(O)}L${P(pt(90,84))}M${P(O)}L${P(pt(210,88))}"/>`;
+  h+=segs.filter(s=>s.d==='i'&&s.j!==n-1).map(s=>`<path class="${cls(s)}" d="${s.p}"/>`).join('');
+  h+=`<path class="rm-f${step<n+1?' rm-fut':''}" d="${tP}"/>`;
+  const band=segs[n-2];h+=`<path class="${cls(band)}" d="${band.p}"/>`;
+  h+=segs.map(s=>`<g transform="translate(${P(s.end)})" style="color:var(--${step<s.j?'line':'ink'})">${SYM[s.d]}</g>`).join('');
+  return h;
+}
+
+/* ================= words ================= */
+function makeSteps(K){
+  const mv=K.moves,n=K.n,S=[],sd=r=>r==='L'?'left':'right';
+  S.push({title:'Drape the tie',face:K.inside?0:1,
+    text:K.inside?'Do up your top button and drape the tie around your neck inside out, with the seam facing the mirror. Wide end on your right, narrow end on your left.'
+                 :'Do up your top button and drape the tie around your neck with the seam against your shirt. Wide end on your right, narrow end on your left.',
+    check:'Let the wide end hang about '+K.start+' lower than the narrow end.'});
+  mv.forEach((m,j)=>{
+    const prev=j?mv[j-1].r:null;let title,text;
+    if(j===0){
+      if(m.d==='i'){title='Cross over';text='Lay the wide end over the narrow end so it points to your left. Pinch the crossing with your left hand. From here on, only the wide end moves.'}
+      else{title='Cross under';text='Slip the wide end under the narrow end so it points to your left. Pinch the crossing with your left hand. From here on, only the wide end moves.'}
+    }else if(m.r!=='C'&&prev!=='C'){
+      if(m.d==='o'){title='Wrap behind';text=`Fold the wide end behind the narrow end and bring it out on your ${sd(m.r)}.`}
+      else if(j===n-2){title='Across the front';text=`Bring the wide end across the front to your ${sd(m.r)}. This band becomes the face of the knot. Keep it flat, and loose enough to slip a finger under.`}
+      else{title='Across the front';text=`Bring the wide end across the front to your ${sd(m.r)} and keep the wrap flat.`}
+    }else if(m.r==='C'&&m.d==='o'){
+      if(j===n-1){title='Up through the neck loop';text='Bring the wide end up behind the knot and out through the neck loop, so the tip points at your chin.'}
+      else{title='Up behind the loop';text=`Bring the wide end up behind the ${sd(prev)} side of the neck loop and out at the top.`}
+    }else if(m.r==='C'){title='Up the front';text='Lift the wide end up the front of the knot toward your chin, ready to go down into the neck loop.'}
+    else if(m.d==='i'){
+      if(j===n-2){title='Across the front';text=`Bring the wide end down and across the front to your ${sd(m.r)}. This band becomes the face of the knot. Keep it loose enough to slip a finger under.`}
+      else{title='Down the front';text=`Fold the wide end down over the front of the neck loop to your ${sd(m.r)} and pull it snug. This builds one shoulder of the knot.`}
+    }else{title='Down through the loop';text=`Push the wide end down through the neck loop, behind the knot, and out on your ${sd(m.r)}. Pull it snug.`}
+    S.push({title,text,face:m.d==='i'?1:0,check:m.d==='i'?'The front of the tie faces you.':'The seam side faces you.'});
+  });
+  S.push({title:'Down through the band',face:1,text:'Fold the wide end down and slide the tip through the front band you kept loose, between the band and the knot behind it.',check:'The wide end hangs straight down over the narrow end.'});
+  S.push({title:'Tighten and dimple',face:1,text:'Hold the narrow end and slide the knot up to your collar. As it closes, pinch a crease into the wide end just under the knot to set the dimple. Then fold your collar down.',check:'The tip of the wide end touches your belt buckle.'});
+  return S;
+}
+
+/* ================= interface ================= */
+const KNOTS=KNOT_DATA.map(prep),MORE=MORE_DATA.map(prep),ALL=[...KNOTS,...MORE];
+const $=id=>document.getElementById(id),RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S={K:KNOTS[0],pos:0,target:0,playing:false,flip:false,speed:1,wait:0,lastTs:0,shown:-1,raf:0};
+const stage=$('stage');
+function thumb(K,uid){const r=sceneSVG(K,K.last,{uid,cam:{top:-98,h:76,w:76,x:-38}});return `<svg viewBox="${r.vb}" aria-hidden="true">${r.html}</svg>`}
+function buildPicker(){
+  $('knots').innerHTML=KNOTS.map(K=>`<button class="knot" type="button" data-k="${K.id}" aria-pressed="false">${thumb(K,'th'+K.id)}<span><b>${K.name}</b><span>${K.n+1} moves</span></span></button>`).join('');
+  $('knots').addEventListener('click',ev=>{const b=ev.target.closest('.knot');if(b)setKnot(b.dataset.k,true)});
+}
+function pips(nm,val){return `<span class="meter">${nm}<span class="pips" role="img" aria-label="${val} of 5">${[1,2,3,4,5].map(i=>`<i${i<=val?' class="on"':''}></i>`).join('')}</span></span>`}
+function setKnot(id,auto){
+  const K=ALL.find(k=>k.id===id);if(!K)return;S.K=K;S.pos=0;S.target=0;S.playing=false;S.shown=-1;
+  document.querySelectorAll('.knot').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===id?'true':'false'));
+  $('kName').innerHTML=K.name+(K.aka?` <small>also called ${K.aka}</small>`:'');
+  $('kBlurb').textContent=K.blurb;
+  $('kMeters').innerHTML=pips('Size',K.size)+pips('Evenness',K.sym)+pips('Ease',K.ease);
+  $('scrub').max=K.last;
+  $('dots').innerHTML=K.steps.map((s,i)=>`<button class="dot" type="button" data-i="${i}" aria-label="Step ${i+1}: ${s.title}">${i+1}</button>`).join('');
+  $('chips').innerHTML=K.moves.map((m,j)=>`<button class="chip" type="button" data-i="${j+1}" aria-label="${m.r==='L'?'Left':m.r==='R'?'Right':'Centre'}, ${m.d==='i'?'heading in':'coming out'}">${m.r}<svg viewBox="-6 -6 12 12">${SYM[m.d]}</svg></button>`).join('')+`<button class="chip" type="button" data-i="${K.n+1}" aria-label="Through the band">T</button>`;
+  draw();if(auto)play();
+}
+function draw(){
+  const r=sceneSVG(S.K,S.pos,{uid:'st',flip:S.flip,hints:true});
+  stage.setAttribute('viewBox',r.vb);stage.innerHTML=r.html;
+  $('scrub').value=S.pos;
+  const fwd=S.target>=S.pos-1e-6,shown=fwd?Math.ceil(S.pos-1e-6):Math.floor(S.pos+1e-6);
+  if(shown!==S.shown){S.shown=shown;panel(shown)}
+  $('bPlay').textContent=S.playing?'Pause':(S.pos>=S.K.last-1e-6?'Replay':'Play');
+  $('bPrev').disabled=S.pos<=1e-6;$('bNext').disabled=S.pos>=S.K.last-1e-6;
+}
+function panel(i){
+  const K=S.K,st=K.steps[i];
+  $('sNum').textContent=i+1;$('sOf').textContent=`Step ${i+1} of ${K.steps.length}`;
+  $('sTitle').textContent=st.title;$('sText').textContent=st.text;$('sChk').textContent=st.check;
+  $('sSw').className='sw '+(st.face?'front':'back');
+  document.querySelectorAll('.dot').forEach((d,j)=>{d.className='dot'+(j===i?' cur':j<i?' done':'')});
+  document.querySelectorAll('.chip').forEach(c=>{const j=+c.dataset.i;c.className='chip'+(j===i?' cur':j<i?' done':'')});
+  $('route').innerHTML=routeSVG(K,i);
+}
+function loop(ts){
+  S.raf=0;const dt=Math.min(64,ts-(S.lastTs||ts));S.lastTs=ts;
+  if(S.wait>0){S.wait-=dt;if(S.wait<=0){S.wait=0;if(S.playing){if(S.target<S.K.last)S.target+=1;else S.playing=false}}}
+  else if(S.pos!==S.target){
+    const k=Math.min(Math.floor(S.pos+1e-6),S.K.last-1),dur=(k===S.K.n-1||k===S.K.n+1?2100:k===0?1300:1500)/S.speed;
+    const stepv=dt/dur,d=S.target-S.pos;
+    S.pos=Math.abs(d)<=stepv+1e-6?S.target:S.pos+Math.sign(d)*stepv; // snap exactly, so arrival is never missed
+    if(S.pos===S.target&&S.playing)S.wait=S.pos>=S.K.last?1:800/S.speed;
+  }
+  draw();
+  if(S.wait>0||S.pos!==S.target)kick();else S.lastTs=0;
+}
+function kick(){if(!S.raf)S.raf=requestAnimationFrame(loop)}
+function goTo(i){S.playing=false;S.wait=0;S.target=clamp(i,0,S.K.last);if(RM){S.pos=S.target;draw()}else kick()}
+function play(){
+  if(RM){goTo(Math.min(S.K.last,Math.round(S.pos)+1));return}
+  if(S.pos>=S.K.last-1e-6){S.pos=0;S.shown=-1}
+  S.playing=true;S.wait=0;S.target=Math.min(S.K.last,Math.floor(S.pos+1e-6)+1);kick();
+}
+function wire(){
+  $('bPlay').onclick=()=>{if(S.playing){S.playing=false;S.target=Math.ceil(S.pos-1e-6);kick()}else play()};
+  $('bNext').onclick=()=>goTo(Math.floor(S.pos+1e-6)+1);
+  $('bPrev').onclick=()=>goTo(Math.ceil(S.pos-1e-6)-1);
+  $('scrub').addEventListener('input',ev=>{S.playing=false;S.wait=0;S.pos=S.target=+ev.target.value;draw()});
+  $('scrub').addEventListener('change',()=>goTo(Math.round(S.pos)));
+  $('dots').addEventListener('click',ev=>{const b=ev.target.closest('.dot');if(b)goTo(+b.dataset.i)});
+  $('chips').addEventListener('click',ev=>{const b=ev.target.closest('.chip');if(b)goTo(+b.dataset.i)});
+  const view=f=>{S.flip=f;$('vMirror').setAttribute('aria-pressed',!f);$('vFacing').setAttribute('aria-pressed',f);$('viewtag').textContent=f?'Facing view: how others see you':'Mirror view';draw()};
+  $('vMirror').onclick=()=>view(false);$('vFacing').onclick=()=>view(true);
+  const spd=s=>{S.speed=s;$('sSlow').setAttribute('aria-pressed',s<1);$('sNorm').setAttribute('aria-pressed',s>=1)};
+  $('sSlow').onclick=()=>spd(.5);$('sNorm').onclick=()=>spd(1);
+  document.addEventListener('keydown',ev=>{
+    if(ev.target.matches('input,textarea,select'))return;
+    if(ev.key==='ArrowRight'){$('bNext').click();ev.preventDefault()}
+    else if(ev.key==='ArrowLeft'){$('bPrev').click();ev.preventDefault()}
+  });
+  const jump=id=>{setKnot(id,true);$('studio').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})};
+  $('more').innerHTML=MORE.map(K=>`<button type="button" data-k="${K.id}">${K.name}<code>${K.seq} T</code></button>`).join('');
+  $('more').addEventListener('click',ev=>{const b=ev.target.closest('button');if(b)jump(b.dataset.k)});
+  $('cmp').addEventListener('click',ev=>{const b=ev.target.closest('.lnk');if(b)jump(b.dataset.k)});
+}
+
+/* ================= reference figures ================= */
+function anatomy(){
+  const row=(y,back)=>{
+    const top=`M12,${y}L40,${y-27}L452,${y-9}L548,${y-8}L690,${y-11}L701,${y}L690,${y+11}L548,${y+8}L452,${y+9}L40,${y+27}Z`;
+    return back?`<path d="${top}" class="tb"/><path class="ol" d="${top}"/><path class="seam" d="M40,${y}H690"/><rect x="150" y="${y-19}" width="13" height="38" rx="2" fill="var(--tie)" stroke="var(--tie-ink)" stroke-width=".8"/>`
+               :`<path d="${top}" fill="url(#anatP)"/><path class="ol" d="${top}"/>`;
+  };
+  const cap=(x,y1,y2,t,s,anchor)=>`<path class="a-ln" d="M${x},${y1}V${y2}"/><text class="a-l" x="${x}" y="${y2+(y2>y1?13:-18)}" text-anchor="${anchor||'middle'}">${t}</text><text class="a-s" x="${x}" y="${y2+(y2>y1?27:-5)}" text-anchor="${anchor||'middle'}">${s}</text>`;
+  $('anat').innerHTML=`<svg viewBox="0 0 714 268" role="img" aria-label="A tie laid flat, front and back, with its parts named">
+<defs><pattern id="anatP" patternUnits="userSpaceOnUse" width="26" height="26"><use href="#tieTile"/></pattern></defs>
+<text class="a-l" x="12" y="14">Front</text><text class="a-l" x="12" y="158">Back</text>
+${row(72,false)}${row(204,true)}
+${cap(26,84,112,'Tip','','start')}${cap(200,94,112,'Blade','the wide end')}${cap(500,81,112,'Neck','sits under the collar')}${cap(650,84,112,'Tail','the narrow end','end')}
+${cap(156,224,232,'Keeper loop','holds the tail')}${cap(420,212,232,'Seam','faces your shirt')}
+</svg>`;
+}
+function trio(){
+  const K=KNOTS[0],cam={top:-120,h:400,w:230,x:-115};
+  const one=(d,cls,t,s,uid)=>{const r=sceneSVG(K,K.last,{uid,bladeDelta:d,cam});return `<figure class="${cls}"><svg viewBox="${r.vb}" role="img" aria-label="${t}">${r.html}</svg><figcaption><b>${t}</b>${s}</figcaption></figure>`};
+  $('trio').innerHTML=one(-52,'','Too short','Start with the wide end lower.','tr1')+one(0,'ok','Right','Tip on the buckle.','tr2')+one(48,'','Too long','Start with the wide end higher.','tr3');
+}
+function collars(){
+  const data=[['Point','Narrow gap, long points. Four-in-Hand, Kelvin, Oriental.',15,54,8.5,0],['Button-down','Soft and casual. Four-in-Hand.',17,50,8.5,1],['Semi-spread','The all-rounder. Half Windsor, Pratt.',27,45,11.5,0],['Spread or cutaway','Wide gap, short points. Full Windsor.',40,34,15,0]];
+  $('collars').innerHTML=data.map(([n,t,tx,ty,kw,btn])=>{
+    const leaf=s=>`<path class="leaf" d="M0,6L${s*27},-9L${s*40},3L${s*tx},${ty}Z"/>`+(btn?`<circle cx="${s*(tx-2.5)}" cy="${ty-6}" r="1.7" fill="var(--shirt-line)"/>`:'');
+    return `<div class="collar"><svg viewBox="-56 -14 112 84" aria-hidden="true"><path class="cl-shirt" d="M-27,-9C-44,-2 -54,6 -56,20V70H56V20C54,6 44,-2 27,-9Q0,4 -27,-9Z"/>
+<path class="cl-knot" d="M${-kw*.72},29L-13,70H13L${kw*.72},29Z"/><path class="cl-knot" d="M${-kw},7H${kw}L${kw*.6},30H${-kw*.6}Z"/>${leaf(-1)}${leaf(1)}</svg><b>${n}</b><span>${t}</span></div>`}).join('');
+  $('cmp').innerHTML='<thead><tr><th>Knot</th><th>Code</th><th>Moves</th><th>Shape</th><th>Wide end starts lower by</th><th>Collar</th><th>Cloth</th></tr></thead><tbody>'+
+    KNOTS.map(K=>`<tr><td><button class="lnk" type="button" data-k="${K.id}">${K.name}</button></td><td class="kc">${K.seq} T</td><td>${K.n+1}</td><td>${K.shape}</td><td>${K.start}</td><td>${K.collar}</td><td>${K.cloth}</td></tr>`).join('')+'</tbody>';
+}
+
+buildPicker();wire();anatomy();trio();collars();
+$('prints').innerHTML=KNOTS.map(K=>`<figure><svg viewBox="0 0 220 210" role="img" aria-label="Route map of the ${K.name}">${routeSVG(K,K.last)}</svg><figcaption><b>${K.name}</b><br><code>${K.seq} T</code></figcaption></figure>`).join('');
+setKnot(KNOTS[0].id,false);
+window.TieGuide={KNOTS,ALL,sceneSVG,setKnot,state:S,goTo,draw};
+if(!RM)setTimeout(()=>{if(S.pos===0&&!S.playing)play()},900);
+})();
+</script>
+<!--/BODY-->
+</body>
+</html>
