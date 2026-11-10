@@ -6,6 +6,8 @@ An interactive, fold-by-fold guide to tying a tie, rendered in 3D. Open `index.h
 
 - **A 3D stage.** The tie is a cloth ribbon on a dress form, lit with soft shadows. Drag to turn it, use Close-up to frame the knot, and switch between three views: Mirror, Facing, and Your eyes (looking down your own chest).
 - **Real folds.** Each step is one fold of a single strip of cloth, so every over and under is correct by construction and the seam side shows exactly when it would on a real tie. Folds toward you flip through the air; folds that go behind are fed through the gap between tie and shirt, tip first; the cloth gathers where it passes through the neck loop.
+- **Cloth that does not pass through itself.** The neck loop is a real opening that the wide end threads through, cloth going behind is fed along its own path, and the finished knot closes into a solid body under the front band. A triangle-level check reports no self-intersections at any step while tying.
+- **A dressed form.** Shirt with sleeves, buttoned cuffs, placket, pocket and seams; belt with loops; a wooden neck cap with a brass finial.
 - **Ten knots.** Four-in-Hand, Half Windsor, Full Windsor, Pratt, Kelvin and Oriental, plus Victoria, Nicky, St Andrew and Plattsburgh from Fink and Mao's 85.
 - **Controls.** Play, step, drag the scrubber through a fold, slow speed, arrow keys.
 - **Route map and knot code.** Each knot is also drawn as a walk around the three regions (left, right, centre) in Fink–Mao notation.

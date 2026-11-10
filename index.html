@@ -403,7 +403,7 @@ const foldPt=(p,F,c,cos)=>{const nn=perp(c);return sub(p,mul(nn,(1-cos)*dot(sub(
 /* ================= the cloth ================= */
 const wWide=u=>Math.min(2*u,Math.max(18,54-.085*Math.max(0,u-27)));wWide.tip=27;
 const wTail=u=>Math.min(2*u,17);wTail.tip=8.5;
-const GEO={CL:v(-36,-74),CR:v(36,-74),belt:205,tightY:-72,px:24,pdx:3,py:14,pdy:3,cy:-29,cdy:1.5,cyT:-8,cxo:7,cyF:-33};
+const GEO={CL:v(-36,-74),CR:v(36,-74),belt:205,tightY:-72,px:24,pdx:3,py:14,pdy:3,cy:-50,cdy:1.5,cyT:-8,cxo:7,cyF:-54};
 const TA=.5,ASPECT=.8;
 
 /* ================= knots ================= */
@@ -432,7 +432,7 @@ function prep(d){
   K.moves=d.seq.split(' ').map(s=>({r:s[0],d:s[1]}));
   const n=K.n=K.moves.length;K.last=n+2;K.inside=K.moves[0].d==='o';
   let f=0,b=0;K.meta=K.moves.map(m=>m.d==='i'?{z:++f,face:1}:{z:-(++b),face:0});K.nBack=b;
-  K.metaT={z:K.meta[n-2].z-.5,face:1};
+  K.metaT={z:K.meta[n-2].z-.62,face:1};
   K.tight=.47+.024*n;K.tail=150-7*(n-3);
   K.L0=layout(K,0);K.L1=layout(K,1);K.C1=chainLen(K.L1);K.Bf=GEO.belt+5-K.L1.PC.y;
   K.B0=K.Bf-.5*(chainLen(K.L0)-K.C1);
@@ -451,7 +451,7 @@ function layout(K,tau){
     else p=v(sx(m.r)*(GEO.px+lerp(GEO.pdx,1,tau)*i),GEO.py+lerp(GEO.pdy,0,tau)*i);
     pts.push(add(X,mul(p,sp)));
   }
-  const CR=GEO.CR,CL=GEO.CL,far=pts[n-2],st=n>=3?pts[n-3]:CR,pre=n>=4?pts[n-4]:CR;
+  const CR=lerpV(GEO.CR,v(22,-88),tau),CL=lerpV(GEO.CL,v(-22,-88),tau),far=pts[n-2],st=n>=3?pts[n-3]:CR,pre=n>=4?pts[n-4]:CR;
   const dPre=unit(sub(st,pre)),dBand=unit(sub(far,st)),c0=creaseDir(dPre,dBand);
   const lean0=Math.atan2(Math.abs(c0.x),Math.abs(c0.y)),beta=clamp(lean0,rad(10),rad(26));
   const bandY=(far.y+st.y)/2;
@@ -715,7 +715,7 @@ function makeSteps(K){
 /* ================= 3D: choreography ================= */
 /* Same folds as the flat diagram, but every layer has real depth. Folds toward you flip through the air;
    folds that go behind are fed through the gap between tie and shirt, tip first. */
-const LIFT=.24*PI,GW=.42,COLS=6,LAM0=1.7,LAM1=1.15;
+const LIFT=.24*PI,GW=.42,COLS=6,LAM0=1.8,LAM1=1.55;
 function buildScene3(K,pos,delta){
   const n=K.n,last=K.last,mv=K.moves;pos=clamp(pos,0,last);
   let k=Math.floor(pos+1e-9),t=pos-k;if(k>=last){k=last;t=0}if(t<1e-4)t=0;
@@ -739,12 +739,12 @@ function buildScene3(K,pos,delta){
       const c=q===n-1?L.farCut:creaseDir(dOld,unit(sub(ch[q],F)));
       nodes.push({p:F,join:'pend',cut:c,ws:mv[q-1].r==='C'?GW:1});metas.push(K.meta[q-1]);
       bd=dOld;bl=rem(q-1);metas.push(K.meta[q-1]);
-      fold={F,c,style,amt,zFrom:K.meta[q-1].z,zTo:K.meta[q].z};
+      fold={F,c,style,amt,zFrom:K.meta[q-1].z,zTo:K.meta[q].z,dNew:unit(sub(ch[q],F))};
     }else{
       addPorts(n-1);nodes.push(hNode());metas.push(K.meta[n-1]);
       nodes.push({p:L.PC,join:'pend',cut:v(1,0),ws:GW});metas.push(K.meta[n-1]);
       bd=UP;bl=B;metas.push(K.meta[n-1]);
-      fold={F:L.PC,c:v(1,0),style,amt,zFrom:K.meta[n-1].z,zTo:K.metaT.z};
+      fold={F:L.PC,c:v(1,0),style,amt,zFrom:K.meta[n-1].z,zTo:K.metaT.z,dNew:DN};
     }
   };
   if(k===0){
@@ -759,12 +759,8 @@ function buildScene3(K,pos,delta){
     }
   }else if(k===n-1){
     if(t===0)plain(k);
-    else if(t<.42)pend(k,'feed',ease(t/.42));
-    else if(t<.8){
-      reset();addPorts(n-1);nodes.push(hNode());metas.push(K.meta[n-1]);
-      const dH=unit(sub(L.H,ch[n-2])),a0=Math.atan2(dH.y,dH.x);let da=-PI/2-a0;while(da>PI)da-=2*PI;while(da<-PI)da+=2*PI;
-      const a=a0+da*ease((t-.42)/.38);bd=v(Math.cos(a),Math.sin(a));bl=rem(n-1);metas.push(K.meta[n-1]);
-    }else pend(n,'flip',LIFT*ease((t-.8)/.2));
+    else if(t<.8){pend(k,'feed',ease(t/.8));fold.hinge={H:L.H}}
+    else pend(n,'flip',LIFT*ease((t-.8)/.2));
   }else if(k===n){
     if(t===0)pend(n,'flip',LIFT);
     else if(t<.16)pend(n,'flip',LIFT*(1-ease(t/.16)));
@@ -775,7 +771,7 @@ function buildScene3(K,pos,delta){
   }
   const act=ribbon(nodes,bd,bl,metas,wWide,K.meta[0].face?1:-1);
   let pinch=null,by=null;
-  if(k>=n+1){
+  if(k>=n){
     const band=act[n-2],eA=[band.left[0],band.left[1]],eB=[band.right[0],band.right[1]];
     const yA=(eA[0].y+eA[1].y)/2,yB=(eB[0].y+eB[1].y)/2,bot=yA>yB?eA:eB;
     by=Math.max(yA,yB);const s0=Math.max(2,by-L.PC.y),f0=clamp(dist(bot[0],bot[1])*.92/wWide(B-s0),.45,1);
@@ -812,7 +808,7 @@ function buildScene3(K,pos,delta){
 }
 
 /* ================= 3D: the dress form ================= */
-const TOR=[[-171,.5,-30,-30.5],[-168.5,13,-17,-43],[-163,22,-8,-52],[-154,26,-4,-56],[-112,27,-3,-57],[-102,31,-3,-60],[-93,57,-1,-66],[-80,103,2.5,-74],[-60,134,7,-80],[-30,146,11.5,-84],[20,142,16,-86],[110,128,15,-83],[205,120,12,-78],[330,126,10,-82],[760,118,8,-80]];
+const TOR=[[-154,26.5,-3.5,-56.5],[-112,27,-3,-57],[-102,31,-3,-60],[-93,57,-1,-66],[-80,103,2.5,-74],[-60,134,7,-80],[-30,146,11.5,-84],[20,142,16,-86],[110,128,15,-83],[205,120,12,-78],[330,126,10,-82],[760,118,8,-80]];
 function prof(y){
   const T=TOR,m=T.length;if(y<=T[0][0])return {a:T[0][1],zf:T[0][2],zb:T[0][3]};if(y>=T[m-1][0])return {a:T[m-1][1],zf:T[m-1][2],zb:T[m-1][3]};
   let i=0;while(y>T[i+1][0])i++;
@@ -826,36 +822,59 @@ function prof(y){
 const pexp=y=>lerp(2,2.7,smooth((y+104)/44));
 function torsoZ(x,y){const q=prof(y),zc=(q.zf+q.zb)/2,b=(q.zf-q.zb)/2,r=Math.abs(x)/q.a;if(r>=1)return zc;const p=pexp(y);return zc+b*Math.pow(1-Math.pow(r,p),1/p)}
 const TIEZ=(()=>{const a=[];let mx=prof(-82).zf;for(let y=-82;y<=760;y+=4){mx=Math.max(mx,prof(y).zf);a.push(mx)}return a})();
+const XE=y=>30*(y+83)/37; // where the inner edge of a collar leaf sits at height y
 const tieZ=y=>{if(y<=-82)return TIEZ[0];const f=Math.min(TIEZ.length-1.001,(y+82)/4),i=Math.floor(f);return lerp(TIEZ[i],TIEZ[i+1],f-i)};
 
 /* ================= 3D: cloth mesh ================= */
+/* Takes a point of flat-folded cloth (z measured from the tie's resting plane) to where it sits on the body. */
+function place(x,y,z,tb,arm,tuck,env){
+  if(env.tau>0){
+    const dx=x-env.X.x,ax=Math.abs(dx);z-=env.tau*.02*dx*dx*(1-smooth((ax-16)/14))*env.wy(y);
+    if(tb&&env.by!=null)z-=env.tau*4.4*Math.exp(-dx*dx/14)*smooth((y-env.by+5)/7)*(1-smooth((y-env.by-4)/38));
+  }
+  if(tb&&env.bandX!=null){ // the wide end bunches to pass through the front band
+    const g=smooth((y-env.topY+10)/8)*(1-smooth((y-env.by-4)/40))*(1-env.tau);if(g>0){const dx=x-env.X.x,a=Math.abs(dx),l=env.bandX,c=l*.6,sq=a<c?a:c+(l-c)*(1-Math.exp(-(a-c)/(l-c)));x=env.X.x+lerp(dx,Math.sign(dx)*sq,g)}}
+  const base=tieZ(y)+env.cl;
+  if(arm&&env.tau<.83){const w=env.armW(x,y)*(1-smooth(env.tau*1.2));return [x,y,lerp(z+base,z*(1-.5*w)+torsoZ(x,y)+env.low,w)]}
+  if(y<-40){
+    const k=1-smooth((y+52)/10),f=smooth((z+.3)/(env.lam*.38+.3)); // f: 0 behind the neck band, 1 in front of it
+    if(f<1){const lim=y<-83?Math.min(30,5+(-83-y)*.9):Math.max(5,XE(y)-6),a=Math.abs(x),c=lim*.6,sq=a<c?a:c+(lim-c)*(1-Math.exp(-(a-c)/(lim-c)));x=lerp(x,Math.sign(x)*sq,(1-f)*k)}
+    if(f>0){const ax=Math.abs(x),w=(y<-83?1:smooth((ax-XE(y)+4)/5))*k*f;if(w>0)z+=w*Math.max(0,torsoZ(Math.min(ax,60),Math.max(y,-83))+9.8-(base+env.lam*.38))}
+  }
+  return [x,y,z+base];
+}
 function ribbonRows(R,fold,pinch,env,out,isAct){
   const N=R.length,nodes=R.nodes,wfn=R.wfn,lam=env.lam,C=COLS,NB=5,pos=out.pos,uf=out.uf,ub=out.ub;let nv=0,nr=0;
-  const fin=(x,y,z,tb,arm)=>{
-    if(env.tau>0){
-      const dx=x-env.X.x,ax=Math.abs(dx);z-=env.tau*.02*dx*dx*(1-smooth((ax-16)/14))*env.wy(y);
-      if(tb&&env.by!=null)z-=env.tau*4.4*Math.exp(-dx*dx/14)*smooth((y-env.by+5)/7)*(1-smooth((y-env.by-4)/38));
-    }
-    if(arm){const w=env.armW(x,y);z=lerp(z+tieZ(y)+env.cl,z*(1-.5*w)+torsoZ(x,y)+env.low,w)}else z+=tieZ(y)+env.cl;
-    pos[nv*3]=x;pos[nv*3+1]=-y;pos[nv*3+2]=z;nv++};
-  const row=(Lp,Rp,u,zf,tb,arm)=>{
+  const fin=(x,y,z,tb,arm,tuck)=>{const q=place(x,y,z,tb,arm,tuck,env);pos[nv*3]=q[0];pos[nv*3+1]=-q[1];pos[nv*3+2]=q[2];nv++};
+  const row=(Lp,Rp,u,zf,tb,arm,tuck)=>{
     const hw=dist(Lp,Rp)/2,hu=wfn(Math.max(u,0))/2;
-    for(let j=0;j<=C;j++){const f=j/C,q=1-2*f,p=lerpV(Lp,Rp,f),o=zf(p,.075*hw*(1-q*q));uf[nv*2]=-u/26;uf[nv*2+1]=q*hu/26+.5;ub[nv*2]=-u/26;ub[nv*2+1]=q*hu/58+.5;fin(o[0],o[1],o[2],tb,arm)}
+    for(let j=0;j<=C;j++){const f=j/C,q=1-2*f,p=lerpV(Lp,Rp,f),o=zf(p,.028*hw*(1-q*q));uf[nv*2]=-u/26;uf[nv*2+1]=q*hu/26+.5;ub[nv*2]=-u/26;ub[nv*2+1]=q*hu/58+.5;fin(o[0],o[1],o[2],tb,arm,tuck)}
     nr++};
   const flat=z=>(p,b)=>[p.x,p.y,z*lam+b];
   const outward=(c,d)=>{const q=perp(c);return dot(q,d)>=0?q:mul(q,-1)};
+  const shut=env.tau>0?smooth(env.tau*1.2):0;
+  const zE=i=>isAct&&shut>0&&i!==env.bandI&&i<N-1?lerp(R[i].z,R[env.bandI].z-.9,shut):R[i].z; // hidden wraps settle just behind the band, inside the core
   for(let i=0;i<N;i++){
     const s=R[i],blade=i===N-1,tb=isAct&&blade&&env.by!=null;
+    let col=null;
+    if(shut>0&&!blade){
+      if(!isAct)col=i===0?{L:s.left[1],R:s.right[1]}:null;
+      else if(i<env.bandI)col={L:R[env.bandI].left[0],R:R[env.bandI].right[0]};
+      else if(i===N-2)col={L:s.left[1],R:s.right[1]};
+      else if(i===env.bandI+1)col={L:s.left[0],R:s.right[0]};
+    }
+    const pinchRow=isAct&&shut>0&&i<env.bandI?{L:R[env.bandI].left[0],R:R[env.bandI].right[0]}:null;
     if(i>0&&s.j0==='fold'){ // a finished fold: a half-round of cloth joining two layers
-      const cl=s.left[0],cr=s.right[0],g=(s.z-R[i-1].z)*lam,Rr=Math.abs(g)/2,sg=Math.sign(g)||1,zm=(s.z+R[i-1].z)/2*lam,nn=outward(unit(sub(cl,cr)),R[i-1].d);
-      for(let j=1;j<NB;j++){const f=PI*j/NB,off=mul(nn,Rr*Math.sin(f)),zz=zm-sg*Rr*Math.cos(f),bc=Math.abs(Math.cos(f));row(add(cl,off),add(cr,off),s.u0,(p,b)=>[p.x,p.y,zz+b*bc])}
+      const cl=s.left[0],cr=s.right[0],g=(zE(i)-zE(i-1))*lam,Rr=Math.abs(g)/2,sg=Math.sign(g)||1,zm=(zE(i)+zE(i-1))/2*lam,nn=outward(unit(sub(cl,cr)),R[i-1].d);
+      for(let j=1;j<NB;j++){const f=PI*j/NB,off=mul(nn,Rr*Math.sin(f)),zz=zm-sg*Rr*Math.cos(f),bc=Math.abs(Math.cos(f));let a=add(cl,off),b2=add(cr,off);if(pinchRow){a=lerpV(a,pinchRow.L,shut);b2=lerpV(b2,pinchRow.R,shut)}row(a,b2,s.u0,(p,b)=>[p.x,p.y,zz+b*bc],false,false,isAct&&i<N-1)}
     }
     if(!blade){
-      const len=dist(s.A,s.B),n1=Math.max(2,Math.ceil(len/5)),w0=nodes[i].ws||1,w1=nodes[i+1].ws||1,G=Math.min(18,len*.45),zf=flat(s.z);
+      const len=dist(s.A,s.B),n1=Math.max(2,Math.ceil(len/5)),w0=nodes[i].ws||1,w1=nodes[i+1].ws||1,G=Math.min(18,len*.45),zf=flat(zE(i));
       for(let r=(i>0&&s.j0==='miter')?1:0;r<=n1;r++){
         const f=r/n1,q=f*len;let Lp=lerpV(s.left[0],s.left[1],f),Rp=lerpV(s.right[0],s.right[1],f);
         if(w0<1||w1<1){const want=Math.max(Math.min(w0,w1),1-(1-w0)*(1-smooth(q/G))-(1-w1)*(1-smooth((len-q)/G))),sc=want/lerp(w0,w1,f),c=lerpV(Lp,Rp,.5);Lp=add(c,mul(sub(Lp,c),sc));Rp=add(c,mul(sub(Rp,c),sc))}
-        row(Lp,Rp,s.u0-q,zf,false,i===0);
+        if(col){Lp=lerpV(Lp,col.L,shut);Rp=lerpV(Rp,col.R,shut)}
+        row(Lp,Rp,s.u0-q,zf,false,i===0,isAct&&i>0&&i!==env.bandI);
       }
     }else{
       const A=s.A,d=s.d,m=s.m,bl=R.bl,ws=nodes[i].ws||1,feed=fold&&fold.style==='feed';
@@ -865,11 +884,18 @@ function ribbonRows(R,fold,pinch,env,out,isAct){
       let zf=flat(s.z);
       if(fold){
         const F=fold.F,c=fold.c,nn=outward(c,d),g=(fold.zTo-fold.zFrom)*lam,Rr=Math.abs(g)/2,sg=Math.sign(g)||1,zm=(fold.zTo+fold.zFrom)/2*lam,z0=fold.zFrom*lam,z1=fold.zTo*lam;
-        if(feed){ // the crease rolls from the tip toward the knot; cloth past it lies in the new layer
-          const tipR=dot(sub(add(A,mul(d,bl)),F),nn),W=3,rho=lerp(tipR+wfn(wfn.tip)*.5+2,-W/2,fold.amt);
-          zf=(p,b)=>{const rel=sub(p,F),a=dot(rel,c),rn=dot(rel,nn),dl=rn-rho;if(dl<=0)return [p.x,p.y,z0+b];
-            let r2,zz;if(dl<W){const f=PI*dl/W;r2=rho+Rr*Math.sin(f);zz=zm-sg*Rr*Math.cos(f)+b*Math.abs(Math.cos(f))}else{r2=2*rho-rn+W;zz=z1+b}
-            const q=add(F,add(mul(c,a),mul(nn,r2)));return [q.x,q.y,zz]};
+        const hg=fold.hinge;
+        if(feed){ // tip first: the cloth doubles back under itself to the fold, then runs out along its new path
+          const mO=perp(d),dN=fold.dNew,rot=(q,a)=>v(q.x*Math.cos(a)-q.y*Math.sin(a),q.x*Math.sin(a)+q.y*Math.cos(a)),ang=(a,b)=>Math.atan2(crs(a,b),dot(a,b));
+          const m1=rot(mO,ang(mul(d,-1),dN)),L1=hg?dist(F,hg.H):1e9,up=v(0,-1),m2=hg?rot(m1,ang(dN,up)):null;
+          const W=clamp(PI*Rr,3,7),rho=lerp(bl+3,-W/2,fold.amt);
+          zf=(p,b)=>{const rel=sub(p,F),sv=dot(rel,d),t=dot(rel,mO),e=sv-rho;if(e<=0)return [p.x,p.y,z0+b];
+            if(e<W){const f=PI*e/W,q=add(F,add(mul(d,rho+Rr*Math.sin(f)),mul(mO,t)));return [q.x,q.y,zm-sg*Rr*Math.cos(f)+b*Math.abs(Math.cos(f))]}
+            const dd=e-W,g=dd-rho;let q;
+            if(g<0)q=add(F,add(mul(d,rho-dd),mul(mO,t)));
+            else if(g<=L1)q=add(F,add(mul(dN,g),mul(m1,t)));
+            else q=add(hg.H,add(mul(up,g-L1),mul(m2,t)));
+            return [q.x,q.y,z1+b]};
         }else{ // a rigid flip about the crease, through the air toward you
           const th=fold.amt,ct=Math.cos(th),st=Math.sin(th);
           if(th>.04)for(let j=1;j<NB;j++){const f=th*j/NB,off=mul(nn,Rr*Math.sin(f)),zz=zm-sg*Rr*Math.cos(f),bc=Math.abs(Math.cos(f));row(add(s.left[0],off),add(s.right[0],off),s.u0,(p,b)=>[p.x,p.y,zz+b*bc])}
@@ -914,6 +940,9 @@ function Stage3D(host,canvas,labs){
     const tx=(cv,clampT)=>{const t=new T.CanvasTexture(cv);t.wrapS=T.RepeatWrapping;t.wrapT=clampT?T.ClampToEdgeWrapping:T.RepeatWrapping;t.encoding=T.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t};
     if(M.front.map)M.front.map.dispose();if(M.back.map)M.back.map.dispose();
     M.front.map=tx(c,false);M.back.map=tx(c2,true);M.front.needsUpdate=M.back.needsUpdate=true;
+    if(!M.shirt.bumpMap){const c3=document.createElement('canvas');c3.width=c3.height=64;const g3=c3.getContext('2d');g3.fillStyle='#808080';g3.fillRect(0,0,64,64);
+      for(let i=0;i<64;i+=2){g3.fillStyle=i%4?'#8c8c8c':'#747474';g3.fillRect(i,0,1,64);g3.fillRect(0,i,64,1)}
+      const bt=new T.CanvasTexture(c3);bt.wrapS=bt.wrapT=T.RepeatWrapping;bt.repeat.set(22,60);M.shirt.bumpMap=bt;M.shirt.bumpScale=.35;M.front.bumpMap=M.front.map;M.front.bumpScale=.25;M.shirt.needsUpdate=M.front.needsUpdate=true}
   }
   /* body */
   function lathe(y0,y1,step,inf,mat){
@@ -924,16 +953,48 @@ function Stage3D(host,canvas,labs){
     for(let r=0;r<ys.length-1;r++)for(let s=0;s<seg;s++){const a=r*(seg+1)+s,b=a+seg+1;I.push(a,a+1,b,a+1,b+1,b)}
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();
     const m=new T.Mesh(g,mat);m.receiveShadow=true;world.add(m);return m}
-  lathe(-171,-99,2.5,0,M.neck);lathe(-101,206,5,0,M.shirt);lathe(205,221,4,.022,M.belt);lathe(220,760,20,.008,M.trs);
+  lathe(-154,-99,2.5,0,M.neck);lathe(-101,206,5,0,M.shirt);lathe(205,221,4,.022,M.belt);lathe(220,760,20,.008,M.trs);
   {const z=torsoZ(0,213)+2.6,g=new T.Group();[[0,-9.5,30,3.4],[0,9.5,30,3.4],[-13.4,0,3.4,22],[13.4,0,3.4,22]].forEach(b=>{const m=new T.Mesh(new T.BoxGeometry(b[2],b[3],3.2),M.buckle);m.position.set(b[0],b[1],0);m.castShadow=true;g.add(m)});g.position.set(0,-213,z+1.4);world.add(g)}
   {const P=[];for(const x of[-10,10])for(let y=-78;y<205;y+=6)P.push(x,-y,torsoZ(x,y)+.25,x,-(y+6),torsoZ(x,y+6)+.25);
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));world.add(new T.LineSegments(g,M.line));
     const b=new T.Mesh(new T.CylinderGeometry(2.5,2.5,1.2,20),M.leaf);b.rotation.x=PI/2;b.position.set(0,73,torsoZ(0,-73)+.6);world.add(b)}
+  /* shirt and form details */
+  {const mesh=(g,m,cast)=>{const o=new T.Mesh(g,m);o.receiveShadow=true;o.castShadow=!!cast;world.add(o);return o};
+    const lines=P=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));world.add(new T.LineSegments(g,M.line))};
+    const onBody=(x,y,d)=>[x,-y,torsoZ(x,y)+d],seg=(P,a,b)=>P.push(a[0],a[1],a[2],b[0],b[1],b[2]);
+    // placket: a raised strip down the front, with buttons
+    {const P=[],I=[];for(let r=0;r<=48;r++){const y=lerp(-80,205,r/48);for(const x of[-10.5,-9,9,10.5])P.push(x,-y,torsoZ(x,y)+(Math.abs(x)<10?.9:.05))}
+      for(let r=0;r<48;r++)for(let c=0;c<3;c++){const a=r*4+c,b=a+4;I.push(a,b,a+1,a+1,b,b+1)}
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();mesh(g,M.shirt);
+      const L=[];for(const x of[-7.6,7.6])for(let y=-78;y<203;y+=5)seg(L,onBody(x,y,1.05),onBody(x,y+2.6,1.05));lines(L);
+      for(let y=-26;y<200;y+=47){const b=mesh(new T.CylinderGeometry(2.7,2.7,1,24),M.leaf,true);b.rotation.x=PI/2;b.position.set(0,-y,torsoZ(0,y)+1.5)}}
+    // sleeves hang from the shoulders and end in buttoned cuffs
+    for(const sx of[-1,1]){const path=new T.CatmullRomCurve3([[126,-74,-40],[146,-40,-42],[156,40,-40],[157,130,-36],[153,214,-30]].map(q=>new T.Vector3(sx*q[0],-q[1],q[2])));
+      const P=[],I=[],nr=34,ns=28;for(let r=0;r<=nr;r++){const f=r/nr,c=path.getPoint(f),rad=lerp(34,21,smooth(f*1.1))*(f>.93?1.07:1)*(f<.08?lerp(.55,1,f/.08):1),fold=1+.035*Math.sin(f*38)*smooth((f-.25)*3);
+        for(let q=0;q<=ns;q++){const a=q/ns*2*PI;P.push(c.x+rad*fold*Math.cos(a),c.y,c.z+rad*.86*Math.sin(a))}}
+      for(let r=0;r<nr;r++)for(let q=0;q<ns;q++){const a=r*(ns+1)+q,b=a+ns+1;I.push(a,a+1,b,a+1,b+1,b)}
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();mesh(g,M.shirt,true);
+      const end=path.getPoint(1),cap=mesh(new T.CylinderGeometry(21.5,21.5,.6,28),M.neck);cap.scale.z=.86;cap.position.set(end.x,end.y-.2,end.z);
+      const cb=mesh(new T.CylinderGeometry(2.2,2.2,1,18),M.leaf);cb.rotation.x=PI/2;cb.position.set(end.x+sx*4,end.y+8,end.z+20.2)}
+    // seams: shoulders, armholes, a chest pocket, trouser creases
+    {const L=[];for(const sx of[-1,1]){for(let i=0;i<14;i++){const f=i/14,g=(i+1)/14;seg(L,[sx*lerp(50,124,f),lerp(93,74,f)+.6,lerp(-26,-34,f)],[sx*lerp(50,124,g),lerp(93,74,g)+.6,lerp(-26,-34,g)])}
+        for(let y=-58;y<-6;y+=6)seg(L,onBody(sx*lerp(118,126,smooth((y+58)/52)),y,.4),onBody(sx*lerp(118,126,smooth((y+64)/52)),y+6,.4));
+        for(let y=226;y<740;y+=14)seg(L,onBody(sx*58,y,1.4),onBody(sx*58,y+14,1.4))}
+      const pk=[[-96,-6],[-54,-6],[-54,34],[-75,46],[-96,34],[-96,-6]];for(let i=0;i<5;i++)for(let j=0;j<6;j++){const a=pk[i],b=pk[i+1],f=j/6,g=(j+1)/6;seg(L,onBody(lerp(a[0],b[0],f),lerp(a[1],b[1],f),.4),onBody(lerp(a[0],b[0],g),lerp(a[1],b[1],g),.4))}
+      for(let y=226;y<300;y+=8)seg(L,onBody(0,y,1.4),onBody(0,y+8,1.4));lines(L)}
+    // belt loops and the buckle's prong
+    for(const x of[-78,-30,30,78]){const b=mesh(new T.BoxGeometry(5,19,1.6),M.trs,true);b.position.set(x,-213,torsoZ(x,213)*1.022+2.2);b.rotation.y=-x*.004}
+    {const pr=mesh(new T.BoxGeometry(15,2.2,2),M.buckle,true);pr.position.set(-5,-213,torsoZ(0,213)+5)}
+    // the form's neck ends in a turned wooden cap with a brass finial
+    {const y0=152,c1=mesh(new T.CylinderGeometry(29.5,27.5,7,48),M.belt,true);c1.position.set(0,y0+3.5,-30);
+      const c2=mesh(new T.CylinderGeometry(22,29.5,4,48),M.belt,true);c2.position.set(0,y0+9,-30);
+      const st=mesh(new T.CylinderGeometry(3.2,5,9,20),M.buckle,true);st.position.set(0,y0+15,-30);
+      const kn=mesh(new T.SphereGeometry(7.5,24,18),M.buckle,true);kn.position.set(0,y0+24,-30)}}
   /* collar: one strip from the back of the neck round to the point of each leaf, kept clear of the body */
   {const zN=-30,ring=(ps,r,y)=>[r*Math.sin(rad(ps)),y,zN+r*Math.cos(rad(ps))];
     const backZ=(x,y)=>{const q=prof(y),zc=(q.zf+q.zb)/2,bb=(q.zf-q.zb)/2,r=Math.abs(x)/q.a;return r>=1?zc:zc-bb*Math.pow(1-Math.pow(r,pexp(y)),1/pexp(y))};
     const top=[[0,-83,torsoZ(0,-83)+7.5],[33,-107,-13],ring(100,33,-111),ring(140,32,-113),ring(180,31,-114)];
-    const bot=[[33,-34,torsoZ(33,-34)+3.4],[55,-87,torsoZ(55,-87)+4],ring(100,55,-96),ring(140,47,-98),ring(180,40,-99)];
+    const bot=[[30,-46,torsoZ(30,-46)+3.4],[55,-87,torsoZ(55,-87)+4],ring(100,55,-96),ring(140,47,-98),ring(180,40,-99)];
     const cr=(a,i,f)=>{const p0=a[Math.max(1,i-1)],p1=a[i],p2=a[i+1],p3=a[Math.min(a.length-1,i+2)];return [0,1,2].map(c=>.5*((2*p1[c])+(-p0[c]+p2[c])*f+(2*p0[c]-5*p1[c]+4*p2[c]-p3[c])*f*f+(-p0[c]+3*p1[c]-3*p2[c]+p3[c])*f*f*f))};
     const rowsT=[],rowsB=[],NL=10;for(let j=0;j<=NL;j++){const f=j/NL;rowsT.push(top[0].map((q,c)=>lerp(q,top[1][c],f)));rowsB.push(bot[0].map((q,c)=>lerp(q,bot[1][c],f)))}
     for(let i=1;i<4;i++)for(let j=1;j<=6;j++){rowsT.push(cr(top,i,j/6));rowsB.push(cr(bot,i,j/6))}
@@ -962,6 +1023,14 @@ function Stage3D(host,canvas,labs){
       pa.needsUpdate=ia.needsUpdate=fa.needsUpdate=ba.needsUpdate=true;gF.setDrawRange(0,k);gB.setDrawRange(0,k);gF.computeVertexNormals();na.needsUpdate=true};
   }
   const act=new Cloth(6200),pas=new Cloth(1400);
+  /* knot core */
+  const coreG=new T.BoxGeometry(1,1,1,8,5,2),coreP=coreG.attributes.position,core0=coreP.array.slice(),coreM=new T.Mesh(coreG,M.front);coreM.castShadow=coreM.receiveShadow=true;coreM.frustumCulled=false;coreM.visible=false;world.add(coreM);
+  function setCore(s,env){
+    if(!(s.tau>0)){coreM.visible=false;return}
+    coreM.visible=true;const bd=s.act[env.bandI],g=smooth(s.tau),c=v(env.X.x,env.bandY),inset=q=>lerpV(c,q,.9*g);
+    const A=inset(bd.left[0]),B=inset(bd.left[1]),C=inset(bd.right[0]),D=inset(bd.right[1]),zF=(bd.z-.75)*env.lam,zB=-env.back+.4;
+    for(let i=0;i<coreP.count;i++){const u=core0[i*3]+.5,w=core0[i*3+1]+.5,d=core0[i*3+2]+.5,p=lerpV(lerpV(A,B,u),lerpV(C,D,u),w),q=place(p.x,p.y,lerp(zB,zF,d),false,false,false,env);coreP.setXYZ(i,q[0],-q[1],q[2])}
+    coreP.needsUpdate=true;coreG.computeVertexNormals()}
   /* arrow */
   const arrow=new T.Group();world.add(arrow);let arrowKey='';
   function setArrow(keyStr,pts){
@@ -978,7 +1047,7 @@ function Stage3D(host,canvas,labs){
   const tmp=new T.Vector3();
   function frame(K,s){
     const a=camAt(K,s.k),b=camAt(K,Math.min(K.last,s.k+1)),e=ease(s.t);let top=lerp(a.top,b.top,e),h=lerp(a.h,b.h,e);
-    if(view.close){top=s.L.X.y-74;h=172}
+    if(view.close){top=s.L.X.y-lerp(100,62,s.tau);h=lerp(206,160,s.tau)}
     world.scale.x=this.flip?-1:1;
     if(view.pov){cam.fov=46;cam.up.set(0,0,1);cam.position.set(0,222,96);cam.lookAt(0,-170-s.L.X.y*1.2,0)}
     else{
@@ -999,10 +1068,12 @@ function Stage3D(host,canvas,labs){
   this.flip=false;this.view=view;
   const build=(K,pos,delta)=>{ // fold the cloth for this moment and load it into the meshes
     const s=buildScene3(K,pos,delta),lam=lerp(LAM0,LAM1,s.tau),cl=1.3+K.nBack*lam+5*s.tau,low=1+(K.inside?lam:0);
-    const env={lam,cl,tau:s.tau,X:s.L.X,by:s.by,wy:y=>s.by==null?1:lerp(1,.1,smooth((y-s.by)/70)),low,
-      armW:(x,y)=>smooth((Math.abs(x)-33*(y+83)/49+9)/8)}; // the neck band drops to the shirt before it passes under a collar leaf
+    let topY=null,bandX=null;if(s.by!=null){const bd=s.act[K.n-2],cs=[bd.left[0],bd.left[1],bd.right[0],bd.right[1]];topY=Math.min(...cs.map(q=>q.y))+2;bandX=Math.max(4,Math.min(...cs.map(q=>Math.abs(q.x-s.L.X.x)))-2.5)}
+    const env={lam,cl,tau:s.tau,X:s.L.X,by:s.by,topY,bandX,bandI:K.n-2,bandY:s.L.bandY,wy:y=>s.by==null?1:lerp(1,.1,smooth((y-s.by)/70)),low,
+      back:K.nBack*lam+.6,
+      armW:(x,y)=>smooth((Math.abs(x)-XE(y)+3)/5)*(1-smooth((y+53)/6))*(topY==null?1:lerp(1,smooth((topY-1-y)/5),s.tau))}; // the neck band drops to the shirt before it passes under a collar leaf
     let r=ribbonRows(s.act,s.fold,s.pinch,env,act.out,true);act.set(r.nv,r.nr);this.last=r;
-    r=ribbonRows(s.pas,null,null,env,pas.out,false);pas.set(r.nv,r.nr);s.cl=cl;return s};
+    r=ribbonRows(s.pas,null,null,env,pas.out,false);pas.set(r.nv,r.nr);this.lastP=r;setCore(s,env);s.cl=cl;return s};
   this.update=function(K,pos){
     const s=build(K,pos),cl=s.cl,lift=p=>[p[0],p[1],Math.max(p[2],-cl+2.6)+tieZ(p[1])+cl],list=[];
     if(s.hint){const pts=s.hint.pts.map(lift);setArrow(K.id+':'+s.k,pts);const m=pts[Math.floor(pts.length/2)];list.push({p:[m[0],m[1],m[2]+6],t:s.hint.lab,dy:-20})}else setArrow('',null);
@@ -1019,7 +1090,7 @@ function Stage3D(host,canvas,labs){
     renderer.setPixelRatio(pr);renderer.setSize(sz.x,sz.y,false);cam.aspect=sz.x/sz.y;return url};
   this.resize=function(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h};
   this.repaint=paint;paint();this.resize();
-  this.buffer=act.out;this.build=build;
+  this.buffer=act.out;this.build=build;this.tail=pas.out;this.counts=()=>({a:this.last,p:this.lastP});
 }
 /*3D-END*/
 
