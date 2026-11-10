@@ -55,7 +55,8 @@ h1 em{font-style:italic;color:var(--tie)}
 .knot{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border:1.5px solid var(--line);border-radius:14px;background:transparent;text-align:left;min-width:0;transition:border-color .15s,background .15s}
 .knot:hover{border-color:var(--muted)}
 .knot[aria-pressed="true"]{border-color:var(--ink);background:var(--paper)}
-.knot svg{width:52px;height:52px;flex:none;border-radius:10px;background:var(--stage)}
+.knot .th{flex:none;width:52px;height:52px;border-radius:10px;overflow:hidden;background:linear-gradient(160deg,var(--stage-2),var(--stage))}
+.knot .th svg,.knot .th img{display:block;width:100%;height:100%}
 .knot b{display:block;font:600 .98rem/1.15 var(--font-body)}
 .knot span{display:block;font:500 .72rem/1.3 var(--font-mono);color:var(--muted);letter-spacing:.02em}
 
@@ -64,6 +65,13 @@ h1 em{font-style:italic;color:var(--tie)}
 .stagecol{display:flex;flex-direction:column;gap:14px;min-width:0}
 .mirror{position:relative;width:100%;max-width:560px;margin-inline:auto;aspect-ratio:4/5;border-radius:50% 50% 18px 18px / 31% 31% 18px 18px;overflow:hidden;background:linear-gradient(160deg,var(--stage-2),var(--stage) 55%);box-shadow:0 0 0 1.5px var(--ink),0 0 0 9px var(--paper),0 0 0 10.5px var(--line)}
 .mirror svg{display:block;width:100%;height:100%}
+.mirror canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
+.mirror canvas:active{cursor:grabbing}
+.labs{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lab3{position:absolute;left:0;top:0;white-space:nowrap;font:600 .68rem/1 var(--font-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--s-ink);background:var(--s-halo);padding:5px 8px;border-radius:999px;box-shadow:0 0 0 1px var(--s-ink)}
+.stagebtns{position:absolute;right:12px;bottom:10px;display:flex;gap:6px}
+.stagebtns button{font:500 .7rem/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--paper);padding:6px 9px;border-radius:999px;border:1px solid var(--line)}
+.stagebtns button:hover,.stagebtns button[aria-pressed="true"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
 .viewtag{position:absolute;left:14px;bottom:12px;font:500 .7rem/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:var(--paper);padding:6px 9px;border-radius:999px;border:1px solid var(--line)}
 .transport{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px}
 .btn{padding:10px 18px;border:1.5px solid var(--ink);border-radius:999px;background:transparent;font-weight:600;line-height:1.2}
@@ -131,7 +139,7 @@ h1 em{font-style:italic;color:var(--tie)}
 .facts p,.facts span{color:var(--muted);font-size:.95rem}
 .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .trio figure{display:flex;flex-direction:column;gap:8px;min-width:0}
-.trio svg{display:block;width:100%;height:auto;border-radius:12px;background:linear-gradient(160deg,var(--stage-2),var(--stage))}
+.trio svg,.trio img{display:block;width:100%;height:auto;border-radius:12px;background:linear-gradient(160deg,var(--stage-2),var(--stage))}
 .trio figcaption{font-size:.9rem;color:var(--muted)}
 .trio figcaption b{display:block;color:var(--ink);font-weight:600}
 .trio .ok figcaption b{color:var(--tie)}
@@ -205,6 +213,7 @@ footer{font-size:.85rem;color:var(--muted);max-width:76ch}
 @media (max-width:520px){
   .code{grid-template-columns:minmax(0,1fr)}
   .code svg{max-width:240px;margin-inline:auto}
+  .viewtag{bottom:44px}
   .dot{width:22px;height:22px;font-size:.66rem}
   .step{padding:16px}
   .trio{gap:8px}
@@ -233,7 +242,7 @@ footer{font-size:.85rem;color:var(--muted);max-width:76ch}
   <header class="mast">
     <p class="over">A fold-by-fold guide</p>
     <h1>How to tie a <em>tie</em></h1>
-    <p class="lede">Each knot is shown as one strip of cloth, folded a crease at a time. Pick a knot, watch it once, then step through it in front of a mirror.</p>
+    <p class="lede">Each knot is one strip of cloth, folded in 3D a crease at a time. Pick a knot, watch it once, drag to turn it around, then step through it in front of a mirror.</p>
   </header>
   <div class="repp" aria-hidden="true"></div>
 
@@ -243,7 +252,13 @@ footer{font-size:.85rem;color:var(--muted);max-width:76ch}
     <div class="stagecol">
       <div class="mirror">
         <svg id="stage" role="img" aria-label="Animated diagram of the tie being folded" preserveAspectRatio="xMidYMid slice"></svg>
+        <canvas id="gl" role="img" aria-label="3D model of the tie being folded on a dress form. Drag to turn it." hidden></canvas>
+        <div class="labs" id="labs" aria-hidden="true"></div>
         <div class="viewtag" id="viewtag">Mirror view</div>
+        <div class="stagebtns" id="stagebtns" hidden>
+          <button type="button" id="bClose" aria-pressed="false">Close-up</button>
+          <button type="button" id="bReset">Reset view</button>
+        </div>
       </div>
       <div class="transport">
         <button class="btn" id="bPrev" type="button">Back</button>
@@ -258,6 +273,11 @@ footer{font-size:.85rem;color:var(--muted);max-width:76ch}
         <div class="seg" role="group" aria-label="Point of view">
           <button type="button" id="vMirror" aria-pressed="true">Mirror view</button>
           <button type="button" id="vFacing" aria-pressed="false">Facing view</button>
+          <button type="button" id="vEyes" aria-pressed="false" hidden>Your eyes</button>
+        </div>
+        <div class="seg" role="group" aria-label="Rendering" id="modeSeg" hidden>
+          <button type="button" id="m3d" aria-pressed="true">3D</button>
+          <button type="button" id="mFlat" aria-pressed="false">Flat</button>
         </div>
         <div class="seg" role="group" aria-label="Speed">
           <button type="button" id="sSlow" aria-pressed="false">Slow</button>
@@ -364,6 +384,7 @@ footer{font-size:.85rem;color:var(--muted);max-width:76ch}
   <footer>Knot codes follow Fink and Mao, "Designing tie knots by random walks", Nature 398 (1999), and their book The 85 Ways to Tie a Tie. Starting lengths are a first guess. Adjust them for your height, your neck and the tie in your hand.</footer>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (()=>{
 'use strict';
@@ -382,7 +403,7 @@ const foldPt=(p,F,c,cos)=>{const nn=perp(c);return sub(p,mul(nn,(1-cos)*dot(sub(
 /* ================= the cloth ================= */
 const wWide=u=>Math.min(2*u,Math.max(18,54-.085*Math.max(0,u-27)));wWide.tip=27;
 const wTail=u=>Math.min(2*u,17);wTail.tip=8.5;
-const GEO={CL:v(-31,-74),CR:v(31,-74),belt:205,tightY:-72,px:24,pdx:3,py:14,pdy:3,cy:-29,cdy:1.5,cyT:-8,cxo:7,cyF:-33};
+const GEO={CL:v(-36,-74),CR:v(36,-74),belt:205,tightY:-72,px:24,pdx:3,py:14,pdy:3,cy:-29,cdy:1.5,cyT:-8,cxo:7,cyF:-33};
 const TA=.5,ASPECT=.8;
 
 /* ================= knots ================= */
@@ -410,7 +431,7 @@ function prep(d){
   const K=Object.assign({},d);
   K.moves=d.seq.split(' ').map(s=>({r:s[0],d:s[1]}));
   const n=K.n=K.moves.length;K.last=n+2;K.inside=K.moves[0].d==='o';
-  let f=0,b=0;K.meta=K.moves.map(m=>m.d==='i'?{z:++f,face:1}:{z:-(++b),face:0});
+  let f=0,b=0;K.meta=K.moves.map(m=>m.d==='i'?{z:++f,face:1}:{z:-(++b),face:0});K.nBack=b;
   K.metaT={z:K.meta[n-2].z-.5,face:1};
   K.tight=.47+.024*n;K.tail=150-7*(n-3);
   K.L0=layout(K,0);K.L1=layout(K,1);K.C1=chainLen(K.L1);K.Bf=GEO.belt+5-K.L1.PC.y;
@@ -473,6 +494,7 @@ function ribbon(nodes,bd,bl,metas,wfn,h0,pinch){
     }
     strips.push(s);
   }
+  strips.nodes=nodes;strips.bl=bl;strips.wfn=wfn;
   return strips;
 }
 
@@ -689,14 +711,326 @@ function makeSteps(K){
   return S;
 }
 
+/*3D-BEGIN*/
+/* ================= 3D: choreography ================= */
+/* Same folds as the flat diagram, but every layer has real depth. Folds toward you flip through the air;
+   folds that go behind are fed through the gap between tie and shirt, tip first. */
+const LIFT=.24*PI,GW=.42,COLS=6,LAM0=1.7,LAM1=1.15;
+function buildScene3(K,pos,delta){
+  const n=K.n,last=K.last,mv=K.moves;pos=clamp(pos,0,last);
+  let k=Math.floor(pos+1e-9),t=pos-k;if(k>=last){k=last;t=0}if(t<1e-4)t=0;
+  const e=ease(t),tau=k>=last?1:k===n+1?e:0;
+  const L=tau===0?K.L0:tau===1?K.L1:layout(K,tau),ch=[...L.pts,L.H,L.PC];
+  const B=K.Bf-.5*(chainLen(L)-K.C1)+(delta||0);
+  const rem=i=>{let s=B;for(let q=i;q<n;q++)s+=dist(ch[q],ch[q+1]);return s};
+  const UP=v(0,-1),DN=v(0,1);
+  let nodes,metas,bd,bl,fold=null;
+  const reset=()=>{nodes=[{p:L.CR,join:'start'}];metas=[];fold=null};
+  const port=i=>({p:ch[i],join:'fold',cut:i===n-2?L.farCut:i===n-3&&tau>0?L.stCut:null,ws:mv[i].r==='C'?lerp(GW,.5,tau):1});
+  const hNode=()=>({p:L.H,join:'miter',ws:lerp(1,.5,tau)});
+  const addPorts=c=>{for(let i=0;i<c;i++){nodes.push(port(i));metas.push(K.meta[i])}};
+  const lastP=()=>nodes[nodes.length-1].p;
+  const lifted=q=>q>=2&&q<=n&&mv[q-1].r==='C'&&mv[q-1].d==='o';
+  const plain=q=>{reset();addPorts(q-1);const F=ch[q-1];bd=unit(sub(F,lastP()));bl=dist(lastP(),F)+rem(q-1);metas.push(K.meta[q-1])};
+  const pend=(q,style,amt)=>{ // state q with the next fold part-way: at its port, or at the top of the knot when q===n
+    reset();
+    if(q<n){
+      addPorts(q-1);const F=ch[q-1],dOld=unit(sub(F,lastP()));
+      const c=q===n-1?L.farCut:creaseDir(dOld,unit(sub(ch[q],F)));
+      nodes.push({p:F,join:'pend',cut:c,ws:mv[q-1].r==='C'?GW:1});metas.push(K.meta[q-1]);
+      bd=dOld;bl=rem(q-1);metas.push(K.meta[q-1]);
+      fold={F,c,style,amt,zFrom:K.meta[q-1].z,zTo:K.meta[q].z};
+    }else{
+      addPorts(n-1);nodes.push(hNode());metas.push(K.meta[n-1]);
+      nodes.push({p:L.PC,join:'pend',cut:v(1,0),ws:GW});metas.push(K.meta[n-1]);
+      bd=UP;bl=B;metas.push(K.meta[n-1]);
+      fold={F:L.PC,c:v(1,0),style,amt,zFrom:K.meta[n-1].z,zTo:K.metaT.z};
+    }
+  };
+  if(k===0){
+    reset();const d1=unit(sub(ch[0],L.CR)),a=lerp(PI/2,Math.atan2(d1.y,d1.x),e);
+    bd=v(Math.cos(a),Math.sin(a));bl=dist(L.CR,ch[0])+rem(0);metas.push(K.meta[0]);
+  }else if(k<n-1){
+    if(t===0){if(lifted(k))pend(k,'flip',LIFT);else plain(k)}
+    else{
+      const flip=K.meta[k].z>K.meta[k-1].z,th0=lifted(k)?LIFT:0,TB=lifted(k+1)?.8:1;
+      if(t<TB){const tm=ease(t/TB);if(flip)pend(k,'flip',lerp(th0,PI,tm));else pend(k,'feed',tm)}
+      else pend(k+1,'flip',LIFT*ease((t-TB)/(1-TB)));
+    }
+  }else if(k===n-1){
+    if(t===0)plain(k);
+    else if(t<.42)pend(k,'feed',ease(t/.42));
+    else if(t<.8){
+      reset();addPorts(n-1);nodes.push(hNode());metas.push(K.meta[n-1]);
+      const dH=unit(sub(L.H,ch[n-2])),a0=Math.atan2(dH.y,dH.x);let da=-PI/2-a0;while(da>PI)da-=2*PI;while(da<-PI)da+=2*PI;
+      const a=a0+da*ease((t-.42)/.38);bd=v(Math.cos(a),Math.sin(a));bl=rem(n-1);metas.push(K.meta[n-1]);
+    }else pend(n,'flip',LIFT*ease((t-.8)/.2));
+  }else if(k===n){
+    if(t===0)pend(n,'flip',LIFT);
+    else if(t<.16)pend(n,'flip',LIFT*(1-ease(t/.16)));
+    else pend(n,'feed',ease((t-.16)/.84));
+  }else{
+    reset();addPorts(n-1);nodes.push(hNode());metas.push(K.meta[n-1]);
+    nodes.push({p:L.PC,join:'fold',cut:v(1,0),ws:GW});metas.push(K.meta[n-1]);bd=DN;bl=B;metas.push(K.metaT);
+  }
+  const act=ribbon(nodes,bd,bl,metas,wWide,K.meta[0].face?1:-1);
+  let pinch=null,by=null;
+  if(k>=n+1){
+    const band=act[n-2],eA=[band.left[0],band.left[1]],eB=[band.right[0],band.right[1]];
+    const yA=(eA[0].y+eA[1].y)/2,yB=(eB[0].y+eB[1].y)/2,bot=yA>yB?eA:eB;
+    by=Math.max(yA,yB);const s0=Math.max(2,by-L.PC.y),f0=clamp(dist(bot[0],bot[1])*.92/wWide(B-s0),.45,1);
+    if(tau>0)pinch={f:s=>lerp(1,s<s0?f0:f0+(1-f0)*smooth((s-s0)/52),tau)};
+  }
+  let J=L.J,T=L.tail;
+  if(k===0){const J0=v(L.CL.x,L.CL.y+dist(L.CL,L.J)),T0=v(L.CL.x,J0.y+(L.tail.y-L.J.y));J=lerpV(J0,L.J,e);T=lerpV(T0,L.tail,e)}
+  const pf=K.inside?0:1,pm={z:0,face:pf};
+  const pas=ribbon([{p:L.CL,join:'start'},{p:J,join:'miter'}],unit(sub(T,J)),dist(J,T),[pm,pm],wTail,pf?1:-1);
+  // the path the wide end just took, as a curve in space (z is measured from the tie's resting plane)
+  let hint=null;
+  if(t===0&&k>=1){
+    const lam=LAM0,P=(p,z)=>[p.x,p.y,z],side=(c,d)=>{const q=perp(c);return dot(q,d)>=0?q:mul(q,-1)};
+    if(k===1){
+      const a1=Math.atan2(bd.y,bd.x),pts=[];
+      for(let i=0;i<=8;i++){const a=lerp(PI/2,a1,.12+.76*i/8);pts.push([L.CR.x+118*Math.cos(a),L.CR.y+118*Math.sin(a),7])}
+      hint={pts,lab:mv[0].d==='i'?'over':'under'};
+    }else if(k<=n-1){
+      const F=ch[k-2],dOld=unit(sub(F,k>=3?ch[k-3]:L.CR)),dNew=unit(sub(ch[k-1],F)),c=creaseDir(dOld,dNew),nn=side(c,dOld);
+      const z0=K.meta[k-2].z*lam,z1=K.meta[k-1].z*lam,zm=(z0+z1)/2,r=72,pts=[];
+      if(z1>z0){const a=dot(dOld,c)*r,rn=dot(dOld,nn)*r,sd=dot(c,v(.3,1))>=0?1:-1;for(let i=0;i<=8;i++){const f=PI*(.06+.86*i/8);pts.push(P(add(F,add(mul(c,a+sd*26*Math.sin(f)),mul(nn,rn*Math.cos(f)))),zm+rn*.4*Math.sin(f)+5))}}
+      else pts.push(P(add(F,mul(dOld,r)),z0+4),P(add(F,mul(dOld,r*.42)),z0+4),P(add(F,mul(nn,17)),zm),P(add(F,mul(dNew,r*.42)),z1),P(add(F,mul(dNew,r)),z1));
+      const m=mv[k-1],pr=mv[k-2];
+      hint={pts,lab:m.d==='i'?(m.r==='C'?'up the front':pr.r==='C'?'down the front':'over the front'):(pr.r==='C'?'down through the loop':m.r==='C'?'up behind':'behind')};
+    }else if(k===n){
+      const F=ch[n-2],nn=side(L.farCut,L.dBand),zF=K.meta[n-2].z*lam+4,zB=K.meta[n-1].z*lam;
+      hint={pts:[P(add(F,mul(L.dBand,60)),zF),P(add(F,mul(L.dBand,24)),zF),P(add(F,mul(nn,16)),0),P(add(L.H,v(0,8)),zB),P(add(L.PC,mul(UP,14)),zB+10),P(add(L.PC,mul(UP,70)),zB+22)],lab:'up behind'};
+    }else if(k===n+1){
+      const zT=K.metaT.z*lam,zB=K.meta[n-1].z*lam;
+      const ax=v(34,0);hint={pts:[P(add(add(L.PC,ax),mul(UP,54)),zT+20),P(add(add(L.PC,ax),mul(UP,12)),zT+14),P(add(add(L.PC,ax),mul(DN,46)),zT+8),P(add(add(L.PC,ax),mul(DN,108)),zT+6)],lab:'through the band'};
+    }else hint={pts:[[-54,8,7],[-54,-18,7],[-54,-44,7]],lab:'slide up'};
+  }
+  return {K,k,t,tau,L,act,pas,fold,pinch,by,hint,B,face:act[act.length-1].face};
+}
+
+/* ================= 3D: the dress form ================= */
+const TOR=[[-171,.5,-30,-30.5],[-168.5,13,-17,-43],[-163,22,-8,-52],[-154,26,-4,-56],[-112,27,-3,-57],[-102,31,-3,-60],[-93,57,-1,-66],[-80,103,2.5,-74],[-60,134,7,-80],[-30,146,11.5,-84],[20,142,16,-86],[110,128,15,-83],[205,120,12,-78],[330,126,10,-82],[760,118,8,-80]];
+function prof(y){
+  const T=TOR,m=T.length;if(y<=T[0][0])return {a:T[0][1],zf:T[0][2],zb:T[0][3]};if(y>=T[m-1][0])return {a:T[m-1][1],zf:T[m-1][2],zb:T[m-1][3]};
+  let i=0;while(y>T[i+1][0])i++;
+  const h=T[i+1][0]-T[i][0],s=(y-T[i][0])/h,s2=s*s,s3=s2*s,o=[];
+  for(let c=1;c<4;c++){
+    const tg=j=>{const a=Math.max(0,j-1),b=Math.min(m-1,j+1);return (T[b][c]-T[a][c])/(T[b][0]-T[a][0])};
+    o.push((2*s3-3*s2+1)*T[i][c]+(s3-2*s2+s)*h*tg(i)+(-2*s3+3*s2)*T[i+1][c]+(s3-s2)*h*tg(i+1));
+  }
+  return {a:Math.max(.3,o[0]),zf:o[1],zb:o[2]};
+}
+const pexp=y=>lerp(2,2.7,smooth((y+104)/44));
+function torsoZ(x,y){const q=prof(y),zc=(q.zf+q.zb)/2,b=(q.zf-q.zb)/2,r=Math.abs(x)/q.a;if(r>=1)return zc;const p=pexp(y);return zc+b*Math.pow(1-Math.pow(r,p),1/p)}
+const TIEZ=(()=>{const a=[];let mx=prof(-82).zf;for(let y=-82;y<=760;y+=4){mx=Math.max(mx,prof(y).zf);a.push(mx)}return a})();
+const tieZ=y=>{if(y<=-82)return TIEZ[0];const f=Math.min(TIEZ.length-1.001,(y+82)/4),i=Math.floor(f);return lerp(TIEZ[i],TIEZ[i+1],f-i)};
+
+/* ================= 3D: cloth mesh ================= */
+function ribbonRows(R,fold,pinch,env,out,isAct){
+  const N=R.length,nodes=R.nodes,wfn=R.wfn,lam=env.lam,C=COLS,NB=5,pos=out.pos,uf=out.uf,ub=out.ub;let nv=0,nr=0;
+  const fin=(x,y,z,tb,arm)=>{
+    if(env.tau>0){
+      const dx=x-env.X.x,ax=Math.abs(dx);z-=env.tau*.02*dx*dx*(1-smooth((ax-16)/14))*env.wy(y);
+      if(tb&&env.by!=null)z-=env.tau*4.4*Math.exp(-dx*dx/14)*smooth((y-env.by+5)/7)*(1-smooth((y-env.by-4)/38));
+    }
+    if(arm){const w=env.armW(x,y);z=lerp(z+tieZ(y)+env.cl,z*(1-.5*w)+torsoZ(x,y)+env.low,w)}else z+=tieZ(y)+env.cl;
+    pos[nv*3]=x;pos[nv*3+1]=-y;pos[nv*3+2]=z;nv++};
+  const row=(Lp,Rp,u,zf,tb,arm)=>{
+    const hw=dist(Lp,Rp)/2,hu=wfn(Math.max(u,0))/2;
+    for(let j=0;j<=C;j++){const f=j/C,q=1-2*f,p=lerpV(Lp,Rp,f),o=zf(p,.075*hw*(1-q*q));uf[nv*2]=-u/26;uf[nv*2+1]=q*hu/26+.5;ub[nv*2]=-u/26;ub[nv*2+1]=q*hu/58+.5;fin(o[0],o[1],o[2],tb,arm)}
+    nr++};
+  const flat=z=>(p,b)=>[p.x,p.y,z*lam+b];
+  const outward=(c,d)=>{const q=perp(c);return dot(q,d)>=0?q:mul(q,-1)};
+  for(let i=0;i<N;i++){
+    const s=R[i],blade=i===N-1,tb=isAct&&blade&&env.by!=null;
+    if(i>0&&s.j0==='fold'){ // a finished fold: a half-round of cloth joining two layers
+      const cl=s.left[0],cr=s.right[0],g=(s.z-R[i-1].z)*lam,Rr=Math.abs(g)/2,sg=Math.sign(g)||1,zm=(s.z+R[i-1].z)/2*lam,nn=outward(unit(sub(cl,cr)),R[i-1].d);
+      for(let j=1;j<NB;j++){const f=PI*j/NB,off=mul(nn,Rr*Math.sin(f)),zz=zm-sg*Rr*Math.cos(f),bc=Math.abs(Math.cos(f));row(add(cl,off),add(cr,off),s.u0,(p,b)=>[p.x,p.y,zz+b*bc])}
+    }
+    if(!blade){
+      const len=dist(s.A,s.B),n1=Math.max(2,Math.ceil(len/5)),w0=nodes[i].ws||1,w1=nodes[i+1].ws||1,G=Math.min(18,len*.45),zf=flat(s.z);
+      for(let r=(i>0&&s.j0==='miter')?1:0;r<=n1;r++){
+        const f=r/n1,q=f*len;let Lp=lerpV(s.left[0],s.left[1],f),Rp=lerpV(s.right[0],s.right[1],f);
+        if(w0<1||w1<1){const want=Math.max(Math.min(w0,w1),1-(1-w0)*(1-smooth(q/G))-(1-w1)*(1-smooth((len-q)/G))),sc=want/lerp(w0,w1,f),c=lerpV(Lp,Rp,.5);Lp=add(c,mul(sub(Lp,c),sc));Rp=add(c,mul(sub(Rp,c),sc))}
+        row(Lp,Rp,s.u0-q,zf,false,i===0);
+      }
+    }else{
+      const A=s.A,d=s.d,m=s.m,bl=R.bl,ws=nodes[i].ws||1,feed=fold&&fold.style==='feed';
+      const sA=Math.max(dot(sub(s.left[0],A),d),dot(sub(s.right[0],A),d),0)+1.2,ss=[];
+      for(let q=sA;q<bl-wfn.tip-1;q+=feed?4:6)ss.push(q);ss.push(Math.max(sA,bl-wfn.tip));
+      const fac=q=>Math.min(1-(1-ws)*(1-smooth(q/18)),pinch?pinch.f(q):1);
+      let zf=flat(s.z);
+      if(fold){
+        const F=fold.F,c=fold.c,nn=outward(c,d),g=(fold.zTo-fold.zFrom)*lam,Rr=Math.abs(g)/2,sg=Math.sign(g)||1,zm=(fold.zTo+fold.zFrom)/2*lam,z0=fold.zFrom*lam,z1=fold.zTo*lam;
+        if(feed){ // the crease rolls from the tip toward the knot; cloth past it lies in the new layer
+          const tipR=dot(sub(add(A,mul(d,bl)),F),nn),W=3,rho=lerp(tipR+wfn(wfn.tip)*.5+2,-W/2,fold.amt);
+          zf=(p,b)=>{const rel=sub(p,F),a=dot(rel,c),rn=dot(rel,nn),dl=rn-rho;if(dl<=0)return [p.x,p.y,z0+b];
+            let r2,zz;if(dl<W){const f=PI*dl/W;r2=rho+Rr*Math.sin(f);zz=zm-sg*Rr*Math.cos(f)+b*Math.abs(Math.cos(f))}else{r2=2*rho-rn+W;zz=z1+b}
+            const q=add(F,add(mul(c,a),mul(nn,r2)));return [q.x,q.y,zz]};
+        }else{ // a rigid flip about the crease, through the air toward you
+          const th=fold.amt,ct=Math.cos(th),st=Math.sin(th);
+          if(th>.04)for(let j=1;j<NB;j++){const f=th*j/NB,off=mul(nn,Rr*Math.sin(f)),zz=zm-sg*Rr*Math.cos(f),bc=Math.abs(Math.cos(f));row(add(s.left[0],off),add(s.right[0],off),s.u0,(p,b)=>[p.x,p.y,zz+b*bc])}
+          zf=(p,b)=>{const rel=sub(p,F),a=dot(rel,c),rn=dot(rel,nn),bL=b*ct,r2=rn*ct+(Rr-sg*bL)*st,rz=rn*sg*st+(-sg*Rr+bL)*ct,q=add(F,add(mul(c,a),mul(nn,r2)));return [q.x,q.y,zm+rz]};
+        }
+      }
+      if(!(i>0&&s.j0==='miter'))row(s.left[0],s.right[0],s.u0,zf,tb,i===0);
+      for(const q of ss){const c=add(A,mul(d,q)),hw=wfn(s.u0-q)/2*fac(q);row(add(c,mul(m,hw)),sub(c,mul(m,hw)),s.u0-q,zf,tb,i===0)}
+      const tip=add(A,mul(d,bl));row(tip,tip,0,zf,tb,i===0);
+    }
+  }
+  return {nv,nr};
+}
+
+/* ================= 3D: stage ================= */
+function Stage3D(host,canvas,labs){
+  const T=window.THREE;
+  const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputEncoding=T.sRGBEncoding;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
+  const scene=new T.Scene(),world=new T.Group();scene.add(world);
+  const cam=new T.PerspectiveCamera(26,.8,20,9000);
+  const hemi=new T.HemisphereLight(0xffffff,0x8791a8,.5),key=new T.DirectionalLight(0xffffff,.5),fill=new T.DirectionalLight(0xdfe6ff,.12);
+  key.position.set(-260,420,620);key.target.position.set(0,-120,0);key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048);const sc=key.shadow.camera;sc.left=-330;sc.right=330;sc.top=420;sc.bottom=-640;sc.near=100;sc.far=1900;key.shadow.bias=-.0009;key.shadow.normalBias=.9;key.shadow.radius=3;
+  fill.position.set(320,120,420);scene.add(hemi,key,key.target,fill);
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+  const M={shirt:new T.MeshStandardMaterial({roughness:.95,metalness:0}),leaf:new T.MeshStandardMaterial({roughness:.9,side:T.DoubleSide}),
+    neck:new T.MeshStandardMaterial({roughness:.8}),trs:new T.MeshStandardMaterial({roughness:.95}),belt:new T.MeshStandardMaterial({roughness:.7}),
+    buckle:new T.MeshStandardMaterial({roughness:.3,metalness:.85}),front:new T.MeshStandardMaterial({roughness:.56,metalness:0,side:T.FrontSide}),
+    back:new T.MeshStandardMaterial({roughness:.9,side:T.BackSide}),ink:new T.MeshBasicMaterial(),halo:new T.MeshBasicMaterial({side:T.BackSide}),line:new T.LineBasicMaterial()};
+  M.front.shadowSide=T.DoubleSide;
+  function paint(){ // colours come from the page's theme tokens
+    [['shirt','--shirt'],['leaf','--leaf'],['neck','--neck'],['trs','--trouser'],['belt','--belt'],['buckle','--buckle'],['ink','--s-ink'],['halo','--s-halo'],['line','--shirt-line']].forEach(([m,t])=>M[m].color.set(css(t)).convertSRGBToLinear());
+    const S=256,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d'),u=S/26;
+    g.fillStyle=css('--tie');g.fillRect(0,0,S,S);
+    const ln=(a,w,col)=>{g.strokeStyle=col;g.lineWidth=w*u;g.beginPath();g.moveTo(a[0]*u,a[1]*u);g.lineTo(a[2]*u,a[3]*u);g.stroke()};
+    [[-26,26,26,-26],[0,26,26,0],[0,52,52,0]].forEach(a=>ln(a,6.5,css('--tie-stripe')));[[-13,26,26,-13],[0,39,39,0]].forEach(a=>ln(a,1.3,css('--tie-gold')));
+    g.globalAlpha=.09;g.strokeStyle='#000';g.lineWidth=1;for(let i=-S;i<S*2;i+=5){g.beginPath();g.moveTo(i,S);g.lineTo(i+S,0);g.stroke()}
+    const c2=document.createElement('canvas');c2.width=64;c2.height=256;const g2=c2.getContext('2d');
+    g2.fillStyle=css('--tie-deep');g2.fillRect(0,0,64,256);g2.strokeStyle=css('--tie-seam');g2.globalAlpha=.85;g2.lineWidth=3;g2.setLineDash([20,14]);g2.beginPath();g2.moveTo(0,128);g2.lineTo(64,128);g2.stroke();
+    const tx=(cv,clampT)=>{const t=new T.CanvasTexture(cv);t.wrapS=T.RepeatWrapping;t.wrapT=clampT?T.ClampToEdgeWrapping:T.RepeatWrapping;t.encoding=T.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t};
+    if(M.front.map)M.front.map.dispose();if(M.back.map)M.back.map.dispose();
+    M.front.map=tx(c,false);M.back.map=tx(c2,true);M.front.needsUpdate=M.back.needsUpdate=true;
+  }
+  /* body */
+  function lathe(y0,y1,step,inf,mat){
+    const seg=64,ys=[];for(let y=y0;y<y1;y+=step)ys.push(y);ys.push(y1);
+    const P=[],I=[];
+    ys.forEach(y=>{const q=prof(y),zc=(q.zf+q.zb)/2,b=(q.zf-q.zb)/2*(1+inf),a=q.a*(1+inf),e2=2/pexp(y);
+      for(let s=0;s<=seg;s++){const f=s/seg*2*PI,cx=Math.cos(f),sx=Math.sin(f);P.push(a*Math.sign(cx)*Math.pow(Math.abs(cx),e2),-y,zc+b*Math.sign(sx)*Math.pow(Math.abs(sx),e2))}});
+    for(let r=0;r<ys.length-1;r++)for(let s=0;s<seg;s++){const a=r*(seg+1)+s,b=a+seg+1;I.push(a,a+1,b,a+1,b+1,b)}
+    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();
+    const m=new T.Mesh(g,mat);m.receiveShadow=true;world.add(m);return m}
+  lathe(-171,-99,2.5,0,M.neck);lathe(-101,206,5,0,M.shirt);lathe(205,221,4,.022,M.belt);lathe(220,760,20,.008,M.trs);
+  {const z=torsoZ(0,213)+2.6,g=new T.Group();[[0,-9.5,30,3.4],[0,9.5,30,3.4],[-13.4,0,3.4,22],[13.4,0,3.4,22]].forEach(b=>{const m=new T.Mesh(new T.BoxGeometry(b[2],b[3],3.2),M.buckle);m.position.set(b[0],b[1],0);m.castShadow=true;g.add(m)});g.position.set(0,-213,z+1.4);world.add(g)}
+  {const P=[];for(const x of[-10,10])for(let y=-78;y<205;y+=6)P.push(x,-y,torsoZ(x,y)+.25,x,-(y+6),torsoZ(x,y+6)+.25);
+    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));world.add(new T.LineSegments(g,M.line));
+    const b=new T.Mesh(new T.CylinderGeometry(2.5,2.5,1.2,20),M.leaf);b.rotation.x=PI/2;b.position.set(0,73,torsoZ(0,-73)+.6);world.add(b)}
+  /* collar: one strip from the back of the neck round to the point of each leaf, kept clear of the body */
+  {const zN=-30,ring=(ps,r,y)=>[r*Math.sin(rad(ps)),y,zN+r*Math.cos(rad(ps))];
+    const backZ=(x,y)=>{const q=prof(y),zc=(q.zf+q.zb)/2,bb=(q.zf-q.zb)/2,r=Math.abs(x)/q.a;return r>=1?zc:zc-bb*Math.pow(1-Math.pow(r,pexp(y)),1/pexp(y))};
+    const top=[[0,-83,torsoZ(0,-83)+7.5],[33,-107,-13],ring(100,33,-111),ring(140,32,-113),ring(180,31,-114)];
+    const bot=[[33,-34,torsoZ(33,-34)+3.4],[55,-87,torsoZ(55,-87)+4],ring(100,55,-96),ring(140,47,-98),ring(180,40,-99)];
+    const cr=(a,i,f)=>{const p0=a[Math.max(1,i-1)],p1=a[i],p2=a[i+1],p3=a[Math.min(a.length-1,i+2)];return [0,1,2].map(c=>.5*((2*p1[c])+(-p0[c]+p2[c])*f+(2*p0[c]-5*p1[c]+4*p2[c]-p3[c])*f*f+(-p0[c]+3*p1[c]-3*p2[c]+p3[c])*f*f*f))};
+    const rowsT=[],rowsB=[],NL=10;for(let j=0;j<=NL;j++){const f=j/NL;rowsT.push(top[0].map((q,c)=>lerp(q,top[1][c],f)));rowsB.push(bot[0].map((q,c)=>lerp(q,bot[1][c],f)))}
+    for(let i=1;i<4;i++)for(let j=1;j<=6;j++){rowsT.push(cr(top,i,j/6));rowsB.push(cr(bot,i,j/6))}
+    for(const sx of[1,-1]){const P=[],I=[],nc=8;
+      rowsT.forEach((t,r)=>{for(let c=0;c<=nc;c++){
+        const f=c/nc,x=lerp(t[0],rowsB[r][0],f),y=lerp(t[1],rowsB[r][1],f);let z=lerp(t[2],rowsB[r][2],f)+(r<=NL?2.2*Math.sin(PI*f):0);
+        const q=prof(y),zc=(q.zf+q.zb)/2;
+        if(Math.abs(x)<q.a-.5){if(z>zc)z=Math.max(z,torsoZ(x,y)+(r<=NL?4.6:3));else z=Math.min(z,backZ(x,y)-2.6)}
+        P.push(sx*x,-y,z)}});
+      for(let r=0;r<rowsT.length-1;r++)for(let c=0;c<nc;c++){const a=r*(nc+1)+c,b=a+nc+1;sx>0?I.push(a,b,a+1,a+1,b,b+1):I.push(a,a+1,b,a+1,b+1,b)}
+      const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();
+      const m=new T.Mesh(g,M.leaf);m.castShadow=m.receiveShadow=true;world.add(m)}}
+  /* cloth */
+  function Cloth(cap){
+    const o={pos:new Float32Array(cap*3),uf:new Float32Array(cap*2),ub:new Float32Array(cap*2)},idx=new Uint16Array(cap*6);let used=0;
+    const pa=new T.BufferAttribute(o.pos,3),na=new T.BufferAttribute(new Float32Array(cap*3),3),ia=new T.BufferAttribute(idx,1),fa=new T.BufferAttribute(o.uf,2),ba=new T.BufferAttribute(o.ub,2);
+    [pa,na,ia,fa,ba].forEach(a=>a.setUsage(T.DynamicDrawUsage));
+    const gF=new T.BufferGeometry(),gB=new T.BufferGeometry();
+    gF.setAttribute('position',pa);gF.setAttribute('normal',na);gF.setAttribute('uv',fa);gF.setIndex(ia);
+    gB.setAttribute('position',pa);gB.setAttribute('normal',na);gB.setAttribute('uv',ba);gB.setIndex(ia);
+    const mF=new T.Mesh(gF,M.front),mB=new T.Mesh(gB,M.back);mF.castShadow=mF.receiveShadow=mB.receiveShadow=true;mF.frustumCulled=mB.frustumCulled=false;world.add(mF,mB);
+    this.out=o;
+    this.set=(nv,nr)=>{let k=0;const C1=COLS+1;
+      for(let r=0;r<nr-1;r++)for(let c=0;c<COLS;c++){const a=r*C1+c,b=a+C1;idx[k++]=a;idx[k++]=b;idx[k++]=a+1;idx[k++]=a+1;idx[k++]=b;idx[k++]=b+1}
+      for(let q=k;q<used;q++)idx[q]=0;used=k;
+      pa.needsUpdate=ia.needsUpdate=fa.needsUpdate=ba.needsUpdate=true;gF.setDrawRange(0,k);gB.setDrawRange(0,k);gF.computeVertexNormals();na.needsUpdate=true};
+  }
+  const act=new Cloth(6200),pas=new Cloth(1400);
+  /* arrow */
+  const arrow=new T.Group();world.add(arrow);let arrowKey='';
+  function setArrow(keyStr,pts){
+    if(keyStr===arrowKey)return;arrowKey=keyStr;
+    while(arrow.children.length){const c=arrow.children.pop();c.geometry.dispose()}
+    if(!pts)return;
+    const vs=pts.map(p=>new T.Vector3(p[0],-p[1],p[2])),curve=new T.CatmullRomCurve3(vs,false,'centripetal'),end=vs[vs.length-1],tan=curve.getTangent(1).normalize();
+    const cut=new T.CatmullRomCurve3(curve.getPoints(40).slice(0,37),false);
+    const mk=(r,mat,ro)=>{const m=new T.Mesh(new T.TubeGeometry(cut,48,r,10),mat);m.renderOrder=ro;arrow.add(m)};mk(2.6,M.halo,1);mk(1.5,M.ink,2);
+    const cone=(r,h,mat,ro)=>{const m=new T.Mesh(new T.ConeGeometry(r,h,20),mat);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),tan);m.position.copy(end).addScaledVector(tan,-h/2+1);m.renderOrder=ro;arrow.add(m)};cone(6.6,15.5,M.halo,1);cone(4.7,12,M.ink,2);
+  }
+  /* camera and controls */
+  const view={az:.3,pol:.1,zoom:1,close:false,pov:false,drag:false};
+  const tmp=new T.Vector3();
+  function frame(K,s){
+    const a=camAt(K,s.k),b=camAt(K,Math.min(K.last,s.k+1)),e=ease(s.t);let top=lerp(a.top,b.top,e),h=lerp(a.h,b.h,e);
+    if(view.close){top=s.L.X.y-74;h=172}
+    world.scale.x=this.flip?-1:1;
+    if(view.pov){cam.fov=46;cam.up.set(0,0,1);cam.position.set(0,222,96);cam.lookAt(0,-170-s.L.X.y*1.2,0)}
+    else{
+      const sway=view.drag||RM?0:Math.sin(PI*s.t),az=view.az+.24*sway*(s.k%2?-1:1),pol=view.pol+.05*sway;
+      cam.fov=26;cam.up.set(0,1,0);const d=(h/2)/Math.tan(rad(13))*view.zoom*Math.max(1,.8/cam.aspect),ty=-(top+h/2),tz=14;
+      cam.position.set(d*Math.sin(az)*Math.cos(pol),ty+d*Math.sin(pol),tz+d*Math.cos(az)*Math.cos(pol));cam.lookAt(0,ty,tz)}
+    cam.updateProjectionMatrix();
+  }
+  const labEls=[];
+  function setLabels(list){
+    while(labEls.length<list.length){const d=document.createElement('span');d.className='lab3';labs.appendChild(d);labEls.push(d)}
+    const w=canvas.clientWidth,h=canvas.clientHeight;world.updateMatrixWorld();cam.updateMatrixWorld();
+    labEls.forEach((el,i)=>{const it=list[i];if(!it){el.hidden=true;return}
+      tmp.set(it.p[0],-it.p[1],it.p[2]).applyMatrix4(world.matrixWorld).project(cam);
+      if(tmp.z>1||Math.abs(tmp.x)>1.05||Math.abs(tmp.y)>1.05){el.hidden=true;return}
+      el.hidden=false;if(el.textContent!==it.t)el.textContent=it.t;
+      el.style.transform=`translate(-50%,-50%) translate(${clamp((tmp.x+1)/2*w,46,w-46).toFixed(1)}px,${clamp((1-tmp.y)/2*h+(it.dy||0),16,h-16).toFixed(1)}px)`})}
+  this.flip=false;this.view=view;
+  const build=(K,pos,delta)=>{ // fold the cloth for this moment and load it into the meshes
+    const s=buildScene3(K,pos,delta),lam=lerp(LAM0,LAM1,s.tau),cl=1.3+K.nBack*lam+5*s.tau,low=1+(K.inside?lam:0);
+    const env={lam,cl,tau:s.tau,X:s.L.X,by:s.by,wy:y=>s.by==null?1:lerp(1,.1,smooth((y-s.by)/70)),low,
+      armW:(x,y)=>smooth((Math.abs(x)-33*(y+83)/49+9)/8)}; // the neck band drops to the shirt before it passes under a collar leaf
+    let r=ribbonRows(s.act,s.fold,s.pinch,env,act.out,true);act.set(r.nv,r.nr);this.last=r;
+    r=ribbonRows(s.pas,null,null,env,pas.out,false);pas.set(r.nv,r.nr);s.cl=cl;return s};
+  this.update=function(K,pos){
+    const s=build(K,pos),cl=s.cl,lift=p=>[p[0],p[1],Math.max(p[2],-cl+2.6)+tieZ(p[1])+cl],list=[];
+    if(s.hint){const pts=s.hint.pts.map(lift);setArrow(K.id+':'+s.k,pts);const m=pts[Math.floor(pts.length/2)];list.push({p:[m[0],m[1],m[2]+6],t:s.hint.lab,dy:-20})}else setArrow('',null);
+    if(s.t===0&&s.k===0){list.push({p:lift([GEO.CR.x+44,150,4]),t:'wide end'},{p:lift([GEO.CL.x-40,60,4]),t:'narrow end'})}
+    if(s.t===0&&s.k===K.last){list.push({p:lift([34,s.by+18,6]),t:'dimple'},{p:lift([52,GEO.belt-10,6]),t:'tip on buckle'})}
+    frame.call(this,K,s);setLabels(list);renderer.render(scene,cam);return s};
+  this.snapshot=function(K,pos,o){ // a still of the same scene, for the knot picker and the reference figures
+    const pr=renderer.getPixelRatio(),sz=renderer.getSize(new T.Vector2());
+    renderer.setPixelRatio(1);renderer.setSize(o.w,o.h,false);build(K,pos,o.delta);setArrow('',null);
+    world.scale.x=1;cam.fov=26;cam.up.set(0,1,0);cam.aspect=o.w/o.h;
+    const d=(o.h0/2)/Math.tan(rad(13)),ty=-(o.top+o.h0/2),az=o.az||0,pol=o.pol==null?.06:o.pol;
+    cam.position.set(d*Math.sin(az)*Math.cos(pol),ty+d*Math.sin(pol),14+d*Math.cos(az)*Math.cos(pol));cam.lookAt(0,ty,14);cam.updateProjectionMatrix();
+    renderer.render(scene,cam);const url=canvas.toDataURL('image/png');
+    renderer.setPixelRatio(pr);renderer.setSize(sz.x,sz.y,false);cam.aspect=sz.x/sz.y;return url};
+  this.resize=function(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h};
+  this.repaint=paint;paint();this.resize();
+  this.buffer=act.out;this.build=build;
+}
+/*3D-END*/
+
 /* ================= interface ================= */
 const KNOTS=KNOT_DATA.map(prep),MORE=MORE_DATA.map(prep),ALL=[...KNOTS,...MORE];
 const $=id=>document.getElementById(id),RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-const S={K:KNOTS[0],pos:0,target:0,playing:false,flip:false,speed:1,wait:0,lastTs:0,shown:-1,raf:0};
+const S={K:KNOTS[0],pos:0,target:0,playing:false,view:'mirror',mode:'flat',gl:null,speed:1,wait:0,lastTs:0,shown:-1,raf:0};
 const stage=$('stage');
 function thumb(K,uid){const r=sceneSVG(K,K.last,{uid,cam:{top:-98,h:76,w:76,x:-38}});return `<svg viewBox="${r.vb}" aria-hidden="true">${r.html}</svg>`}
 function buildPicker(){
-  $('knots').innerHTML=KNOTS.map(K=>`<button class="knot" type="button" data-k="${K.id}" aria-pressed="false">${thumb(K,'th'+K.id)}<span><b>${K.name}</b><span>${K.n+1} moves</span></span></button>`).join('');
+  $('knots').innerHTML=KNOTS.map(K=>`<button class="knot" type="button" data-k="${K.id}" aria-pressed="false"><span class="th" data-k="${K.id}"></span><span><b>${K.name}</b><span>${K.n+1} moves</span></span></button>`).join('');
   $('knots').addEventListener('click',ev=>{const b=ev.target.closest('.knot');if(b)setKnot(b.dataset.k,true)});
 }
 function pips(nm,val){return `<span class="meter">${nm}<span class="pips" role="img" aria-label="${val} of 5">${[1,2,3,4,5].map(i=>`<i${i<=val?' class="on"':''}></i>`).join('')}</span></span>`}
@@ -712,8 +1046,8 @@ function setKnot(id,auto){
   draw();if(auto)play();
 }
 function draw(){
-  const r=sceneSVG(S.K,S.pos,{uid:'st',flip:S.flip,hints:true});
-  stage.setAttribute('viewBox',r.vb);stage.innerHTML=r.html;
+  if(S.mode==='3d'){S.gl.flip=S.view!=='mirror';S.gl.view.pov=S.view==='eyes';S.gl.update(S.K,S.pos)}
+  else{const r=sceneSVG(S.K,S.pos,{uid:'st',flip:S.view!=='mirror',hints:true});stage.setAttribute('viewBox',r.vb);stage.innerHTML=r.html}
   $('scrub').value=S.pos;
   const fwd=S.target>=S.pos-1e-6,shown=fwd?Math.ceil(S.pos-1e-6):Math.floor(S.pos+1e-6);
   if(shown!==S.shown){S.shown=shown;panel(shown)}
@@ -756,8 +1090,30 @@ function wire(){
   $('scrub').addEventListener('change',()=>goTo(Math.round(S.pos)));
   $('dots').addEventListener('click',ev=>{const b=ev.target.closest('.dot');if(b)goTo(+b.dataset.i)});
   $('chips').addEventListener('click',ev=>{const b=ev.target.closest('.chip');if(b)goTo(+b.dataset.i)});
-  const view=f=>{S.flip=f;$('vMirror').setAttribute('aria-pressed',!f);$('vFacing').setAttribute('aria-pressed',f);$('viewtag').textContent=f?'Facing view: how others see you':'Mirror view';draw()};
-  $('vMirror').onclick=()=>view(false);$('vFacing').onclick=()=>view(true);
+  const TAGS={mirror:'Mirror view',facing:'Facing view: how others see you',eyes:'Your eyes: looking down'};
+  const view=w=>{S.view=w;[['vMirror','mirror'],['vFacing','facing'],['vEyes','eyes']].forEach(([id,k])=>$(id).setAttribute('aria-pressed',k===w));
+    $('viewtag').textContent=TAGS[w]+(S.mode==='3d'&&w!=='eyes'?' \u00b7 drag to turn':'');$('stagebtns').hidden=S.mode!=='3d'||w==='eyes';draw()};
+  $('vMirror').onclick=()=>view('mirror');$('vFacing').onclick=()=>view('facing');$('vEyes').onclick=()=>view('eyes');
+  const mode=m=>{S.mode=m;$('gl').hidden=$('labs').hidden=m!=='3d';stage.style.display=m==='3d'?'none':'';$('vEyes').hidden=m!=='3d';
+    $('m3d').setAttribute('aria-pressed',m==='3d');$('mFlat').setAttribute('aria-pressed',m!=='3d');if(m==='3d')S.gl.resize();view(m!=='3d'&&S.view==='eyes'?'mirror':S.view)};
+  S.setMode=mode;S.setView=view;
+  if(window.THREE){try{S.gl=new Stage3D(document.querySelector('.mirror'),$('gl'),$('labs'))}catch(err){S.gl=null}}
+  if(S.gl){
+    $('modeSeg').hidden=false;$('m3d').onclick=()=>mode('3d');$('mFlat').onclick=()=>mode('flat');
+    const cv=$('gl'),vw=S.gl.view;let drag=null;
+    cv.addEventListener('pointerdown',ev=>{if(vw.pov)return;drag={x:ev.clientX,y:ev.clientY,az:vw.az,pol:vw.pol,t:ev.pointerType};vw.drag=true;try{cv.setPointerCapture(ev.pointerId)}catch(e){}});
+    cv.addEventListener('pointermove',ev=>{if(!drag)return;vw.az=drag.az-(ev.clientX-drag.x)*.008;if(drag.t!=='touch')vw.pol=clamp(drag.pol+(ev.clientY-drag.y)*.006,-.3,1.15);draw()});
+    const end=()=>{if(!drag)return;drag=null;vw.drag=false;draw()};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+    cv.addEventListener('wheel',ev=>{if(!ev.ctrlKey&&!ev.metaKey)return;ev.preventDefault();vw.zoom=clamp(vw.zoom*Math.exp(ev.deltaY*.0025),.35,1.6);draw()},{passive:false});
+    const reset=()=>{vw.az=.3;vw.pol=.1;vw.zoom=1;vw.close=false;$('bClose').setAttribute('aria-pressed','false');draw()};
+    cv.addEventListener('dblclick',reset);$('bReset').onclick=reset;
+    $('bClose').onclick=()=>{vw.close=!vw.close;$('bClose').setAttribute('aria-pressed',vw.close);draw()};
+    if(window.ResizeObserver)new ResizeObserver(()=>{if(S.mode==='3d'){S.gl.resize();draw()}}).observe(document.querySelector('.mirror'));
+    const repaint=()=>{S.gl.repaint();figures()};
+    if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener('change',repaint);
+    new MutationObserver(repaint).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+    mode('3d');
+  }
   const spd=s=>{S.speed=s;$('sSlow').setAttribute('aria-pressed',s<1);$('sNorm').setAttribute('aria-pressed',s>=1)};
   $('sSlow').onclick=()=>spd(.5);$('sNorm').onclick=()=>spd(1);
   document.addEventListener('keydown',ev=>{
@@ -789,8 +1145,14 @@ ${cap(156,224,232,'Keeper loop','holds the tail')}${cap(420,212,232,'Seam','face
 }
 function trio(){
   const K=KNOTS[0],cam={top:-120,h:400,w:230,x:-115};
-  const one=(d,cls,t,s,uid)=>{const r=sceneSVG(K,K.last,{uid,bladeDelta:d,cam});return `<figure class="${cls}"><svg viewBox="${r.vb}" role="img" aria-label="${t}">${r.html}</svg><figcaption><b>${t}</b>${s}</figcaption></figure>`};
+  const pic=(d,t,uid)=>{if(S.gl)return `<img src="${S.gl.snapshot(K,K.last,{w:345,h:600,top:-124,h0:400,delta:d,az:.22})}" alt="${t}">`;const r=sceneSVG(K,K.last,{uid,bladeDelta:d,cam});return `<svg viewBox="${r.vb}" role="img" aria-label="${t}">${r.html}</svg>`};
+  const one=(d,cls,t,s,uid)=>`<figure class="${cls}">${pic(d,t,uid)}<figcaption><b>${t}</b>${s}</figcaption></figure>`;
   $('trio').innerHTML=one(-52,'','Too short','Start with the wide end lower.','tr1')+one(0,'ok','Right','Tip on the buckle.','tr2')+one(48,'','Too long','Start with the wide end higher.','tr3');
+}
+function figures(){ // stills that match the stage: rendered in 3D where WebGL is available
+  document.querySelectorAll('.knot .th').forEach(el=>{const K=ALL.find(k=>k.id===el.dataset.k);
+    el.innerHTML=S.gl?`<img src="${S.gl.snapshot(K,K.last,{w:120,h:120,top:-101,h0:80,az:.28,pol:.1})}" alt="">`:thumb(K,'th'+K.id)});
+  trio();if(S.gl)draw();
 }
 function collars(){
   const data=[['Point','Narrow gap, long points. Four-in-Hand, Kelvin, Oriental.',15,54,8.5,0],['Button-down','Soft and casual. Four-in-Hand.',17,50,8.5,1],['Semi-spread','The all-rounder. Half Windsor, Pratt.',27,45,11.5,0],['Spread or cutaway','Wide gap, short points. Full Windsor.',40,34,15,0]];
@@ -802,10 +1164,10 @@ function collars(){
     KNOTS.map(K=>`<tr><td><button class="lnk" type="button" data-k="${K.id}">${K.name}</button></td><td class="kc">${K.seq} T</td><td>${K.n+1}</td><td>${K.shape}</td><td>${K.start}</td><td>${K.collar}</td><td>${K.cloth}</td></tr>`).join('')+'</tbody>';
 }
 
-buildPicker();wire();anatomy();trio();collars();
+buildPicker();wire();anatomy();figures();collars();
 $('prints').innerHTML=KNOTS.map(K=>`<figure><svg viewBox="0 0 220 210" role="img" aria-label="Route map of the ${K.name}">${routeSVG(K,K.last)}</svg><figcaption><b>${K.name}</b><br><code>${K.seq} T</code></figcaption></figure>`).join('');
 setKnot(KNOTS[0].id,false);
-window.TieGuide={KNOTS,ALL,sceneSVG,setKnot,state:S,goTo,draw};
+window.TieGuide={KNOTS,ALL,sceneSVG,buildScene3,setKnot,state:S,goTo,draw};
 if(!RM)setTimeout(()=>{if(S.pos===0&&!S.playing)play()},900);
 })();
 </script>
