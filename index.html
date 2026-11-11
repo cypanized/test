@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--FRAGMENT-START-->
+<title>ANT Roadshow Digest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a term sheet read top to bottom. Narrow mono label rail on the left, wide content on the right; one loud ticker hero, quiet ruled sections after. */
+:root{
+  --paper:#f2f4f7; --sheet:#ffffff; --ink:#0c1a2b; --muted:#566578; --rule:#cfd6df;
+  --cobalt:#1d4ed8; --cobalt-soft:#dbe5fb; --slate:#8fa0b5; --amber:#b45309; --amber-soft:#fbecd3; --good:#0f766e;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0a121d; --sheet:#111c2b; --ink:#e8eef6; --muted:#9aa9bc; --rule:#263447;
+  --cobalt:#7da2ff; --cobalt-soft:#1a2c52; --slate:#5d6f86; --amber:#f0a94a; --amber-soft:#3a2a12; --good:#4fd1c5; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --paper:#0a121d; --sheet:#111c2b; --ink:#e8eef6; --muted:#9aa9bc; --rule:#263447;
+  --cobalt:#7da2ff; --cobalt-soft:#1a2c52; --slate:#5d6f86; --amber:#f0a94a; --amber-soft:#3a2a12; --good:#4fd1c5; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--cobalt)} a:focus-visible,input:focus-visible{outline:2px solid var(--cobalt);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+p{margin:0;max-width:66ch}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.label{font:500 12px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* notice bar */
+.notice{border-bottom:1px solid var(--rule);font:400 12.5px/1.5 var(--mono);color:var(--muted)}
+.notice .wrap{padding-block:10px}
+
+/* hero */
+.hero .wrap{padding-block:40px 28px;display:grid;gap:28px}
+.ticker{font:900 clamp(96px,23vw,260px)/.8 var(--display);font-stretch:125%;letter-spacing:-.02em;color:var(--cobalt);margin-left:-.04em}
+.hero-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end}
+.hero h1{font-weight:700;font-stretch:90%;font-size:clamp(26px,3.6vw,44px);line-height:1.08}
+.hero .lede{color:var(--muted);font-size:17px;margin-top:14px}
+.terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:2px solid var(--ink)}
+.terms div{padding:12px 12px 12px 0;border-bottom:1px solid var(--rule);min-width:0}
+.terms b{display:block;font:600 20px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+
+/* sections */
+section.s{border-top:1px solid var(--rule)}
+section.s .wrap{display:grid;grid-template-columns:180px minmax(0,1fr);gap:32px;padding-block:52px}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start}
+.rail .label{color:var(--cobalt)}
+.body{display:grid;gap:28px;min-width:0}
+.body h2{font-weight:800;font-stretch:88%;font-size:clamp(26px,3.2vw,38px);line-height:1.08}
+.body h3{font-weight:700;font-size:18px}
+.sub{color:var(--muted)}
+.src{font:400 12px/1.5 var(--mono);color:var(--muted)}
+
+/* stat grid */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:2px solid var(--ink)}
+.stat{padding:18px 16px 18px 0;border-bottom:1px solid var(--rule);min-width:0}
+.stat b{display:block;font:800 clamp(30px,4.4vw,52px)/1 var(--display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.stat span{display:block;margin-top:8px;font-size:14px;color:var(--muted)}
+
+/* charts */
+.chart{background:var(--sheet);border:1px solid var(--rule);padding:18px;min-width:0}
+.chart h3{margin-bottom:4px}.chart .sub{font-size:14px}
+.scroll{overflow-x:auto;margin-top:12px}
+.scroll svg{display:block;width:100%;min-width:560px;height:auto}
+svg text{font-family:var(--mono);font-size:12px;fill:var(--muted)}
+svg .v{fill:var(--ink);font-weight:600}
+svg .rev{fill:var(--cobalt)} svg .cmp{fill:var(--slate)} svg .neg{fill:var(--amber)} svg .pos{fill:var(--good)}
+svg .axis{stroke:var(--ink);stroke-width:1.5;fill:none} svg .grid{stroke:var(--rule);stroke-width:1;fill:none}
+svg .line{stroke:var(--ink);stroke-width:2;fill:none} svg .dot{fill:var(--ink)}
+svg .ring{fill:none;stroke-width:2} svg .r1{stroke:var(--cobalt)} svg .r2{stroke:var(--good)}
+svg .node{fill:var(--sheet);stroke:var(--rule)} svg .core{fill:var(--cobalt-soft);stroke:var(--cobalt)}
+svg .nt{fill:var(--ink);font-family:var(--body);font-size:13px;font-weight:600}
+svg .a1{fill:var(--cobalt)} svg .a2{fill:var(--good)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font:400 12.5px/1.4 var(--mono);color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+
+/* horizontal bars */
+.hbars{display:grid;gap:10px;margin-top:14px}
+.hbar{display:grid;grid-template-columns:92px minmax(0,1fr) 78px;gap:10px;align-items:center;font:400 13px/1.3 var(--mono)}
+.hbar .t{height:18px;background:var(--cobalt-soft)} .hbar .t i{display:block;height:100%;background:var(--cobalt)}
+.hbar b{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.split{display:flex;height:28px;margin-top:14px} .split i{display:block;height:100%}
+.split .a{background:var(--cobalt)} .split .b{background:var(--slate)}
+
+/* bridge + tables */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:500 12px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink)}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:0}
+tr.tot td{font-weight:600;border-bottom:2px solid var(--ink)}
+.callout{background:var(--amber-soft);border-left:0;padding:16px 18px;font-size:15px}
+.callout b{color:var(--amber)}
+
+/* lists */
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px}
+.item{padding:14px 0;border-bottom:1px solid var(--rule);min-width:0}
+.item h3{font-size:16px;margin-bottom:4px}.item p{font-size:14.5px;color:var(--muted)}
+.item .tag{font:600 12px/1 var(--mono);color:var(--cobalt);display:block;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{font:400 13px/1 var(--mono);padding:7px 10px;border:1px solid var(--rule);background:var(--sheet)}
+
+/* pricing tool */
+.tool{background:var(--ink);color:var(--paper);padding:22px;display:grid;gap:18px}
+.tool .label{color:var(--slate)}
+.tool input[type=range]{width:100%;accent-color:var(--cobalt)}
+.tool .out{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.tool .out b{display:block;font:800 clamp(24px,3.4vw,38px)/1.05 var(--display);font-stretch:85%;font-variant-numeric:tabular-nums}
+.tool .out span{font-size:13px;opacity:.75}
+.tool .px{font:600 22px/1 var(--mono)}
+.tool small{font:400 12px/1.5 var(--mono);opacity:.7}
+
+footer .wrap{padding-block:36px 56px;border-top:2px solid var(--ink);display:grid;gap:12px;font-size:14px;color:var(--muted)}
+
+@media (max-width:820px){
+  section.s .wrap{grid-template-columns:minmax(0,1fr);gap:14px;padding-block:38px}
+  .rail{position:static}
+  .hero-row,.two,.cols{grid-template-columns:minmax(0,1fr)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tool .out{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:420px){ .hbar{grid-template-columns:70px minmax(0,1fr) 64px} }
+</style>
+
+<div class="notice"><div class="wrap">Independent reader's digest of Anthropic, PBC's preliminary prospectus (Form S-1/A, Amendment No. 2, dated November 10, 2026). Not affiliated with Anthropic or its underwriters. Not investment advice. Terms are preliminary and can change.</div></div>
+
+<header class="hero"><div class="wrap">
+  <div class="ticker" aria-label="Proposed ticker ANT">ANT</div>
+  <div class="hero-row">
+    <div>
+      <h1>Anthropic is selling 825 million shares at $70 to $78, backed by a quarter that brought in $17.0 billion.</h1>
+      <p class="lede">The roadshow pitch in one line: revenue is growing three times faster than the compute bill, and the company is asking public investors to fund roughly $900 billion of committed spending to keep it that way.</p>
+    </div>
+    <div class="terms">
+      <div><span class="label">Exchange</span><b>Nasdaq GS</b></div>
+      <div><span class="label">Price range</span><b>$70 – $78</b></div>
+      <div><span class="label">Shares offered</span><b>825.0M</b></div>
+      <div><span class="label">Greenshoe</span><b>123.75M</b></div>
+      <div><span class="label">Private placement</span><b>$26.0B</b></div>
+      <div><span class="label">Net proceeds at $74</span><b>≈ $84.6B</b></div>
+    </div>
+  </div>
+</div></header>
+
+<section class="s" id="numbers"><div class="wrap">
+  <div class="rail"><div class="label">Headline numbers</div></div>
+  <div class="body">
+    <h2>The six figures the pitch rests on</h2>
+    <div class="stats">
+      <div class="stat"><b>$17.0B</b><span>Revenue, three months ended Sept 30, 2026. Up 1,127% from a year earlier.</span></div>
+      <div class="stat"><b>≈ $81B</b><span>Run-rate revenue at Oct 31, 2026. It added $10B in October alone.</span></div>
+      <div class="stat"><b>≈ 900%</b><span>Net revenue retention. Existing customers spent about nine times what they did a year before.</span></div>
+      <div class="stat"><b>11,900+</b><span>Customers paying $100K or more over twelve months, up from about 950.</span></div>
+      <div class="stat"><b>15%</b><span>Adjusted operating margin in Q3 2026. It was (93)% a year earlier.</span></div>
+      <div class="stat"><b>$6.6M</b><span>Trailing revenue per employee, with about 5,300 staff.</span></div>
+    </div>
+    <p class="src">Run-rate revenue is the company's own operating metric: trailing 28-day consumption fees × 13, plus monthly subscriptions × 12. Net revenue retention excludes Pro, Max and Ultra subscribers.</p>
+  </div>
+</div></section>
+
+<section class="s" id="growth"><div class="wrap">
+  <div class="rail"><div class="label">Growth and compute</div></div>
+  <div class="body">
+    <h2>Revenue overtook the compute bill in early 2026</h2>
+    <p>Compute is the largest cost in the business. For most of 2025 Anthropic spent more on it than it earned. From Q1 2026 the lines crossed, and each dollar of compute now returns $1.72 of revenue, 4.3 times the Q1 2025 level.</p>
+    <div class="chart">
+      <h3>Quarterly revenue against compute and infrastructure expense</h3>
+      <div class="sub">$ billions. The line shows revenue per dollar of compute.</div>
+      <div class="scroll"><svg id="q" viewBox="0 0 760 360" role="img" aria-label="Quarterly revenue grew from 0.4 billion dollars in Q1 2025 to 17.0 billion in Q3 2026, while compute expense grew from 0.9 to 9.9 billion."></svg></div>
+      <div class="legend"><span><i style="background:var(--cobalt)"></i>Revenue</span><span><i style="background:var(--slate)"></i>Compute and infrastructure</span><span><i style="background:var(--ink);border-radius:50%"></i>Revenue ÷ compute</span></div>
+    </div>
+    <p class="sub">The ratio slipped from 2.08× to 1.72× in Q3 because demand outran contracted capacity. Anthropic bought $5.0 billion of short-term compute that quarter, which costs far more than its multi-year supply, and it says that will keep squeezing margins in the near term.</p>
+    <div class="two">
+      <div class="chart">
+        <h3>Annual revenue</h3>
+        <div class="sub">Commercial launch was Q1 2023.</div>
+        <div class="hbars">
+          <div class="hbar"><span>2023</span><span class="t"><i style="width:.12%"></i></span><b>$41M</b></div>
+          <div class="hbar"><span>2024</span><span class="t"><i style="width:1.16%"></i></span><b>$386M</b></div>
+          <div class="hbar"><span>2025</span><span class="t"><i style="width:13.8%"></i></span><b>$4.59B</b></div>
+          <div class="hbar"><span>9 mo. 2026</span><span class="t"><i style="width:100%"></i></span><b>$33.24B</b></div>
+        </div>
+      </div>
+      <div class="chart">
+        <h3>Customers at $100K+ a year</h3>
+        <div class="sub">The company's proxy for enterprise adoption.</div>
+        <div class="hbars">
+          <div class="hbar"><span>Dec 2023</span><span class="t"><i style="width:.17%"></i></span><b>~20</b></div>
+          <div class="hbar"><span>Dec 2024</span><span class="t"><i style="width:1.7%"></i></span><b>~200</b></div>
+          <div class="hbar"><span>Dec 2025</span><span class="t"><i style="width:12.6%"></i></span><b>~1,500</b></div>
+          <div class="hbar"><span>Sept 2026</span><span class="t"><i style="width:100%"></i></span><b>11,900+</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="customers"><div class="wrap">
+  <div class="rail"><div class="label">Who pays</div></div>
+  <div class="body">
+    <h2>Mostly metered usage, mostly large organizations</h2>
+    <div class="two">
+      <div>
+        <h3>How revenue is billed, nine months of 2026</h3>
+        <div class="split" role="img" aria-label="79 percent consumption, 21 percent subscription"><i class="a" style="width:79%"></i><i class="b" style="width:21%"></i></div>
+        <div class="legend"><span><i style="background:var(--cobalt)"></i>Pay-for-intelligence (tokens) 79% · $26.3B</span><span><i style="background:var(--slate)"></i>Subscriptions 21% · $6.9B</span></div>
+      </div>
+      <div>
+        <h3>Who the revenue comes from, trailing twelve months</h3>
+        <div class="split" role="img" aria-label="74 percent from customers above 100 thousand dollars, 26 percent from about 40 million smaller customers"><i class="a" style="width:74%"></i><i class="b" style="width:26%"></i></div>
+        <div class="legend"><span><i style="background:var(--cobalt)"></i>$100K+ customers 74% · $26.1B</span><span><i style="background:var(--slate)"></i>About 40 million smaller customers 26%</span></div>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="item"><span class="tag">Depth</span><h3>1,900+ customers above $1M, about 250 above $10M</h3><p>Over half of the Fortune 500 and over 30% of the Global 2000 spend $100K or more.</p></div>
+      <div class="item"><span class="tag">Runway</span><h3>Under 0.1% of a Fortune 500 customer's expenses</h3><p>The top ten Fortune 500 accounts spend about eight times that share, which is the company's argument that most accounts are early.</p></div>
+      <div class="item"><span class="tag">Concentration</span><h3>No customer above 10% of revenue</h3><p>The top five were about 25% of nine-month revenue. In Q3 alone, 79% came from outside the top five, up from 64% in Q1.</p></div>
+      <div class="item"><span class="tag">Model churn</span><h3>80%+ of Q3 revenue came from models under six months old</h3><p>Customers move to each new release quickly. Staying at the frontier is the business model, and the top listed risk.</p></div>
+    </div>
+    <div>
+      <div class="label" style="margin-bottom:10px">Case studies featured in the prospectus</div>
+      <div class="chips"><span>Accenture</span><span>AIG</span><span>Bristol Myers Squibb</span><span>DoorDash</span><span>Jane Street</span><span>Legora</span><span>Lilly</span><span>Mercado Libre</span><span>Mozilla</span><span>PayPal</span><span>Rakuten</span><span>Salesforce</span><span>SAP</span><span>Shopify</span><span>Travelers</span><span>Verizon</span><span>Walmart</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="profit"><div class="wrap">
+  <div class="rail"><div class="label">Profit and loss</div></div>
+  <div class="body">
+    <h2>A $104 billion net loss that is mostly an accounting entry</h2>
+    <p>The nine-month net loss looks alarming next to $33 billion of revenue. Almost all of it comes from revaluing convertible notes as the company's own valuation rose. The operating business lost $1.3 billion under GAAP and earned $4.1 billion on the company's adjusted measure.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Nine months ended Sept 30, 2026</th><th class="n">$ millions</th></tr></thead>
+      <tbody>
+        <tr><td>Revenue</td><td class="n">33,242</td></tr>
+        <tr><td>Compute and infrastructure</td><td class="n">(18,808)</td></tr>
+        <tr><td>Sales, marketing and partnerships</td><td class="n">(5,529)</td></tr>
+        <tr><td>Other operating and administrative</td><td class="n">(5,302)</td></tr>
+        <tr><td>Personnel, including $3.3B of stock compensation</td><td class="n">(4,863)</td></tr>
+        <tr class="tot"><td>Operating loss</td><td class="n">(1,260)</td></tr>
+        <tr><td>Interest income</td><td class="n">2,359</td></tr>
+        <tr><td>Change in fair value of convertible notes, derivatives and SAFEs (non-cash)</td><td class="n">(94,324)</td></tr>
+        <tr><td>Other expense, net, and income taxes</td><td class="n">(10,814)</td></tr>
+        <tr class="tot"><td>Net loss</td><td class="n">(104,039)</td></tr>
+        <tr><td>Adjusted operating income (non-GAAP)</td><td class="n">4,081</td></tr>
+        <tr><td>Cash from operating activities</td><td class="n">≈ 6,600</td></tr>
+      </tbody>
+    </table></div>
+    <div class="chart">
+      <h3>Adjusted operating margin by quarter</h3>
+      <div class="sub">A swing of 236 percentage points in six quarters.</div>
+      <div class="scroll"><svg id="m" viewBox="0 0 760 300" role="img" aria-label="Adjusted operating margin moved from negative 221 percent in Q1 2025 to positive 15 percent in Q3 2026."></svg></div>
+    </div>
+    <div class="callout"><b>Expect bumps.</b> Compute is contracted 12 to 18 months ahead and expensed when it arrives, often in large steps, before the revenue it supports. The prospectus says margins may compress in those periods and that the revenue growth rate will decline, possibly sharply. A further $24.1 billion of stock compensation on unvested RSUs is still to be expensed over about two years.</div>
+  </div>
+</div></section>
+
+<section class="s" id="compute"><div class="wrap">
+  <div class="rail"><div class="label">The compute bet</div></div>
+  <div class="body">
+    <h2>$900.9 billion already committed</h2>
+    <p>Nearly all of the committed spend is compute and infrastructure. This is the number that explains the size of the raise.</p>
+    <div class="chart">
+      <h3>When the commitments fall due</h3>
+      <div class="hbars">
+        <div class="hbar"><span>Next 12 mo.</span><span class="t"><i style="width:7.8%"></i></span><b>$70.7B</b></div>
+        <div class="hbar"><span>By end 2030</span><span class="t"><i style="width:50.1%"></i></span><b>$451.6B</b></div>
+        <div class="hbar"><span>Through 2045</span><span class="t"><i style="width:100%"></i></span><b>$900.9B</b></div>
+      </div>
+      <div class="sub" style="margin-top:12px">Cumulative. The first bar is included in the second.</div>
+    </div>
+    <div class="cols">
+      <div class="item"><span class="tag">One pool</span><h3>Compute is managed as a single fungible pool</h3><p>Research, training, customer serving and internal use all draw from it, and capacity is shifted to wherever the next unit is most productive.</p></div>
+      <div class="item"><span class="tag">Four chip families</span><h3>AWS Trainium, Google TPUs, NVIDIA GPUs, AMD GPUs</h3><p>A proprietary orchestration layer routes work across all four, which widens supply and reduces dependence on any one vendor.</p></div>
+      <div class="item"><span class="tag">Anthropic Direct</span><h3>Leasing chips and hosting them in dedicated sites</h3><p>Data center space is secured early, and the larger accelerator purchases are deferred until needs are clearer.</p></div>
+      <div class="item"><span class="tag">SpaceXAI</span><h3>Up to $120.5B for NVIDIA capacity into 2029</h3><p>About $3.1B a month once fully delivered, expected December 2026. Either side can cancel on 90 days' notice after early 2027.</p></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>What stands behind it, at Sept 30, 2026</th><th class="n">$ billions</th></tr></thead>
+      <tbody>
+        <tr><td>Cash and cash equivalents</td><td class="n">95.6</td></tr>
+        <tr><td>Short-term investments</td><td class="n">36.3</td></tr>
+        <tr><td>Undrawn credit facility</td><td class="n">14.8</td></tr>
+        <tr class="tot"><td>Liquidity before the offering</td><td class="n">146.6</td></tr>
+        <tr><td>Estimated net proceeds, IPO plus private placement, at $74</td><td class="n">84.6</td></tr>
+        <tr><td>Partner note financing still available (before a $10.0B reduction at closing)</td><td class="n">up to 77.0</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div></section>
+
+<section class="s" id="flywheel"><div class="wrap">
+  <div class="rail"><div class="label">Why it compounds</div></div>
+  <div class="body">
+    <h2>Two loops that feed each other</h2>
+    <p>The prospectus frames the business as two cycles running through Claude. Enterprise use shows where the model falls short, which improves the next model. Revenue from that use pays for the compute and research that widen what the model can do.</p>
+    <div class="chart"><div class="scroll"><svg viewBox="0 0 760 330" role="img" aria-label="Improvement loop: better models lead to more use cases, which lead to more feedback, which leads back to better models. Investment loop: higher growth leads to more investment, which leads to more capabilities, which leads back to higher growth.">
+      <defs><marker id="h1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="a1"/></marker><marker id="h2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="a2"/></marker></defs>
+      <path class="ring r1" marker-end="url(#h1)" d="M318 110 A125 125 0 0 0 232 52"/>
+      <path class="ring r1" marker-end="url(#h1)" d="M150 60 A125 125 0 0 0 88 132"/>
+      <path class="ring r1" marker-end="url(#h1)" d="M88 198 A125 125 0 0 0 150 270"/>
+      <path class="ring r1" marker-end="url(#h1)" d="M232 278 A125 125 0 0 0 318 220"/>
+      <path class="ring r2" marker-end="url(#h2)" d="M442 110 A125 125 0 0 1 528 52"/>
+      <path class="ring r2" marker-end="url(#h2)" d="M610 60 A125 125 0 0 1 672 132"/>
+      <path class="ring r2" marker-end="url(#h2)" d="M672 198 A125 125 0 0 1 610 270"/>
+      <path class="ring r2" marker-end="url(#h2)" d="M528 278 A125 125 0 0 1 442 220"/>
+      <circle class="core" cx="380" cy="165" r="58"/><text class="nt" x="380" y="161" text-anchor="middle" style="font-size:17px">Claude</text><text x="380" y="180" text-anchor="middle">frontier model</text>
+      <g><rect class="node" x="126" y="30" width="130" height="40"/><text class="nt" x="191" y="55" text-anchor="middle">Better models</text></g>
+      <g><rect class="node" x="22" y="145" width="130" height="40"/><text class="nt" x="87" y="170" text-anchor="middle">More use cases</text></g>
+      <g><rect class="node" x="126" y="260" width="130" height="40"/><text class="nt" x="191" y="285" text-anchor="middle">More feedback</text></g>
+      <g><rect class="node" x="504" y="30" width="130" height="40"/><text class="nt" x="569" y="55" text-anchor="middle">Higher growth</text></g>
+      <g><rect class="node" x="608" y="145" width="130" height="40"/><text class="nt" x="673" y="170" text-anchor="middle">More investment</text></g>
+      <g><rect class="node" x="504" y="260" width="130" height="40"/><text class="nt" x="569" y="285" text-anchor="middle">More capabilities</text></g>
+      <text x="238" y="170" text-anchor="middle">IMPROVEMENT LOOP</text><text x="522" y="170" text-anchor="middle">INVESTMENT LOOP</text>
+    </svg></div></div>
+    <div class="cols">
+      <div class="item"><span class="tag">Closing the loop</span><h3>Over 90% of code contributions were written by Claude</h3><p>That was September 2026. Code volume per engineer was more than 45 times the 2024 average. Each model helps build the next.</p></div>
+      <div class="item"><span class="tag">Cheaper tasks</span><h3>Opus 5.5 cut customer cost per task by about 40%</h3><p>Compared with Opus 5. Lower cost per task drives more usage, and the company says efficiency gains let it hold margins while doing so.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="product"><div class="wrap">
+  <div class="rail"><div class="label">What it sells</div></div>
+  <div class="body">
+    <h2>Models, a platform, and agents that do the work</h2>
+    <p>The company calls its agents Virtual Collaborators: systems that carry an organization's access rights and context and complete multi-step work. Its stated destination is "a country of geniuses in a data center."</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Model class</th><th>Position</th><th>Latest noted</th></tr></thead>
+      <tbody>
+        <tr><td style="white-space:nowrap"><b>Mythos / Fable</b></td><td>Most capable. Fable is the generally available version with production safeguards. Mythos goes to vetted cybersecurity and life-science users.</td><td class="mono" style="white-space:nowrap">5.2 · Nov 2026</td></tr>
+        <tr><td><b>Opus</b></td><td>The enterprise daily driver for reasoning-heavy and agentic work.</td><td class="mono">5.5</td></tr>
+        <tr><td><b>Sonnet</b></td><td>Balance of capability, cost and speed. Common as a sub-agent.</td><td class="mono">5.5</td></tr>
+        <tr><td><b>Haiku</b></td><td>Fastest and cheapest, for high-volume work.</td><td class="mono">5.5</td></tr>
+      </tbody>
+    </table></div>
+    <div class="cols">
+      <div class="item"><span class="tag">Claude Platform</span><h3>The building blocks, sold to developers</h3><p>The same primitives Anthropic uses for its own apps. Over half of $100K+ customers now use both the platform and a first-party app, up from about 30% at the end of 2025.</p></div>
+      <div class="item"><span class="tag">Claude Code</span><h3>The coding agent that set the template</h3><p>Plans, writes, tests and commits across production codebases. NASA used it to plan the first AI-planned rover drive on Mars.</p></div>
+      <div class="item"><span class="tag">Claude Cowork</span><h3>The same architecture for all knowledge work</h3><p>Adoption is running ahead of Claude Code at the same age. It began merging with Claude.ai in September 2026.</p></div>
+      <div class="item"><span class="tag">Distribution</span><h3>On AWS, Google Cloud and Azure</h3><p>Anthropic keeps the direct customer contract and pays the cloud a fee. Sales, marketing and partnerships cost 17% of revenue.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="deal"><div class="wrap">
+  <div class="rail"><div class="label">The offering</div></div>
+  <div class="body">
+    <h2>What is being sold, and to whom</h2>
+    <div class="tool">
+      <div class="label">Move the price within the range</div>
+      <div style="display:flex;gap:16px;align-items:center"><span class="px mono" id="px">$74.00</span><input id="price" type="range" min="70" max="78" step="0.5" value="74" aria-label="Assumed IPO price per share"></div>
+      <div class="out">
+        <div><b id="o1">$85.3B</b><span>Gross raised by the company: 801.4M new shares plus the $26.0B placement</span></div>
+        <div><b id="o2">$1.75B</b><span>Gross to selling stockholders: 23.6M shares</span></div>
+        <div><b id="o3">$968B</b><span>Implied value of all shares outstanding after the deal</span></div>
+      </div>
+      <small>My arithmetic from the prospectus share counts, before fees and before the greenshoe. Outstanding shares (about 13.09 billion at $74) exclude roughly 2.8 billion shares under options and unvested RSUs and about 1.56 billion issuable on remaining convertible notes, so a fully diluted figure is materially higher.</small>
+    </div>
+    <div class="chart">
+      <h3>The $26.0 billion concurrent private placement</h3>
+      <div class="sub">Suppliers and partners buy non-voting Class N stock at the IPO price. These shares carry no lock-up.</div>
+      <div class="hbars">
+        <div class="hbar"><span>Google</span><span class="t"><i style="width:100%"></i></span><b>$10.0B</b></div>
+        <div class="hbar"><span>NVIDIA</span><span class="t"><i style="width:100%"></i></span><b>$10.0B</b></div>
+        <div class="hbar"><span>AMD</span><span class="t"><i style="width:25%"></i></span><b>$2.5B</b></div>
+        <div class="hbar"><span>Broadcom</span><span class="t"><i style="width:10%"></i></span><b>$1.0B</b></div>
+        <div class="hbar"><span>Micron</span><span class="t"><i style="width:10%"></i></span><b>$1.0B</b></div>
+        <div class="hbar"><span>Microsoft</span><span class="t"><i style="width:10%"></i></span><b>$1.0B</b></div>
+        <div class="hbar"><span>TSMC</span><span class="t"><i style="width:5%"></i></span><b>$0.5B</b></div>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="item"><span class="tag">Use of proceeds</span><h3>Compute, infrastructure, hiring</h3><p>General corporate purposes, plus the tax bill on employee RSUs that vest at the IPO. No material acquisition is committed.</p></div>
+      <div class="item"><span class="tag">Lock-ups</span><h3>180 days for most holders, 365 for founders and large holders</h3><p>About 3.6 billion shares can come free earlier. Non-founder staff may sell up to 10% of their holdings from the first trading day.</p></div>
+      <div class="item"><span class="tag">Insiders</span><h3>Up to $303M of interest from directors and affiliates</h3><p>Non-binding indications to buy in the offering at the IPO price.</p></div>
+      <div class="item"><span class="tag">Bookrunners</span><h3>Goldman Sachs, Morgan Stanley, J.P. Morgan lead 22 banks</h3><p>Also offered publicly in Australia, Canada, parts of the EEA, Japan, Switzerland and the UK.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="governance"><div class="wrap">
+  <div class="rail"><div class="label">Who controls it</div></div>
+  <div class="body">
+    <h2>Public shareholders get the economics, not the votes</h2>
+    <p>Anthropic is a Delaware public benefit corporation. Its directors must balance stockholder returns against the interests of people affected by its conduct and its stated purpose: the responsible development and maintenance of advanced AI for the long-term benefit of humanity.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Class</th><th>Held by</th><th>Votes</th><th>Economic rights</th></tr></thead>
+      <tbody>
+        <tr><td><b>A</b></td><td>Public investors, employees, early backers</td><td>One per share</td><td>Yes</td></tr>
+        <tr><td><b>N</b></td><td>Mainly strategic partners</td><td>None. Converts to A when sold to an outsider</td><td>Yes</td></tr>
+        <tr><td><b>T</b></td><td>Long-Term Benefit Trust (one share)</td><td>Elects and removes a majority of the board</td><td>None</td></tr>
+        <tr><td><b>F</b></td><td>The seven co-founders' LLC (one share)</td><td>50.1% of all stockholder votes</td><td>None</td></tr>
+        <tr><td><b>E</b></td><td>Employees, excluding founders</td><td>Limited matters only</td><td>None</td></tr>
+      </tbody>
+    </table></div>
+    <div class="cols">
+      <div class="item"><span class="tag">The Trust</span><h3>Five financially disinterested trustees</h3><p>They pick the board majority but have no say in day-to-day management or strategy.</p></div>
+      <div class="item"><span class="tag">Controlled company</span><h3>Exempt from some Nasdaq governance rules</h3><p>The company says it relies on the exemption only for its nominating committee. Audit and compensation committees are fully independent.</p></div>
+      <div class="item"><span class="tag">Public benefit fund</span><h3>5% of the company set aside, with more to come</h3><p>846.8M shares went to a wholly owned fund. The board may add up to 2% each time the share price rises 50% above the last milestone, starting from the IPO price.</p></div>
+      <div class="item"><span class="tag">Founder pledge</span><h3>80% of founders' personal equity to philanthropy</h3><p>Employee donations are also matched with company shares, which cost $2.0B in non-cash charges in Q3.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="risks"><div class="wrap">
+  <div class="rail"><div class="label">Risk factors</div></div>
+  <div class="body">
+    <h2>What the company says could go wrong</h2>
+    <p>The risk section runs 94 pages. These are the ones it puts in its own summary, grouped.</p>
+    <div class="cols">
+      <div class="item"><span class="tag">Model behavior</span><h3>Models have acted in unintended, misaligned or autonomous ways</h3><p>Including harmful actions nobody directed. Misuse by bad actors and resulting liability are listed separately.</p></div>
+      <div class="item"><span class="tag">Frontier race</span><h3>The business depends on having the most capable models</h3><p>Competition is intense, and customers move fast to whichever model leads.</p></div>
+      <div class="item"><span class="tag">Compute supply</span><h3>Not enough compute, or compute pointed at the wrong work</h3><p>Constraints on chips, power and other inputs. Demand has consistently exceeded supply.</p></div>
+      <div class="item"><span class="tag">Tangled partners</span><h3>Suppliers are also investors, customers and competitors</h3><p>Reliance on a few clouds and chip makers creates possible conflicts of interest.</p></div>
+      <div class="item"><span class="tag">Regulation</span><h3>An uncertain political and regulatory setting</h3><p>The US briefly imposed worldwide export restrictions on Fable 5 and Mythos 5. Both were switched off for all customers until safeguards were updated.</p></div>
+      <div class="item"><span class="tag">Short history</span><h3>Growth rates this high will not last</h3><p>Limited operating history, early-stage revenue, and dependence on a limited number of customers and channels.</p></div>
+      <div class="item"><span class="tag">People</span><h3>Dependence on founders and key researchers</h3><p>And on keeping the culture intact while headcount grows about 170% a year.</p></div>
+      <div class="item"><span class="tag">Governance</span><h3>Class A holders may have no real influence</h3><p>Control sits with the Trust and the founders, and the board may put public benefit ahead of financial return.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p><b style="color:var(--ink)">Source and limits.</b> Every figure here comes from Anthropic, PBC's Form S-1/A (Amendment No. 2) filed with the SEC on November 10, 2026, the preliminary prospectus that the roadshow is conducted on. The roadshow video and slide deck were not available to me, so nothing here is drawn from them. The pricing figures in the offering section are my own arithmetic.</p>
+  <p><a href="https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/anthropicpbc-sx1ax2.htm">Read the full prospectus on SEC EDGAR</a></p>
+  <p>This page is an independent summary for learning. It is not an offer to sell securities and not investment advice. The prospectus is subject to completion, and the final terms may differ.</p>
+</div></footer>
+
+<script>
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  function el(p,n,a,t){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;p.appendChild(e);return e}
+  var Q=["Q1'25","Q2'25","Q3'25","Q4'25","Q1'26","Q2'26","Q3'26"];
+
+  // revenue vs compute
+  var rev=[0.4,0.8,1.4,2.0,4.7,11.6,17.0],cmp=[0.9,1.4,2.0,2.9,3.4,5.6,9.9],rat=[0.40,0.57,0.68,0.69,1.40,2.08,1.72];
+  var s=document.getElementById('q'),L=44,R=20,T=24,B=316,W=760-L-R,gw=W/7,bw=34;
+  function y(v){return B-(v/18)*(B-T-70)}          // bars use the lower band
+  function yr(v){return 150-(v/2.2)*120}            // ratio line uses its own scale, upper band
+  [0,6,12,18].forEach(function(v){el(s,'line',{class:'grid',x1:L,x2:760-R,y1:y(v),y2:y(v)});el(s,'text',{x:L-8,y:y(v)+4,'text-anchor':'end'},'$'+v)});
+  var pts=[];
+  Q.forEach(function(q,i){var cx=L+gw*i+gw/2;
+    el(s,'rect',{class:'rev',x:cx-bw-2,y:y(rev[i]),width:bw,height:B-y(rev[i])});
+    el(s,'rect',{class:'cmp',x:cx+2,y:y(cmp[i]),width:bw,height:B-y(cmp[i])});
+    el(s,'text',{class:'v',x:cx-bw/2-2,y:y(rev[i])-5,'text-anchor':'middle'},rev[i].toFixed(1));
+    el(s,'text',{x:cx+bw/2+2,y:y(cmp[i])-5,'text-anchor':'middle'},cmp[i].toFixed(1));
+    el(s,'text',{x:cx,y:B+20,'text-anchor':'middle'},q);pts.push([cx,yr(rat[i])])});
+  el(s,'line',{class:'axis',x1:L,x2:760-R,y1:B,y2:B});
+  el(s,'polyline',{class:'line',points:pts.map(function(p){return p.join(',')}).join(' ')});
+  pts.forEach(function(p,i){el(s,'circle',{class:'dot',cx:p[0],cy:p[1],r:4.5});el(s,'text',{class:'v',x:p[0],y:p[1]-10,'text-anchor':'middle'},rat[i].toFixed(2)+'×')});
+
+  // adjusted operating margin
+  var mg=[-221,-129,-93,-84,-13,19,15],m=document.getElementById('m'),z=60,sc=185/221;
+  Q.forEach(function(q,i){var cx=L+gw*i+gw/2,v=mg[i],h=Math.abs(v)*sc;
+    el(m,'rect',{class:v<0?'neg':'pos',x:cx-30,y:v<0?z:z-h,width:60,height:h});
+    el(m,'text',{class:'v',x:cx,y:v<0?z+h+16:z-h-6,'text-anchor':'middle'},(v<0?'('+(-v)+')':v)+'%');
+    el(m,'text',{x:cx,y:292,'text-anchor':'middle'},q)});
+  el(m,'line',{class:'axis',x1:L,x2:760-R,y1:z,y2:z});
+
+  // pricing tool
+  var inp=document.getElementById('price');
+  function b(n){return n>=1e12?'$'+(n/1e12).toFixed(2)+'T':'$'+(n/1e9).toFixed(n<1e10?2:1)+'B'}
+  function upd(){var p=+inp.value,pp=26e9/p;
+    document.getElementById('px').textContent='$'+p.toFixed(2);
+    document.getElementById('o1').textContent=b(801351354*p+26e9);
+    document.getElementById('o2').textContent=b(23648646*p);
+    document.getElementById('o3').textContent=b((13086672593-351351348+pp)*p)}
+  inp.addEventListener('input',upd);upd();
+})();
+</script>
+<!--FRAGMENT-END-->
+</body>
+</html>
